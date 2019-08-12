@@ -2,7 +2,7 @@
 The pipeline requires Python version 3.5.
 
 ## Python 3.5 installation (optional)
-The instructions below will be useful:
+The instructions in this section will be useful:
 * If you have a newer version of Python and want to install Python 3.5 without replacing your default `python`
   executable;
 * If you are running the pipeline on the `ebi-cli` cluster, which currently only supports Python 3.4.
@@ -36,7 +36,7 @@ You can now invoke the new installation as `python3.5`.
 
 ### Non-root installation
 This is the only way which will work on the `ebi-cli` cluster. It is also useful if you need to have more than one
-minor version installed, e. g. Python 3.5.0 and 3.5.6, simultaneously.
+minor version installed simultaneously, e. g. Python 3.5.0 and 3.5.6.
 
 You can optionally add `--enable-optimizations` flag to `./configure` call (as in the root installation way), but
 note that it will significantly slow down the build because the cluster is using NFS, and the build may take up to a
@@ -56,8 +56,8 @@ export PATH=${INSTALL_PATH}:$PATH
 export PYTHONPATH=${INSTALL_PATH}
 ```
 
-You won't be able to use `pip` as a standalone command to install packages in this mode. Instead you'll have to run
-it in this way:
+You won't be able to use `pip` as a standalone command to install packages in this mode. Instead you should run it
+in this way:
 ```bash
 python -m pip install --upgrade pip
 python -m pip install --upgrade numpy pandas scipy
