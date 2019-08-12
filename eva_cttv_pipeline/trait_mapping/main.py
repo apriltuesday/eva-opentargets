@@ -71,6 +71,7 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
 
 def main(input_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host,
          oxo_target_list, oxo_distance, unattended):
+    logger.info('Started parsing trait names')
     trait_names_list = parse_trait_names(input_filepath)
     trait_names_counter = Counter(trait_names_list)
 
@@ -94,3 +95,5 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
             output_trait(trait, mapping_writer, curation_writer)
             if unattended and i % 100 == 0:
                 logger.info("Processed {} records".format(i))
+
+    logger.info('Finished processing trait names')
