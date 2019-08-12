@@ -33,9 +33,11 @@ cut -f-50 ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv \
   | sort -t$'\t' -k2,2rn > ${BATCH_ROOT}/trait_mapping/google_sheets_table.tsv
 ```
 
-Create a Google Sheets table like this one
-[_traits_requiring_curation_](https://docs.google.com/spreadsheets/d/1mb_ZAEwlSTLCQYBWsihxvUGWoy-otaKFq8tIxpJVT0U/)
-and paste the contents of `google_sheets_table.tsv` file into it.
+Create a Google Sheets table by duplicating a
+[template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing).
+Paste the contents of `google_sheets_table.tsv` file into it, starting with column H “ClinVar label”. Example of a
+table fully populated with data can be found
+[here](https://docs.google.com/spreadsheets/d/1HQ08UQTpS-0sE9MyzdUPO7EihMxDb2e8N14s1BknjVo/edit?usp=sharing)
 
 ## Manual curation criteria
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality
