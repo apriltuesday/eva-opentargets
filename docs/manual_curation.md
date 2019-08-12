@@ -8,26 +8,29 @@ At this step, mappings produced by the pipeline on the previous iteration (inclu
 downloaded to be used to aid the manual curation process.
 
 ```bash
+# This is the same variable as in the main processing protocol
+export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
 # Download the latest eva_clinvar release from FTP
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
-  | cut -f4-5 | sort -u > previous_mappings.tsv
+  | cut -f4-5 | sort -u > ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv
 ```
 
 ## Create the final table for manual curation
 ```bash
-python3 bin/trait_mapping/create_table_for_manual_curation.py \
-  --traits-for-curation traits_requiring_curation.tsv \
-  --previous-mappings previous_mappings.tsv \
-  --output table_for_manual_curation.tsv
+python bin/trait_mapping/create_table_for_manual_curation.py \
+  --traits-for-curation ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv \
+  --previous-mappings ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv \
+  --output ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv
 ```
 
 ## Sort and export to Google Sheets
 Note that the number of columns in the output table is limited to 50, because only a few traits have that many
-mappings, and in virtually all cases these mappings are not meaningful. However, having a very large table degrades
-the performance of Google Sheets substantially.
+mappings, and in virtually all cases these extra mappings are not meaningful. However, having a very large table
+degrades the performance of Google Sheets substantially.
 
 ```bash
-cut -f-50 table_for_manual_curation.tsv | sort -t$'\t' -k2,2rn > google_sheets_table.tsv
+cut -f-50 ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv \
+  | sort -t$'\t' -k2,2rn > ${BATCH_ROOT}/trait_mapping/google_sheets_table.tsv
 ```
 
 Create a Google Sheets table like this one
