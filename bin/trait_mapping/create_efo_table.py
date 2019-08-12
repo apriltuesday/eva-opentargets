@@ -46,14 +46,36 @@ def get_ols_details(ontology, term):
         definition = data['description'][0]
 
     synonyms = data['synonyms'] or []
-    xrefs = {x.split(':')[0]: x for x in data['annotation'].get('database_cross_reference', [])}
+
+    # Cross-references
+    xrefs = {}
+    xrefs_sources = (
+        data['annotation'].get('database_cross_reference', []) +
+        data['annotation'].get('xref', []) +
+        data['annotation'].get('hasDbXref', [])
+    )
+    for x in xrefs_sources:
+        # Cross-references can be in two major format: either ONTOLOGY:ID specifier (e. g. OMIM:258870), or a URI
+        # (e. g. http://purl.obolibrary.org/obo/OMIM_258870). URIs can also contain a # symbol for UMLS and NCIT, e. g.
+        # http://purl.obolibrary.org/obo/UMLS#_C0018425, which needs to be removed.
+        xref_without_url = x.split('/')[-1].replace('#', '')
+        xref_ontology, xref_id = re.split('[_:]', xref_without_url)
+        xrefs.setdefault(xref_ontology, []).append('{}:{}'.format(xref_ontology, xref_id))
+
     # If a term comes from either Orphanet or MONDO, we need to add these as xrefs as well
     # (since they won't be present in the normal list of xrefs).
     if ontology == 'mondo':
-        xrefs['MONDO'] = term.split('/')[-1]
+        xrefs.setdefault('MONDO', []).append(term.split('/')[-1].replace('_', ':'))
     elif ontology == 'ordo':
-        xrefs['Orphanet'] = term.split('/')[-1].replace('_', ':')
+        xrefs.setdefault('Orphanet', []).append(term.split('/')[-1].replace('_', ':'))
+
     return label, parents, definition, synonyms, xrefs
+
+
+def format_xref(xrefs, ontology):
+    if ontology not in xrefs:
+        return ''
+    return webulous_joiner.join(sorted(xrefs[ontology]))
 
 
 def format_output_string(ontology, term):
@@ -67,21 +89,21 @@ def format_output_string(ontology, term):
         located_in_organ='',
         located_in_cell='',
         biological_process='',
-        msh_def_cite=xrefs.get('MESH', ''),
-        ncit_def_cite=xrefs.get('NCIT', ''),
+        msh_def_cite=format_xref(xrefs, 'MeSH'),
+        ncit_def_cite=format_xref(xrefs, 'NCIT'),
         snomedct_def_cite='',
         icd9_def_cite='',
         icd10_def_cite='',
-        omim_def_cite=xrefs.get('OMIM', ''),
-        doid_def_cite=xrefs.get('DOID', ''),
+        omim_def_cite=format_xref(xrefs, 'OMIM'),
+        doid_def_cite=format_xref(xrefs, 'DOID'),
         meddra_def_cite='',
-        umls_def_cite=xrefs.get('UMLS', ''),
+        umls_def_cite=format_xref(xrefs, 'UMLS'),
         wikipedia_def_cite='',
         comments='',
-        ordo_def_cite=xrefs.get('Orphanet', ''),
+        ordo_def_cite=format_xref(xrefs, 'Orphanet'),
         definition_editor='',
         definition_citation='',
-        mondo_def_cite=xrefs.get('MONDO', ''),
+        mondo_def_cite=format_xref(xrefs, 'MONDO'),
     )
 
 
