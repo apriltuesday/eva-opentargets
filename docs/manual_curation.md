@@ -8,7 +8,7 @@ At this step, mappings produced by the pipeline on the previous iteration (inclu
 downloaded to be used to aid the manual curation process.
 
 ```bash
-# This is the same variable as in the main processing protocol
+# Set the variable below for year and month of the OpenTargets batch release
 export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
 # Download the latest eva_clinvar release from FTP
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
