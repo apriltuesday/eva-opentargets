@@ -14,6 +14,9 @@ ontology_to_ols = {
 # OLS url to query for a term details
 ols_url_template = 'https://www.ebi.ac.uk/ols/api/ontologies/{ontology}/terms?iri={term}'
 
+# OxO url to query ontology cross-references
+oxo_url_template = 'https://www.ebi.ac.uk/spot/oxo/api/search?ids={curie}&distance=1&size=500'
+
 # List of fields in the current version of Webulous submission template
 webulous_fields = [
     'disease', 'child_of', 'definition', 'synonyms', 'located_in_organ', 'located_in_cell',
@@ -32,6 +35,19 @@ def get_parent_terms(url):
     return [term['label'] for term in requests.get(url).json()['_embedded']['terms']]
 
 
+def uri_to_curie(uri):
+    """Converts URI to curie (short identifier)"""
+    return uri.split('/')[-1].replace('#', '').replace('_', ':')
+
+
+def get_cross_references(curie):
+    """Queries OxO to return the list of cross-references for a given term curie."""
+    url = oxo_url_template.format(curie=curie)
+    print(url)
+    mappings = requests.get(url).json()['_embedded']['searchResults'][0]['mappingResponseList']
+    return [m['curie'] for m in mappings]
+
+
 def get_ols_details(ontology, term):
     """Queries OLS and returns the details necessary for the EFO import table construction."""
     url = ols_url_template.format(ontology=ontology, term=term)
@@ -48,26 +64,18 @@ def get_ols_details(ontology, term):
     synonyms = data['synonyms'] or []
 
     # Cross-references
+    term_curie = uri_to_curie(term)
     xrefs = {}
-    xrefs_sources = (
-        data['annotation'].get('database_cross_reference', []) +
-        data['annotation'].get('xref', []) +
-        data['annotation'].get('hasDbXref', [])
-    )
-    for x in xrefs_sources:
-        # Cross-references can be in two major format: either ONTOLOGY:ID specifier (e. g. OMIM:258870), or a URI
-        # (e. g. http://purl.obolibrary.org/obo/OMIM_258870). URIs can also contain a # symbol for UMLS and NCIT, e. g.
-        # http://purl.obolibrary.org/obo/UMLS#_C0018425, which needs to be removed.
-        xref_without_url = x.split('/')[-1].replace('#', '')
-        xref_ontology, xref_id = re.split('[_:]', xref_without_url)
-        xrefs.setdefault(xref_ontology, []).append('{}:{}'.format(xref_ontology, xref_id))
+    for x in get_cross_references(term_curie):
+        xref_ontology, xref_id = re.split('[_:]', x)
+        xrefs.setdefault(xref_ontology, set()).add('{}:{}'.format(xref_ontology, xref_id))
 
     # If a term comes from either Orphanet or MONDO, we need to add these as xrefs as well
     # (since they won't be present in the normal list of xrefs).
     if ontology == 'mondo':
-        xrefs.setdefault('MONDO', []).append(term.split('/')[-1].replace('_', ':'))
+        xrefs.setdefault('MONDO', set()).add(term.split('/')[-1].replace('_', ':'))
     elif ontology == 'ordo':
-        xrefs.setdefault('Orphanet', []).append(term.split('/')[-1].replace('_', ':'))
+        xrefs.setdefault('Orphanet', set()).add(term.split('/')[-1].replace('_', ':'))
 
     return label, parents, definition, synonyms, xrefs
 
