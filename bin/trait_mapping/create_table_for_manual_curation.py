@@ -54,10 +54,7 @@ if __name__ == '__main__':
         previous_mapping = find_previous_mapping(trait_name, previous_mappings)
         exact_mapping = find_exact_mapping(trait_name, mappings)
         out_line = '\t'.join(
-            [trait_name, trait_freq,
-             # Mapping to use, if ready, comment, mapping URI, mapping label, whether exact, in EFO
-             '', '', '', '', '', '', '',
-             previous_mapping, exact_mapping] + mappings
+            [trait_name, trait_freq, previous_mapping, exact_mapping] + mappings
         ) + '\n'
         outfile.write(out_line)
 

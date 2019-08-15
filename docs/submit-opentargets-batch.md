@@ -7,15 +7,18 @@ Before starting the process, follow the [Build instructions](build.md). In parti
 3.5 (if you don't have it already), build the Java ClinVar parser, build and install the Python pipeline.
 
 ## Step 1. Preparing batch processing folder
-The working directory for the processing is `/nfs/production3/eva/opentargets`.
+The working directory for the processing is `/nfs/production3/eva/opentargets`. Note that some of the commands below
+use `bsub` to submit jobs to LSF cluster rather than executing them directly. If you're not using LFS, then omit
+`bsub` and its arguments.
 
 Given the year and month the batch is to be released on, run the following command to create the appropriate folders:
 
 ```bash
-# Referred to as 'batch root folder' in next steps
-mkdir batch-[yyyy]-[mm]
-cd batch-[yyyy]-[mm]
-mkdir clinvar gene_mapping trait_mapping evidence_strings
+# Set the variable below for year and month of the OpenTargets batch release
+export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
+mkdir ${BATCH_ROOT}
+cd ${BATCH_ROOT}
+mkdir clinvar gene_mapping trait_mapping evidence_strings logs
 ```
 
 ## Step 2. Preparing ClinVar data
@@ -34,8 +37,13 @@ header (it should be in the very first line). The current supported version is *
 have to regenerate the JAXB binding classes to be able to parse the XML. It can be done using the following command:
 
 ```bash
-python bin/update_clinvar_schema.py \
-  -i [path_to_batch_root_folder]/clinvar/ClinVarFullRelease_[yyyy]-[mm].xml.gz \
+# Set the two variables below for year and month of the ClinVar release used
+export CLINVAR_RELEASE=YYYY-MM
+bsub \
+  -o ${BATCH_ROOT}/logs/update_clinvar_schema.out \
+  -e ${BATCH_ROOT}/logs/update_clinvar_schema.err \
+  python bin/update_clinvar_schema.py \
+  -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
   -j clinvar-xml-parser/src/main/java
 ```
 
@@ -55,9 +63,12 @@ instructions](build.md#building-java-clinvar-parser)).
 Transform the ClinVar XML file:
 
 ```bash
-java -jar [path_to_parser_jar_file_containing_dependencies] \
-  -i [path_to_batch_root_folder]/clinvar/ClinVarFullRelease_[yyyy]-[mm].xml.gz \
-  -o [path_to_batch_root_folder]/clinvar
+bsub \
+  -o ${BATCH_ROOT}/logs/convert_clinvar_files.out \
+  -e ${BATCH_ROOT}/logs/convert_clinvar_files.err \
+  java -jar clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
+  -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
+  -o ${BATCH_ROOT}/clinvar
 ```
 
 A file named `clinvar.json.gz` will be created in the output directory.
@@ -66,9 +77,12 @@ A file named `clinvar.json.gz` will be created in the output directory.
 Clinvar JSON file is then filtered, extracting only records with allowed levels of clinical significance:
 
 ```bash
-python bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
-  -i [path_to_batch_root_folder]/clinvar/clinvar.json.gz \
-  -o [path_to_batch_root_folder]/clinvar/clinvar.filtered.json.gz
+bsub \
+  -o ${BATCH_ROOT}/logs/filter_clinvar_json.out \
+  -e ${BATCH_ROOT}/logs/filter_clinvar_json.err \
+  python bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
+  -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
+  -o ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz
 ```
 
 ## Step 3. Gene and consequence type mappings
@@ -76,9 +90,12 @@ A file containing coordinate, allele, variant type and ID information needs to b
 map the ClinVar records to an affected gene and consequence type.
 
 ```bash
-python bin/gene_mapping/gene_map_coords.py \
-  -i [path_to_batch_root_folder]/clinvar/variant_summary_[yyyy]-[mm].txt.gz \
-  -o [path_to_batch_root_folder]/gene_mapping/clinvar_[yyyy]-[mm]_coords.tsv.gz
+bsub \
+  -o ${BATCH_ROOT}/logs/gene_mapping.out \
+  -e ${BATCH_ROOT}/logs/gene_mapping.err \
+  python bin/gene_mapping/gene_map_coords.py \
+  -i ${BATCH_ROOT}/clinvar/variant_summary_${CLINVAR_RELEASE}.txt.gz \
+  -o ${BATCH_ROOT}/gene_mapping/clinvar_${CLINVAR_RELEASE}_coords.tsv.gz
 ```
 
 The columns in the TSV output file are:
@@ -114,10 +131,13 @@ while waiting for the reply. The only step which _is_ blocked is Step 6, “Evid
 
 ## Step 4. Trait mapping pipeline
 ```bash
-python bin/trait_mapping.py \
-  -i [path_to_batch_root_folder]/clinvar/clinvar.filtered.json.gz \
-  -o [path_to_batch_root_folder]/trait_mapping/automated_trait_mappings.tsv \
-  -c [path_to_batch_root_folder]/trait_mapping/traits_requiring_curation.tsv
+bsub \
+  -o ${BATCH_ROOT}/logs/trait_mapping.out \
+  -e ${BATCH_ROOT}/logs/trait_mapping.err \
+  python bin/trait_mapping.py -u \
+  -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
+  -o ${BATCH_ROOT}/trait_mapping/automated_trait_mappings.tsv \
+  -c ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv
 ```
 
 The trait mapping pipeline aims to find a term in EFO corresponding to each trait name from ClinVar. You can find a
@@ -191,12 +211,15 @@ provided by the OpenTargets after processing the file submitted to them on Step 
 mappings”.
 
 ```bash
-python bin/evidence_string_generation.py \
-  --out [path_to_batch_root_folder]/evidence_strings/ \
-  -e [path_to_batch_root_folder]/trait_mapping/trait_names_to_ontology_mappings.tsv \
-  -g [path_to_batch_root_folder]/gene_mapping/clinvar_[yyyy]-[mm]_coords.out \
-  -j [path_to_batch_root_folder]/clinvar/clinvar.filtered.json.gz \
-  --ot-schema [path_to_batch_root_folder]/opentargets.json
+bsub \
+  -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
+  -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
+  python bin/evidence_string_generation.py \
+  --out ${BATCH_ROOT}/evidence_strings/ \
+  -e ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv \
+  -g ${BATCH_ROOT}/gene_mapping/clinvar_${CLINVAR_RELEASE}_coords.out \
+  -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
+  --ot-schema ${BATCH_ROOT}/opentargets.json
 ```
 
 This outputs multiple files, including the file of evidence strings (`evidence_strings.json`) for submitting to
@@ -241,9 +264,12 @@ tsv suitable for submitting to ZOOMA, excluding any traits which already have ma
 sources (EVA, Open Targets, GWAS, Uniprot). In order to do so, execute the following command:
 
 ```bash
-python bin/clinvar_jsons/traits_to_zooma_format.py \
-  -i [path_to_batch_root_folder]/clinvar/clinvar.filtered.json.gz \
-  -o [path_to_batch_root_folder]/clinvar/clinvar_xrefs.txt
+bsub \
+  -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
+  -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
+  python bin/clinvar_jsons/traits_to_zooma_format.py \
+  -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
+  -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
 Upload the file to the same folder as the trait mappings (`/nfs/ftp/pub/databases/eva/ClinVar/YYYY/MM/DD/`). Update

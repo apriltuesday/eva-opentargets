@@ -8,31 +8,36 @@ At this step, mappings produced by the pipeline on the previous iteration (inclu
 downloaded to be used to aid the manual curation process.
 
 ```bash
+# Set the variable below for year and month of the OpenTargets batch release
+export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
 # Download the latest eva_clinvar release from FTP
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
-  | cut -f4-5 | sort -u > previous_mappings.tsv
+  | cut -f4-5 | sort -u > ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv
 ```
 
 ## Create the final table for manual curation
 ```bash
-python3 bin/trait_mapping/create_table_for_manual_curation.py \
-  --traits-for-curation traits_requiring_curation.tsv \
-  --previous-mappings previous_mappings.tsv \
-  --output table_for_manual_curation.tsv
+python bin/trait_mapping/create_table_for_manual_curation.py \
+  --traits-for-curation ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv \
+  --previous-mappings ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv \
+  --output ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv
 ```
 
 ## Sort and export to Google Sheets
 Note that the number of columns in the output table is limited to 50, because only a few traits have that many
-mappings, and in virtually all cases these mappings are not meaningful. However, having a very large table degrades
-the performance of Google Sheets substantially.
+mappings, and in virtually all cases these extra mappings are not meaningful. However, having a very large table
+degrades the performance of Google Sheets substantially.
 
 ```bash
-cut -f-50 table_for_manual_curation.tsv | sort -t$'\t' -k2,2rn > google_sheets_table.tsv
+cut -f-50 ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv \
+  | sort -t$'\t' -k2,2rn > ${BATCH_ROOT}/trait_mapping/google_sheets_table.tsv
 ```
 
-Create a Google Sheets table like this one
-[_traits_requiring_curation_](https://docs.google.com/spreadsheets/d/1mb_ZAEwlSTLCQYBWsihxvUGWoy-otaKFq8tIxpJVT0U/)
-and paste the contents of `google_sheets_table.tsv` file into it.
+Create a Google Sheets table by duplicating a
+[template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing).
+Paste the contents of `google_sheets_table.tsv` file into it, starting with column H “ClinVar label”. Example of a
+table fully populated with data can be found
+[here](https://docs.google.com/spreadsheets/d/1HQ08UQTpS-0sE9MyzdUPO7EihMxDb2e8N14s1BknjVo/edit?usp=sharing)
 
 ## Manual curation criteria
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality
