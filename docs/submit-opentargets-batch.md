@@ -264,7 +264,10 @@ tsv suitable for submitting to ZOOMA, excluding any traits which already have ma
 sources (EVA, Open Targets, GWAS, Uniprot). In order to do so, execute the following command:
 
 ```bash
-python bin/clinvar_jsons/traits_to_zooma_format.py \
+bsub \
+  -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
+  -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
+  python bin/clinvar_jsons/traits_to_zooma_format.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
