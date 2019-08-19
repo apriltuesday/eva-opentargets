@@ -217,6 +217,7 @@ In order to generate the evidence strings, run the following command.
 export OT_OUTPUT_FILE=mergeEVA_uniq_clinvar_2019-04_19_09_manually_corrected.out.gz
 zcat ${BATCH_ROOT}/gene_mapping/${OT_OUTPUT_FILE} > ${BATCH_ROOT}/gene_mapping/ot_mapping_result.out
 bsub \
+  -M 10G \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
   python bin/evidence_string_generation.py \
