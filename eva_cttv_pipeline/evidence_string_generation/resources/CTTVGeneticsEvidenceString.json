@@ -6,7 +6,7 @@
     "type": null,
     "id": []
   },
-  "validated_against_schema_version": "1.6.0",
+  "validated_against_schema_version": "1.6.1",
   "disease": {
     "id": []
   },
@@ -77,6 +77,14 @@
           "statement": "Primary submitter of data",
           "status": true
         }
+      },
+      "resource_score": {
+        "type": "pvalue",
+        "method": {
+          "url": "",
+          "description": "Not provided by data supplier"
+        },
+        "value": 1e-7
       },
       "functional_consequence": null,
       "date_asserted": null
