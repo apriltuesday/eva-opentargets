@@ -86,7 +86,12 @@ class CTTVGeneticsEvidenceStringInitTest(unittest.TestCase):
             "date_asserted": "2015-06-26T23:00:00",
             "functional_consequence": "http://purl.obolibrary.org/obo/SO_0001587",
             "urls": [{"url": "http://www.ncbi.nlm.nih.gov/clinvar/RCV000004642",
-                "nice_name": "Further details in ClinVar database"}]
+                "nice_name": "Further details in ClinVar database"}],
+            "resource_score": {
+                "type": "pvalue",
+                "method": {"url": "", "description": "Not provided by data supplier"},
+                "value": 1e-07
+            }
         },
         "variant2disease": {
             "is_associated": True,
