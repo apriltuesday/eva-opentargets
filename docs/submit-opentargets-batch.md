@@ -37,7 +37,7 @@ header (it should be in the very first line). The current supported version is *
 have to regenerate the JAXB binding classes to be able to parse the XML. It can be done using the following command:
 
 ```bash
-# Set the two variables below for year and month of the ClinVar release used
+# Set the variable below for year and month of the ClinVar release used
 export CLINVAR_RELEASE=YYYY-MM
 bsub \
   -o ${BATCH_ROOT}/logs/update_clinvar_schema.out \
@@ -194,39 +194,58 @@ See separate protocol, [Manual curation](manual_curation.md).
 
 ### Preparing local schema
 OpenTargets have a [JSON schema](https://github.com/opentargets/json_schema) used to validate submitted data.
-Validation of generated evidence strings is carried out during generation. To fetch schema, issue the following
-commands. `VERSION` needs to be filled with the version number recommended by the OpenTargets in their announcement
+Validation of generated evidence strings is carried out during generation. To fetch schema, use the following
+command. `$VERSION` needs to be filled with the version number recommended by the OpenTargets in their announcement
 e-mail.
 
 ```bash
-VERSION=1.6.0
-wget -q https://raw.githubusercontent.com/opentargets/json_schema/$VERSION/opentargets.json
+VERSION=1.6.1
+wget \
+  -O ${BATCH_ROOT}/evidence_strings/opentargets-$VERSION.json \
+  https://raw.githubusercontent.com/opentargets/json_schema/$VERSION/opentargets.json
 ```
 
-File `opentargets.json` should be saved in the batch root directory.
-
 ### Generating evidence strings
-In order to generate the evidence strings, run the following command. `clinvar_[yyyy]-[mm]_coords.out` file should be
-provided by the OpenTargets after processing the file submitted to them on Step 3, “Gene and consequence type
-mappings”.
+This step depends on OpenTargets providing the output file after processing the data submitted to them on Step 3,
+“Gene and consequence type mappings”. This file can be named in any fashion but usually has `.out.gz` suffix. It must
+be downloaded from Google Cloud storage bucket and saved to `${BATCH_ROOT}/gene_mapping/` directory.
+
+In order to generate the evidence strings, run the following command.
 
 ```bash
+# Set the variable for the name of output file provided by OpenTargets, without the path
+export OT_OUTPUT_FILE=mergeEVA_uniq_clinvar_2019-04_19_09_manually_corrected.out.gz
+zcat ${BATCH_ROOT}/gene_mapping/${OT_OUTPUT_FILE} > ${BATCH_ROOT}/gene_mapping/ot_mapping_result.out
 bsub \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
   python bin/evidence_string_generation.py \
-  --out ${BATCH_ROOT}/evidence_strings/ \
   -e ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv \
-  -g ${BATCH_ROOT}/gene_mapping/clinvar_${CLINVAR_RELEASE}_coords.out \
+  -g ${BATCH_ROOT}/gene_mapping/ot_mapping_result.out \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
-  --ot-schema ${BATCH_ROOT}/opentargets.json
+  --ot-schema ${BATCH_ROOT}/evidence_strings/opentargets-$VERSION.json \
+  --out ${BATCH_ROOT}/evidence_strings/
 ```
 
 This outputs multiple files, including the file of evidence strings (`evidence_strings.json`) for submitting to
 OpenTargets and the file of trait mappings for submitting to ZOOMA (`eva_clinvar.txt`).
 
+Generated evidence strings must be additionally validated using tool provided by OpenTargets.
+
+_Note: as of August 2019, there is a problem running `opentargets_validator` module using Python 3; as a workaround
+you can install and run it locally using Python 2.__
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install --upgrade opentargets-validator
+python -m opentargets_validator.cli \
+  --schema https://raw.githubusercontent.com/opentargets/json_schema/$VERSION/opentargets.json \
+  < ${BATCH_ROOT}/evidence_strings/evidence_strings.json
+```
+
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets
-[table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/).
+[table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics”
+sheet.
 
 ## Step 7. Submitting evidence strings
 The evidence string file (`evidence_strings.json`) should be uploaded to the [OpenTargets Google Cloud
