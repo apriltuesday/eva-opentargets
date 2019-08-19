@@ -235,7 +235,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
     for cellbase_record in cell_recs:
         report.counters["record_counter"] += 1
         if report.counters["record_counter"] % 1000 == 0:
-            print("{} records processed".format(report.counters["record_counter"]))
+            logger.info("{} records processed".format(report.counters["record_counter"]))
 
         n_ev_strings_per_record = 0
         clinvar_record = clinvar.ClinvarRecord(cellbase_record['clinvarSet'])
