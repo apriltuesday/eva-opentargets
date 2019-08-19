@@ -36,7 +36,16 @@ def get_parent_terms(url):
 
 
 def uri_to_curie(uri):
-    """Converts URI to curie (short identifier)"""
+    """Converts URI to curie (short identifier).
+
+    Args:
+        uri: a full URI of an ontology term, e. g. http://purl.obolibrary.org/obo/MONDO_0009796. URIs are globally
+            unique among all ontologies (and even other internet resources).
+
+    Returns:
+        curie: a short identifier (Compact URI) which contains an ontology prefix and identifier in that ontology.
+            Example: MONDO:0009796. See also: http://www.obofoundry.org/docs/Citation.html
+    """
     return uri.split('/')[-1].replace('#', '').replace('_', ':')
 
 
