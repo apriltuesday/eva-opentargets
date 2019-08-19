@@ -20,11 +20,16 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath):
             line_list = line.split("\t")
 
             if len(line_list) < 6:
+                logger.warning('Skip invalid line in snp_2_gene file: {}'.format(line))
                 continue
 
             variant_id = line_list[0]
             ensembl_gene_id = line_list[2]
             so_term = line_list[4]
+
+            if ensembl_gene_id == 'NA':
+                logger.warning('Skip line with missing gene ID: {}'.format(line))
+                continue
 
             process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
