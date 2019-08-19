@@ -103,14 +103,22 @@ for the old workflow_ (because we're reusing the results of previous curations)
   available.
 
 ## Exporting curation results
-All curated mappings should be stored in a file named `finished_mappings_curation.tsv`.
- 
-After that, the following mappings must be written to a single file to be used as input for the evidence string
-generation:
-* Mappings generated automatically by the trait mapping pipeline and already considered “finished”
-  (`automated_trait_mappings.tsv`)
-* Eyeballed good quality mappings (`finished_mappings_curation.tsv`)
-* Manually curated medium and low quality mappings (`finished_mappings_curation.tsv`)
-* New mappings for previously unmapped traits (`finished_mappings_curation.tsv`)
+Once the manual curation is complete, export the results to a file named `finished_mappings_curation.tsv` and save it
+to `${BATCH_ROOT}/trait_mapping` directory. This file must consist of three columns from the curation spreadsheet:
+“ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Make sure to only export the
+mappings which the curator marked as done.
 
-The resulting file must be named `trait_names_to_ontology_mappings.tsv`.
+Sometimes “Mapping to use” column may contain newline characters inserted by accident; if present, remove them using
+a global regexp search in Google Sheets.
+ 
+After that, two files with mappings must be concatenated to a single file to be used as input for the evidence string
+generation:
+* `automated_trait_mappings.tsv`
+  + Mappings generated automatically by the trait mapping pipeline and already considered “finished”
+* `finished_mappings_curation.tsv`
+  + Eyeballed good quality mappings
+  + Manually curated medium and low quality mappings
+  + New mappings for previously unmapped traits
+
+The resulting file must be named `trait_names_to_ontology_mappings.tsv` and saved to `${BATCH_ROOT}/trait_mapping`
+directory as well.
