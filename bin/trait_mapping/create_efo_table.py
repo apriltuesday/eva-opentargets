@@ -14,6 +14,9 @@ ontology_to_ols = {
 # OLS url to query for a term details
 ols_url_template = 'https://www.ebi.ac.uk/ols/api/ontologies/{ontology}/terms?iri={term}'
 
+# OxO url to query ontology cross-references
+oxo_url_template = 'https://www.ebi.ac.uk/spot/oxo/api/search?ids={curie}&distance=1&size=500'
+
 # List of fields in the current version of Webulous submission template
 webulous_fields = [
     'disease', 'child_of', 'definition', 'synonyms', 'located_in_organ', 'located_in_cell',
@@ -32,6 +35,28 @@ def get_parent_terms(url):
     return [term['label'] for term in requests.get(url).json()['_embedded']['terms']]
 
 
+def uri_to_curie(uri):
+    """Converts URI to curie (short identifier).
+
+    Args:
+        uri: a full URI of an ontology term, e. g. http://purl.obolibrary.org/obo/MONDO_0009796. URIs are globally
+            unique among all ontologies (and even other internet resources).
+
+    Returns:
+        curie: a short identifier (Compact URI) which contains an ontology prefix and identifier in that ontology.
+            Example: MONDO:0009796. See also: http://www.obofoundry.org/docs/Citation.html
+    """
+    return uri.split('/')[-1].replace('#', '').replace('_', ':')
+
+
+def get_cross_references(curie):
+    """Queries OxO to return the list of cross-references for a given term curie."""
+    url = oxo_url_template.format(curie=curie)
+    print(url)
+    mappings = requests.get(url).json()['_embedded']['searchResults'][0]['mappingResponseList']
+    return [m['curie'] for m in mappings]
+
+
 def get_ols_details(ontology, term):
     """Queries OLS and returns the details necessary for the EFO import table construction."""
     url = ols_url_template.format(ontology=ontology, term=term)
@@ -46,14 +71,28 @@ def get_ols_details(ontology, term):
         definition = data['description'][0]
 
     synonyms = data['synonyms'] or []
-    xrefs = {x.split(':')[0]: x for x in data['annotation'].get('database_cross_reference', [])}
+
+    # Cross-references
+    term_curie = uri_to_curie(term)
+    xrefs = {}
+    for x in get_cross_references(term_curie):
+        xref_ontology, xref_id = re.split('[_:]', x)
+        xrefs.setdefault(xref_ontology, set()).add('{}:{}'.format(xref_ontology, xref_id))
+
     # If a term comes from either Orphanet or MONDO, we need to add these as xrefs as well
     # (since they won't be present in the normal list of xrefs).
     if ontology == 'mondo':
-        xrefs['MONDO'] = term.split('/')[-1]
+        xrefs.setdefault('MONDO', set()).add(term.split('/')[-1].replace('_', ':'))
     elif ontology == 'ordo':
-        xrefs['Orphanet'] = term.split('/')[-1].replace('_', ':')
+        xrefs.setdefault('Orphanet', set()).add(term.split('/')[-1].replace('_', ':'))
+
     return label, parents, definition, synonyms, xrefs
+
+
+def format_xref(xrefs, ontology):
+    if ontology not in xrefs:
+        return ''
+    return webulous_joiner.join(sorted(xrefs[ontology]))
 
 
 def format_output_string(ontology, term):
@@ -67,21 +106,21 @@ def format_output_string(ontology, term):
         located_in_organ='',
         located_in_cell='',
         biological_process='',
-        msh_def_cite=xrefs.get('MESH', ''),
-        ncit_def_cite=xrefs.get('NCIT', ''),
+        msh_def_cite=format_xref(xrefs, 'MeSH'),
+        ncit_def_cite=format_xref(xrefs, 'NCIT'),
         snomedct_def_cite='',
         icd9_def_cite='',
         icd10_def_cite='',
-        omim_def_cite=xrefs.get('OMIM', ''),
-        doid_def_cite=xrefs.get('DOID', ''),
+        omim_def_cite=format_xref(xrefs, 'OMIM'),
+        doid_def_cite=format_xref(xrefs, 'DOID'),
         meddra_def_cite='',
-        umls_def_cite=xrefs.get('UMLS', ''),
+        umls_def_cite=format_xref(xrefs, 'UMLS'),
         wikipedia_def_cite='',
         comments='',
-        ordo_def_cite=xrefs.get('Orphanet', ''),
+        ordo_def_cite=format_xref(xrefs, 'Orphanet'),
         definition_editor='',
         definition_citation='',
-        mondo_def_cite=xrefs.get('MONDO', ''),
+        mondo_def_cite=format_xref(xrefs, 'MONDO'),
     )
 
 
