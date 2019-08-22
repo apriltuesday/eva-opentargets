@@ -259,13 +259,22 @@ wiki](https://github.com/opentargets/data-providers-docs/wiki/Data-(Evidence-Str
 ## Step 8. Submitting feedback to ZOOMA
 
 ### Trait mappings
-Upload the file containing trait mappings (`eva_clinvar.txt`) to the EVA FTP. The format of a folder name is
-`/nfs/ftp/pub/databases/eva/ClinVar/YYYY/MM/DD/` (substitute with current date).
+Upload the file containing trait mappings (`eva_clinvar.txt`) to the EVA FTP:
 
-Update the symbolic link in the `/nfs/ftp/pub/databases/eva/ClinVar/latest/` to point to the latest file version.
-Confirm that the changes have propagated to the FTP at
-**<ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt>.** (FTP will take a few minutes to update
-after you make changes on the cluster.)
+```bash
+# You'll need to use this user to be able to make changes to FTP
+become ftpadmin /bin/bash
+# Don't forget to set ${BATCH_ROOT} variable again
+BATCH_ROOT=...
+# Create the folder and copy the file containing trait mappings to the EVA FTP
+FTP_PATH=/nfs/ftp/pub/databases/eva/ClinVar/`date +%Y/%m/%d`
+mkdir -p ${FTP_PATH}
+cp ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt ${FTP_PATH}
+# Update the symbolic link in the “latest” folder
+# Note: as of August 2019, for some reason symbolic links aren't working consistently, using copying for now
+# ln -f -s ${FTP_PATH}/eva_clinvar.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/eva_clinvar.txt
+cp ${FTP_PATH}/eva_clinvar.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/eva_clinvar.txt
+```
 
 ### ClinVar xRefs
 Each ClinVar record is associated with one or more traits. When submitting the data to OpenTargets, the trait needs
@@ -284,6 +293,7 @@ tsv suitable for submitting to ZOOMA, excluding any traits which already have ma
 sources (EVA, Open Targets, GWAS, Uniprot). In order to do so, execute the following command:
 
 ```bash
+# Convert trait mappings to the ZOOMA format
 bsub \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
@@ -292,9 +302,27 @@ bsub \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-Upload the file to the same folder as the trait mappings (`/nfs/ftp/pub/databases/eva/ClinVar/YYYY/MM/DD/`). Update
-the symbolic link in `/nfs/ftp/pub/databases/eva/ClinVar/latest/`. Confirm that the changes have propagated to the
-FTP at **<ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt>.**
+This file needs to be uploaded to the FTP as well:
+```bash
+become ftpadmin /bin/bash
+BATCH_ROOT=...
+FTP_PATH=/nfs/ftp/pub/databases/eva/ClinVar/`date +%Y/%m/%d`
+mkdir -p ${FTP_PATH}
+cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${FTP_PATH}
+# ln -f -s ${FTP_PATH}/clinvar_xrefs.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt
+cp ${FTP_PATH}/clinvar_xrefs.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt
+```
+
+After uploading both files, confirm that the changes have propagated to the FTP:
+```bash
+md5sum ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt
+wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt | md5sum
+md5sum ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
+wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt | md5sum
+```
+
+If everything has been done correctly, hash sums will be the same. Note that the FTP will take a few minutes to
+update after you make changes on the cluster.
 
 ## Step 9. Adding novel trait names to EFO
 Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available. Any new
