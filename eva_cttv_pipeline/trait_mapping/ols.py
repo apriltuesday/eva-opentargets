@@ -24,14 +24,21 @@ def get_label_from_ols(url: str) -> str:
     :param url: OLS url to which to make a get request to query for a term.
     :return: The ontology label of the term specified in the url.
     """
-    try:
-        json_response = requests.get(url).json()
-        for term in json_response["_embedded"]["terms"]:
-            if term["is_defining_ontology"]:
-                return term["label"]
-    except Exception as e:
-        logger.warning(e)
-    return None
+    result = requests.get(url)
+    assert result.ok
+    json_response = result.json()
+
+    # If the '_embedded' section is missing from the response, it means that the term is not found in OLS
+    if '_embedded' not in json_response:
+        return None
+
+    # Go through all terms found by the requested identifier and try to find the one where the _identifier_ and the
+    # _term_ come from the same ontology (marked by a special flag). Example of such a situation would be a MONDO term
+    # in the MONDO ontology. Example of a reverse situation is a MONDO term in EFO ontology (being *imported* into it
+    # at some point).
+    for term in json_response["_embedded"]["terms"]:
+        if term["is_defining_ontology"]:
+            return term["label"]
 
 
 @lru_cache(maxsize=16384)

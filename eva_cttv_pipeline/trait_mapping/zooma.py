@@ -87,17 +87,14 @@ class ZoomaResult:
 @lru_cache(maxsize=16384)
 def zooma_query_helper(url: str) -> dict:
     """
-    Make a get request to provided url and return the response, assumed to be a json response, in
-    a dict.
+    Make a GET request to the provided URL and return the response, assumed to be a JSON response, in a dict.
 
-    :param url: String of Zooma url used to make a request
-    :return: Zooma response in a dict
+    :param url: String of ZOOMA url used to make a request
+    :return: ZOOMA response in a dict
     """
-    try:
-        json_response_1 = requests.get(url).json()
-        return json_response_1
-    except json.decoder.JSONDecodeError as e:
-        return None
+    result = requests.get(url)
+    assert result.ok
+    return result.json()
 
 
 def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
