@@ -14,10 +14,10 @@ def request_retry_helper(function, retry_count: int, url: str):
     :return: Returned value of the function.
     """
     for retry_num in range(retry_count):
-        return_value = function(url)
-        if return_value is not None:
-            return return_value
-        logger.warning("attempt {}: failed running function {} with url {}".format(
-            retry_num, function, url))
+        try:
+            return function(url)
+        except Exception as e:
+            logger.warning("attempt {}: failed running function {} with url {}".format(retry_num, function, url))
+            logger.warning(e)
     logger.warning("error on last attempt, skipping")
     return None
