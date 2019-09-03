@@ -112,6 +112,7 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     :param zooma_host: Hostname of a Zooma instance to query.
     :return: List of ZoomaResults
     """
+
     url = build_zooma_query(trait_name, filters, zooma_host)
     zooma_response_list = request_retry_helper(zooma_query_helper, 4, url)
 
