@@ -1,11 +1,10 @@
 from functools import total_ordering, lru_cache
-import json
 import logging
 import re
-import requests
 
 from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, is_in_efo
 from eva_cttv_pipeline.trait_mapping.ols import is_current_and_in_efo
+from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
 
 
 logger = logging.getLogger(__package__)
@@ -152,46 +151,6 @@ def build_oxo_payload(id_list: list, target_list: list, distance: int) -> dict:
     return payload
 
 
-def oxo_query_helper(url: str, payload: dict) -> dict:
-    """
-    Make post request to OxO url using provided payload, returning json response, or None if there
-    is an error in decoding.
-
-    :param url: url to make request
-    :param payload: Payload to use to make POST request
-    :return: json response from OxO
-    """
-    try:
-        json_response = requests.post(url, data=payload).json()
-        return json_response
-    except json.decoder.JSONDecodeError as e:
-        return None
-
-
-def oxo_request_retry_helper(retry_count: int, url: str, id_list: list, target_list: list,
-                             distance: int) -> dict:
-    """
-    Make a number of attempts to query OxO for it to successfully return a non-None value,
-    subsequently returning this value. Makes the number of tries specified in retry_count parameter.
-
-    :param retry_count: Number of attempts to make
-    :param url: String specifying the url to make a request.
-    :param id_list: List of IDs with which to find xrefs using OxO
-    :param target_list: List of ontology datasources to include
-    :param distance: Number of steps to take through xrefs to find mappings
-    :return: Returned value from OxO request.
-    """
-    payload = build_oxo_payload(id_list, target_list, distance)
-    for retry_num in range(retry_count):
-        return_value = oxo_query_helper(url, payload)
-        if return_value is not None:
-            return return_value
-        logger.warning("attempt {}: failed running function oxo_query_helper with url {}".format(
-            retry_num, url))
-    logger.warning("error on last attempt, skipping")
-    return None
-
-
 def get_oxo_results_from_response(oxo_response: dict) -> list:
     """
     For a json(/dict) response from an OxO request, parse the data into a list of OxOResults
@@ -246,14 +205,14 @@ def get_oxo_results(id_list: list, target_list: list, distance: int) -> list:
     :return: List of OxOResults based upon results from request made to OxO
     """
     url = "https://www.ebi.ac.uk/spot/oxo/api/search?size=5000"
-    oxo_response = oxo_request_retry_helper(4, url, id_list, target_list, distance)
+    payload = build_oxo_payload(id_list, target_list, distance)
+    oxo_response = request_retry_helper(url, payload)
 
     if oxo_response is None:
         return []
 
     if "_embedded" not in oxo_response:
-        logger.warning("Cannot parse the response from OxO for the following identifiers:")
-        logger.warning(','.join(id_list))
+        logger.warning("Cannot parse the response from OxO for the following identifiers: {}".format(','.join(id_list)))
         return []
 
     return get_oxo_results_from_response(oxo_response)

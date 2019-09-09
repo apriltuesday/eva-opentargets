@@ -7,13 +7,12 @@ import tests.trait_mapping.resources.test_ols_data as test_ols_data
 
 
 class TestGetTraitNames(unittest.TestCase):
-    def test_get_label_from_ols(self):
-        url = "https://www.ebi.ac.uk/ols/api/terms?iri=http://www.orpha.net/ORDO/Orphanet_199318"
+    def test_get_ontology_label_from_ols(self):
+        url = "http://www.orpha.net/ORDO/Orphanet_199318"
+        ols_request_url = ols.build_ols_query(url)
         with requests_mock.mock() as m:
-            m.get(url,
-                  json=test_ols_data.TestGetTraitNamesData.orphanet_199318_ols_terms_json)
-
-            self.assertEqual(ols.get_label_from_ols(url),
+            m.get(ols_request_url, json=test_ols_data.TestGetTraitNamesData.orphanet_199318_ols_terms_json)
+            self.assertEqual(ols.get_ontology_label_from_ols(url),
                              '15q13.3 microdeletion syndrome')
 
 

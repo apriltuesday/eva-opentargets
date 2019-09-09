@@ -1,11 +1,8 @@
 from enum import Enum
-from functools import total_ordering, lru_cache
-import json
+from functools import total_ordering
 import logging
-import requests
 
-from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, \
-    is_current_and_in_efo, is_in_efo
+from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo
 from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
 
 
@@ -84,19 +81,6 @@ class ZoomaResult:
                 self.mapping_list == other.mapping_list)
 
 
-@lru_cache(maxsize=16384)
-def zooma_query_helper(url: str) -> dict:
-    """
-    Make a GET request to the provided URL and return the response, assumed to be a JSON response, in a dict.
-
-    :param url: String of ZOOMA url used to make a request
-    :return: ZOOMA response in a dict
-    """
-    result = requests.get(url)
-    assert result.ok
-    return result.json()
-
-
 def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     """
     Given a trait name, Zooma filters in a dict and a hostname to use, query Zooma and return a list
@@ -114,7 +98,7 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     """
 
     url = build_zooma_query(trait_name, filters, zooma_host)
-    zooma_response_list = request_retry_helper(zooma_query_helper, 4, url)
+    zooma_response_list = request_retry_helper(url)
 
     if zooma_response_list is None:
         return []

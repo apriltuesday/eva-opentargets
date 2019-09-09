@@ -11,6 +11,7 @@ import progressbar
 import requests
 
 from clinvar_jsons_shared_lib import clinvar_jsons, get_traits_from_json, has_allowed_clinical_significance
+from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
 
 
 DATE = strftime("%d/%m/%y %H:%M", gmtime())
@@ -109,7 +110,7 @@ def get_clinvar_accession(clinvar_json):
 
 def get_zooma_uris(trait_name, zooma_host, filters):
     url = build_zooma_query(trait_name, filters, zooma_host)
-    json_response = request_retry_helper(zooma_query_helper, 4, url)
+    json_response = request_retry_helper(url)
 
     if json_response is None:
         return None
@@ -131,25 +132,6 @@ def build_zooma_query(trait_name, filters, zooma_host):
                   ]
     url += "&filter={}".format(",".join(url_filters))
     return url
-
-
-def request_retry_helper(function, retry_count, url):
-    for retry_num in range(retry_count):
-        return_value = function(url)
-        if return_value is not None:
-            return return_value
-        print("attempt {}: failed running function {} with url {}".format(retry_num, function, url))
-    print("error on last attempt, skipping")
-    return None
-
-
-@lru_cache(maxsize=16384)
-def zooma_query_helper(url):
-    try:
-        json_response = requests.get(url).json()
-        return json_response
-    except json.decoder.JSONDecodeError as e:
-        return None
 
 
 def open_file(file_path, mode):
