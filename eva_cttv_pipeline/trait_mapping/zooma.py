@@ -1,11 +1,8 @@
 from enum import Enum
-from functools import total_ordering, lru_cache
-import json
+from functools import total_ordering
 import logging
-import requests
 
-from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, \
-    is_current_and_in_efo, is_in_efo
+from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo
 from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
 
 
@@ -84,22 +81,6 @@ class ZoomaResult:
                 self.mapping_list == other.mapping_list)
 
 
-@lru_cache(maxsize=16384)
-def zooma_query_helper(url: str) -> dict:
-    """
-    Make a get request to provided url and return the response, assumed to be a json response, in
-    a dict.
-
-    :param url: String of Zooma url used to make a request
-    :return: Zooma response in a dict
-    """
-    try:
-        json_response_1 = requests.get(url).json()
-        return json_response_1
-    except json.decoder.JSONDecodeError as e:
-        return None
-
-
 def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     """
     Given a trait name, Zooma filters in a dict and a hostname to use, query Zooma and return a list
@@ -115,8 +96,9 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     :param zooma_host: Hostname of a Zooma instance to query.
     :return: List of ZoomaResults
     """
+
     url = build_zooma_query(trait_name, filters, zooma_host)
-    zooma_response_list = request_retry_helper(zooma_query_helper, 4, url)
+    zooma_response_list = request_retry_helper(url)
 
     if zooma_response_list is None:
         return []
@@ -126,11 +108,13 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     for zooma_result in zooma_result_list:
         for zooma_mapping in zooma_result.mapping_list:
             label = get_ontology_label_from_ols(zooma_mapping.uri)
-            # If no label is returned (shouldn't really happen) keep the existing one
             if label is not None:
                 zooma_mapping.ontology_label = label
             else:
-                logger.warning("Couldn't retrieve ontology label from OLS for trait '{}'".format(trait_name))
+                # If no label is returned (because OLS failed to provide it), keep the existing one from ZOOMA
+                logger.warning(("Couldn't retrieve ontology label from OLS for trait '{}', using label specified "
+                                "by ZOOMA instead").format(trait_name))
+                zooma_mapping.ontology_label = zooma_result.zooma_label
 
             uri_is_current_and_in_efo = is_current_and_in_efo(zooma_mapping.uri)
             if not uri_is_current_and_in_efo:

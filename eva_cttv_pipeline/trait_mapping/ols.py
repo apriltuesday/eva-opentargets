@@ -16,41 +16,40 @@ OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
 logger = logging.getLogger(__package__)
 
 
-def get_label_from_ols(url: str) -> str:
-    """
-    Given a url for OLS, make a get request and return the label for the term, from the response
-    from OLS.
-
-    :param url: OLS url to which to make a get request to query for a term.
-    :return: The ontology label of the term specified in the url.
-    """
-    try:
-        json_response = requests.get(url).json()
-        for term in json_response["_embedded"]["terms"]:
-            if term["is_defining_ontology"]:
-                return term["label"]
-    except Exception as e:
-        logger.warning(e)
-    return None
+def build_ols_query(ontology_uri: str) -> str:
+    """Build a url to query OLS for a given ontology uri."""
+    return "https://www.ebi.ac.uk/ols/api/terms?iri={}".format(ontology_uri)
 
 
 @lru_cache(maxsize=16384)
 def get_ontology_label_from_ols(ontology_uri: str) -> str:
     """
-    Using provided ontology uri, build an OLS url with which to make a request for the uri to find
-    the term label for this uri.
+    Using provided ontology URI, build an OLS URL with which to make a request to find the term label for this URI.
 
-    :param ontology_uri: A uri for a term in an ontology.
-    :return: Term label for the ontology uri provided in the parameters.
+    :param ontology_uri: A URI for a term in an ontology.
+    :return: Term label for the ontology URI provided in the parameters.
     """
     url = build_ols_query(ontology_uri)
-    label = request_retry_helper(get_label_from_ols, 4, url)
-    return label
+    json_response = request_retry_helper(url)
 
+    if not json_response:
+        return None
 
-def build_ols_query(ontology_uri: str) -> str:
-    """Build a url to query OLS for a given ontology uri."""
-    return "https://www.ebi.ac.uk/ols/api/terms?iri={}".format(ontology_uri)
+    # If the '_embedded' section is missing from the response, it means that the term is not found in OLS
+    if '_embedded' not in json_response:
+        logger.warning('OLS queried OK but did not return any results for URL {}'.format(url))
+        return None
+
+    # Go through all terms found by the requested identifier and try to find the one where the _identifier_ and the
+    # _term_ come from the same ontology (marked by a special flag). Example of such a situation would be a MONDO term
+    # in the MONDO ontology. Example of a reverse situation is a MONDO term in EFO ontology (being *imported* into it
+    # at some point).
+    for term in json_response["_embedded"]["terms"]:
+        if term["is_defining_ontology"]:
+            return term["label"]
+
+    logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
+    return None
 
 
 def double_encode_uri(uri: str) -> str:
