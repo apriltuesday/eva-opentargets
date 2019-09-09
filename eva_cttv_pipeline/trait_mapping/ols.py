@@ -49,6 +49,7 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
             return term["label"]
 
     logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
+    return None
 
 
 def double_encode_uri(uri: str) -> str:
