@@ -210,7 +210,7 @@ After the evidence strings have been generated, summary metrics need to be updat
 ## Step 5.4. Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [OpenTargets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[dd]-[mm]-[yyyy].json.gz` (e.g. `cttv012-12-06-2017.json.gz`).
 
-More details can be found on [OpenTargets Github wiki](https://github.com/opentargets/data-providers-docs/wiki/Data-(Evidence-Strings)-Submission-Process).
+More details can be found on [OpenTargets Github wiki](https://github.com/opentargets/data_release/wiki/OT006-Data-Submission#ot009-evidence-string-generation-json-schema-validation--submission).
 
 ### Review checklist
 * (See general review checklist at the bottom of the page)
