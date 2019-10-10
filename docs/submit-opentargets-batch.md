@@ -21,7 +21,7 @@ export CODE_ROOT=/nfs/production3/eva/software/eva-cttv-pipeline
 
 # Setting up Python version
 PYTHON_VERSION=3.5.6
-INSTALL_PATH=${HOME}/software/python-${PYTHON_VERSION}
+INSTALL_PATH=/nfs/production3/eva/software/python-${PYTHON_VERSION}
 export PATH=${INSTALL_PATH}:$PATH
 export PYTHONPATH=${INSTALL_PATH}
 

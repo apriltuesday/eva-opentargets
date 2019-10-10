@@ -11,7 +11,7 @@ Adjust `VERSION` and `INSTALL_PATH` if needed.
 
 ```bash
 VERSION=3.5.6
-INSTALL_PATH=${HOME}/software/python-${VERSION}
+INSTALL_PATH=/nfs/production3/eva/software/python-${VERSION}
 mkdir -p ${INSTALL_PATH}
 cd ${INSTALL_PATH}
 wget https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tgz
