@@ -5,16 +5,49 @@ Before starting the process, follow the [Build instructions](build.md). In parti
 
 Typical OpenTargets submission process consists of five major parts; for each one, an issue is created in the JIRA tracker. Issue template is linked for each of the steps, as well as the list of checks do be done during review.
 
+## Set up environment
+Commands below depend on a number of environment variables. It makes sense to set them all at once before executing any of the steps.
+
+```bash
+# Year and month for the upcoming OpenTargets release. This is announced in their e-mail.
+export OT_RELEASE=YYYY-MM
+
+# Year and month of ClinVar release used (see step 1.1 Download ClinVar data).
+# Note that this is *different* from the OpenTargets release year/month.
+export CLINVAR_RELEASE=YYYY_MM
+
+# This variable should point to the directory where this repository clone is located on the cluster.
+export CODE_ROOT=/nfs/production3/eva/software/eva-cttv-pipeline
+
+# Setting up Python version
+PYTHON_VERSION=3.5.6
+INSTALL_PATH=/nfs/production3/eva/software/python-${PYTHON_VERSION}
+export PATH=${INSTALL_PATH}:$PATH
+export PYTHONPATH=${INSTALL_PATH}
+
+# Base bsub command line for all commands. For example, you can specify your e-mail to receive a notification once
+# the job has been completed.
+export BSUB_CMDLINE="bsub -u your_email@example.com"
+
+# The following variables do not require modification.
+export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-${OT_RELEASE}
+```
+
+Before proceeding with executing the commands, make sure to update code on the cluster:
+```bash
+cd $CODE_ROOT
+git pull origin master
+python setup.py install
+```
+
 ## Step 1. Create JSON file from ClinVar [(issue template)](https://www.ebi.ac.uk/panda/jira/browse/EVA-1469) 
 
 ### 1.1 Download ClinVar data
-The working directory for the processing is `/nfs/production3/eva/opentargets`. Note that most of the commands below use `bsub` to submit jobs to LSF cluster rather than executing them directly. If you're not using LFS, then omit `bsub` and its arguments.
+The working directory for the processing is `/nfs/production3/eva/opentargets`. Note that most of the commands below use `bsub` to submit jobs to LSF cluster rather than executing them directly. If you're not using LSF, then omit `bsub` and its arguments.
 
 Given the year and month the batch is to be released on, run the following command to create the appropriate folders:
 
 ```bash
-# Set the variable below for year and month of the OpenTargets batch release
-export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
 mkdir ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 mkdir clinvar gene_mapping trait_mapping evidence_strings logs
@@ -22,17 +55,25 @@ mkdir clinvar gene_mapping trait_mapping evidence_strings logs
 
 Each OpenTargets release is synchronised with a certain Ensembl release version. The specific version is announced in the e-mail which they send a few weeks before the data submission deadline. Each Ensembl release is, in turn, synchronised with a certain ClinVar version. Based on Ensembl version, we can find the ClinVar release associated to an Ensembl release in its [sources page](http://www.ensembl.org/info/genome/variation/species/sources_documentation.html).
 
-You need to download two files from the ClinVar FTP into the `clinvar` subfolder:
-* Full release XML: `ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/`
-* Variant summary: `ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/`
+You need to download two files (full release XML and variant summary) from the ClinVar FTP into the `clinvar` subfolder:
+```bash
+wget --directory-prefix ${BATCH_ROOT}/clinvar/ \
+  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
+  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_${CLINVAR_RELEASE}.txt.gz
+```
 
 ### 1.2. Update ClinVar schema version (if necessary)
-Schema of ClinVar XML files changes from time to time. The schema version can be obtained by inspecting the XML file header (it should be in the very first line). The current supported version is **1.57**. If the version changes, we have to regenerate the JAXB binding classes to be able to parse the XML. It can be done using the following command:
+Schema of ClinVar XML files changes from time to time. The schema version can be obtained by inspecting the XML file header:
+```bash
+zcat ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
+  | tail -n+2 | head -n1 | sed -e 's|.*clinvar_public_\(.*\)\.xsd.*|\1|'
+```
+
+The current supported version is **1.57**. If the version changes, we have to regenerate the JAXB binding classes to be able to parse the XML. It can be done using the following command:
 
 ```bash
 # Set the variable below for year and month of the ClinVar release used
-export CLINVAR_RELEASE=YYYY-MM
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/update_clinvar_schema.out \
   -e ${BATCH_ROOT}/logs/update_clinvar_schema.err \
   python bin/update_clinvar_schema.py \
@@ -40,22 +81,16 @@ bsub \
   -j clinvar-xml-parser/src/main/java
 ```
 
-A new Java package should have been generated in the directory `clinvar-xml-parser/src/main/java/uk/ac/ebi/eva/clinvar/model`.
-
-With each schema version change, test data must be updated as well. See details in [Build instructions](build.md#regenerating-test-data).
-
-Create a pull request to merge this code into the main repository. It must contain both the updated schema version as well as the new test data.
-
-After a schema update, you'll also need to rebuild Java parser (see [Build instructions](build.md#building-java-clinvar-parser)).
+A new Java package will be generated in the directory `clinvar-xml-parser/src/main/java/uk/ac/ebi/eva/clinvar/model`. With each schema version change, test data must be updated as well. See details in [Build instructions](build.md#regenerating-test-data). Create a pull request to merge this code into the main repository. It must contain both the updated schema version as well as the new test data. After a schema update, you'll also need to rebuild Java parser (see [Build instructions](build.md#building-java-clinvar-parser)).
 
 ### 1.3. Convert ClinVar files
 Here we transform ClinVar's XML file into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step.
 
 ```bash
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} -M 4G \
   -o ${BATCH_ROOT}/logs/convert_clinvar_files.out \
   -e ${BATCH_ROOT}/logs/convert_clinvar_files.err \
-  java -jar clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
+  java -jar ${CODE_ROOT}/clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
   -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
   -o ${BATCH_ROOT}/clinvar
 ```
@@ -66,7 +101,7 @@ A file named `clinvar.json.gz` will be created in the output directory.
 Clinvar JSON file obtained on the previous step is then filtered, extracting only records with allowed levels of clinical significance (as provided by ClinVar). For example, this step filters out records where the clinical significance is “Benign”, meaning that the variant *does not* contribute to a disease.
 
 ```bash
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/filter_clinvar_json.out \
   -e ${BATCH_ROOT}/logs/filter_clinvar_json.err \
   python bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
@@ -85,7 +120,7 @@ bsub \
 To generate the evidence strings, it is necessary to have the gene mapping and functional consequence annotation for each variant. Currently, this step is performed (partially) by OpenTargets: we generate the necessary file using the command below and submit it to OpenTargets. This needs to be done well in advance of the final submission deadline, so that they have the time to run the gene & functional consequence mapping pipeline and return the results to us. 
 
 ```bash
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/gene_mapping.out \
   -e ${BATCH_ROOT}/logs/gene_mapping.err \
   python bin/gene_mapping/gene_map_coords.py \
@@ -133,7 +168,7 @@ The TSV file eventually returned by OpenTargets has these columns:
 See information about the trait mapping pipeline [here](trait-mapping-pipeline.md). It is run with the following command:
 
 ```bash
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/trait_mapping.out \
   -e ${BATCH_ROOT}/logs/trait_mapping.err \
   python bin/trait_mapping.py -u \
@@ -179,7 +214,7 @@ In order to generate the evidence strings, run the following command.
 # Set the variable for the name of output file provided by OpenTargets, without the path
 export OT_OUTPUT_FILE=mergeEVA_uniq_clinvar_2019-04_19_09_manually_corrected.out.gz
 zcat ${BATCH_ROOT}/gene_mapping/${OT_OUTPUT_FILE} > ${BATCH_ROOT}/gene_mapping/ot_mapping_result.out
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -M 10G \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
@@ -204,10 +239,9 @@ python -m opentargets_validator.cli \
 ```
 
 ### 5.3. Update summary metrics
-
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
 
-## Step 5.4. Submit evidence strings
+## 5.4. Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [OpenTargets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[dd]-[mm]-[yyyy].json.gz` (e.g. `cttv012-12-06-2017.json.gz`).
 
 More details can be found on [OpenTargets Github wiki](https://github.com/opentargets/data_release/wiki/OT006-Data-Submission#ot009-evidence-string-generation-json-schema-validation--submission).
@@ -257,7 +291,7 @@ The mappings from the ClinVar trait name to the specified ontology xrefs are par
 
 ```bash
 # Convert trait mappings to the ZOOMA format
-bsub \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
   python bin/clinvar_jsons/traits_to_zooma_format.py \
