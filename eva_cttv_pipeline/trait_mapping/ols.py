@@ -3,7 +3,7 @@ import logging
 import requests
 import urllib
 
-from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
+from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
@@ -30,7 +30,7 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
     :return: Term label for the ontology URI provided in the parameters.
     """
     url = build_ols_query(ontology_uri)
-    json_response = request_retry_helper(url)
+    json_response = json_request(url)
 
     if not json_response:
         return None

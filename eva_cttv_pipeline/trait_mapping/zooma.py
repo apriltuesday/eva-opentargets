@@ -3,7 +3,7 @@ from functools import total_ordering
 import logging
 
 from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo
-from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
+from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 logger = logging.getLogger(__package__)
@@ -98,7 +98,7 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     """
 
     url = build_zooma_query(trait_name, filters, zooma_host)
-    zooma_response_list = request_retry_helper(url)
+    zooma_response_list = json_request(url)
 
     if zooma_response_list is None:
         return []
