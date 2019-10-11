@@ -112,8 +112,6 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
                 zooma_mapping.ontology_label = label
             else:
                 # If no label is returned (because OLS failed to provide it), keep the existing one from ZOOMA
-                logger.warning(("Couldn't retrieve ontology label from OLS for trait '{}', using label specified "
-                                "by ZOOMA instead").format(trait_name))
                 zooma_mapping.ontology_label = zooma_result.zooma_label
 
             uri_is_current_and_in_efo = is_current_and_in_efo(zooma_mapping.uri)
