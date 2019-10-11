@@ -87,7 +87,7 @@ A new Java package will be generated in the directory `clinvar-xml-parser/src/ma
 Here we transform ClinVar's XML file into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step.
 
 ```bash
-cd ${CODE_ROOT} && ${BSUB_CMDLINE} -M 4G \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} -n 8 -M 4G \
   -o ${BATCH_ROOT}/logs/convert_clinvar_files.out \
   -e ${BATCH_ROOT}/logs/convert_clinvar_files.err \
   java -jar ${CODE_ROOT}/clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
@@ -168,10 +168,10 @@ The TSV file eventually returned by OpenTargets has these columns:
 See information about the trait mapping pipeline [here](trait-mapping-pipeline.md). It is run with the following command:
 
 ```bash
-cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} -M 4G \
   -o ${BATCH_ROOT}/logs/trait_mapping.out \
   -e ${BATCH_ROOT}/logs/trait_mapping.err \
-  python bin/trait_mapping.py -u \
+  python bin/trait_mapping.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   -o ${BATCH_ROOT}/trait_mapping/automated_trait_mappings.tsv \
   -c ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv
