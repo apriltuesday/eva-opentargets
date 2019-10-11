@@ -1,10 +1,11 @@
 from functools import total_ordering, lru_cache
 import logging
 import re
+import requests
 
 from eva_cttv_pipeline.trait_mapping.ols import get_ontology_label_from_ols, is_in_efo
 from eva_cttv_pipeline.trait_mapping.ols import is_current_and_in_efo
-from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
+from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 logger = logging.getLogger(__package__)
@@ -206,7 +207,13 @@ def get_oxo_results(id_list: list, target_list: list, distance: int) -> list:
     """
     url = "https://www.ebi.ac.uk/spot/oxo/api/search?size=5000"
     payload = build_oxo_payload(id_list, target_list, distance)
-    oxo_response = request_retry_helper(url, payload)
+    try:
+        oxo_response = json_request(url, payload, requests.post)
+    except requests.HTTPError:
+        # Sometimes, OxO fails to process a completely valid request even after several attempts.
+        # See https://github.com/EBISPOT/OXO/issues/26 for details
+        logger.error('OxO failed to process request for id_list {} (probably a known bug in OxO)'.format(id_list))
+        return []
 
     if oxo_response is None:
         return []
