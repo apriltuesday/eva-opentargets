@@ -45,8 +45,8 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
                          "distance" parameter.
     :return: The original trait after querying Zooma and possibly OxO, with any results found.
     """
-
     logger.debug('Processing trait {}'.format(trait.name))
+
     trait.zooma_result_list = get_zooma_results(trait.name, filters, zooma_host)
     trait.process_zooma_results()
     if (trait.is_finished
@@ -55,15 +55,14 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
                     for mapping in trait.zooma_result_list
                     for entry in mapping.mapping_list])):
         return trait
+
     uris_for_oxo_set = get_uris_for_oxo(trait.zooma_result_list)
-    if len(uris_for_oxo_set) == 0:
-        return trait
     oxo_input_id_list = uris_to_oxo_format(uris_for_oxo_set)
+    if len(oxo_input_id_list) == 0:
+        return trait
     trait.oxo_result_list = get_oxo_results(oxo_input_id_list, oxo_target_list, oxo_distance)
-
     if not trait.oxo_result_list:
-        logger.warning('No OxO mapping for trait {}'.format(trait.name))
-
+        logger.debug('No OxO mapping for trait {}'.format(trait.name))
     trait.process_oxo_mappings()
 
     return trait
