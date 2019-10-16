@@ -69,6 +69,11 @@ The new manual workflow can be shortened if necessary, while the quality of the 
 * If necessary, section 1 can be skipped completely, i. e. copy-paste previous mappings into “Mapping to use” column, but skip the review.
 * Sections 2.2 and 3 can only be applied to some variants (e. g. based on frequency), depending on the time available.
 
+## Entering the curation results
+
+### Adding new mappings
+To select a new mapping which does not appear in the list of automatically generated mappings, use the following format: `URL|LABEL|||EFO_STATUS`. Example: `http://www.ebi.ac.uk/efo/EFO_0006329|response to citalopram|||EFO_CURRENT`. The last value can be either `EFO_CURRENT` (trait is present in the latest EFO version available in OLS), or `NOT_CONTAINED` if the term is not contained in the EFO.
+
 ### Marking the status of curated terms
 The “Status” column has the following acceptable values:
 * **DONE** — an acceptable trait contained in EFO has been found for the trait
