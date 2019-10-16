@@ -73,6 +73,7 @@ The “Status” column has the following acceptable values:
 * **IMPORT** — an acceptable trait has been found from the MONDO/ORDO/HP ontologies which is not contained in EFO and must be imported
 * **NEW** — new term must be created in EFO
 * **SKIP** — trait is going to be skipped in this iteration, due to being too non-specific, or just having a low frequency
+* **UNSURE** — temporary status; traits to be discussed with reviewers/the team
 
 “Comment” field can contain arbitrary additional information.
 
