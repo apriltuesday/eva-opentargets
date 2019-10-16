@@ -11,7 +11,7 @@ import progressbar
 import requests
 
 from clinvar_jsons_shared_lib import clinvar_jsons, get_traits_from_json, has_allowed_clinical_significance
-from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
+from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 DATE = strftime("%d/%m/%y %H:%M", gmtime())
@@ -110,7 +110,7 @@ def get_clinvar_accession(clinvar_json):
 
 def get_zooma_uris(trait_name, zooma_host, filters):
     url = build_zooma_query(trait_name, filters, zooma_host)
-    json_response = request_retry_helper(url)
+    json_response = json_request(url)
 
     if json_response is None:
         return None

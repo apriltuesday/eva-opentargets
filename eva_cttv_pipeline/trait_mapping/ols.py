@@ -3,7 +3,7 @@ import logging
 import requests
 import urllib
 
-from eva_cttv_pipeline.trait_mapping.utils import request_retry_helper
+from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
@@ -30,14 +30,15 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
     :return: Term label for the ontology URI provided in the parameters.
     """
     url = build_ols_query(ontology_uri)
-    json_response = request_retry_helper(url)
+    json_response = json_request(url)
 
     if not json_response:
         return None
 
     # If the '_embedded' section is missing from the response, it means that the term is not found in OLS
     if '_embedded' not in json_response:
-        logger.warning('OLS queried OK but did not return any results for URL {}'.format(url))
+        if '/medgen/' not in url and '/omim/' not in url:
+            logger.warning('OLS queried OK but did not return any results for URL {}'.format(url))
         return None
 
     # Go through all terms found by the requested identifier and try to find the one where the _identifier_ and the
@@ -48,7 +49,8 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
         if term["is_defining_ontology"]:
             return term["label"]
 
-    logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
+    if '/medgen/' not in url and '/omim/' not in url:
+        logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
     return None
 
 
