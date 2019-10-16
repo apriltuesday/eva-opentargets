@@ -2,6 +2,8 @@
 
 The goal is for traits with occurence ≥ 10 to have 100% coverage after the manual curation. For the rest of the traits, curate as many as possible.
 
+Before executing the subsequent commands, make sure to set up environment (described in the “Set up environment” section of the main protocol.)
+
 ## Extract information about previous mappings
 At this step, mappings produced by the pipeline on the previous iteration (including automated and manual) are downloaded to be used to aid the manual curation process.
 
