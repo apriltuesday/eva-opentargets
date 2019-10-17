@@ -199,7 +199,7 @@ Here, we integrate all of the information produced to generate the evidence stri
 OpenTargets have a [JSON schema](https://github.com/opentargets/json_schema) used to validate submitted data. Validation of generated evidence strings is carried out during generation. To fetch schema, use the following command. `$VERSION` needs to be filled with the version number recommended by the OpenTargets in their announcement e-mail.
 
 ```bash
-VERSION=1.6.1
+VERSION=1.6.2
 wget \
   -O ${BATCH_ROOT}/evidence_strings/opentargets-$VERSION.json \
   https://raw.githubusercontent.com/opentargets/json_schema/$VERSION/opentargets.json
