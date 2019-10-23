@@ -2,12 +2,12 @@
 
 The goal is for traits with occurence ≥ 10 to have 100% coverage after the manual curation. For the rest of the traits, curate as many as possible.
 
+Before executing the subsequent commands, make sure to set up environment (described in the “Set up environment” section of the main protocol.)
+
 ## Extract information about previous mappings
 At this step, mappings produced by the pipeline on the previous iteration (including automated and manual) are downloaded to be used to aid the manual curation process.
 
 ```bash
-# Set the variable below for year and month of the OpenTargets batch release
-export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM
 # Download the latest eva_clinvar release from FTP
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
   | cut -f4-5 | sort -u > ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv
@@ -68,6 +68,24 @@ The new manual workflow can be shortened if necessary, while the quality of the 
 * All subsections 1.\* involve review of mappings previously selected by ourselves. Because we trust them (to an extent), this review can be applied not to all mappings, but only to some (selected on a basis of frequency, or just randomly sampled/eyeballed).
 * If necessary, section 1 can be skipped completely, i. e. copy-paste previous mappings into “Mapping to use” column, but skip the review.
 * Sections 2.2 and 3 can only be applied to some variants (e. g. based on frequency), depending on the time available.
+
+## Entering the curation results
+
+### Adding new mappings
+To select a new mapping which does not appear in the list of automatically generated mappings, use the following format: `URL|LABEL|||EFO_STATUS`. Example: `http://www.ebi.ac.uk/efo/EFO_0006329|response to citalopram|||EFO_CURRENT`. The last value can be either `EFO_CURRENT` (trait is present in the latest EFO version available in OLS), or `NOT_CONTAINED` if the term is not contained in the EFO.
+
+### Marking the status of curated terms
+The “Status” column has the following acceptable values:
+* **DONE** — an acceptable trait contained in EFO has been found for the trait
+* **IMPORT** — an acceptable trait has been found from the MONDO/ORDO/HP ontologies which is not contained in EFO and must be imported
+* **NEW** — new term must be created in EFO
+* **SKIP** — trait is going to be skipped in this iteration, due to being too non-specific, or just having a low frequency
+* **UNSURE** — temporary status; traits to be discussed with reviewers/the team
+
+“Comment” field can contain arbitrary additional information.
+
+### Note on spaces and line breaks
+Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
 
 ## Exporting curation results
 Once the manual curation is complete, export the results to a file named `finished_mappings_curation.tsv` and save it to `${BATCH_ROOT}/trait_mapping` directory. This file must consist of three columns from the curation spreadsheet: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Make sure to only export the mappings which the curator marked as done.

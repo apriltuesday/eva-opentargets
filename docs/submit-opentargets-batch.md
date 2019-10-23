@@ -14,7 +14,7 @@ export OT_RELEASE=YYYY-MM
 
 # Year and month of ClinVar release used (see step 1.1 Download ClinVar data).
 # Note that this is *different* from the OpenTargets release year/month.
-export CLINVAR_RELEASE=YYYY_MM
+export CLINVAR_RELEASE=YYYY-MM
 
 # This variable should point to the directory where this repository clone is located on the cluster.
 export CODE_ROOT=/nfs/production3/eva/software/eva-cttv-pipeline
@@ -189,7 +189,7 @@ See separate protocol, [Manual curation](manual-curation.md).
 * The mappings selected for each trait are adequate
 * Good/bad criteria for curation are observed (see the manual curation protocol, section “Criteria to manually evaluate mapping quality”)
 * The number of traits in the `finished_mappings_curation.tsv` file is the same as in the spreadsheet after applying all relevant filters
-* Spreadhseet does not contain line endings in trait names (can be checked by a regexp search)
+* _Important:_ spreadhseet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
 
 ## Step 5. Generate evidence strings [(issue template)](https://www.ebi.ac.uk/panda/jira/browse/EVA-1473)
 
