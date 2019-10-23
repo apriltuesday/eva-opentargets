@@ -6,7 +6,7 @@
     "type": null,
     "id": []
   },
-  "validated_against_schema_version": "1.6.1",
+  "validated_against_schema_version": "1.6.2",
   "disease": {
     "id": []
   },
@@ -46,7 +46,6 @@
       "resource_score": {
         "type": "pvalue",
         "method": {
-          "url": "",
           "description": "Not provided by data supplier"
         },
         "value": 1e-7
@@ -81,7 +80,6 @@
       "resource_score": {
         "type": "pvalue",
         "method": {
-          "url": "",
           "description": "Not provided by data supplier"
         },
         "value": 1e-7

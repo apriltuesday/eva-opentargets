@@ -60,7 +60,7 @@ class CTTVGeneticsEvidenceStringInitTest(unittest.TestCase):
             {"lit_id": "http://europepmc.org/abstract/MED/21697857"}]
     },
     "disease": {"id": ["http://www.orpha.net/ORDO/Orphanet_886"]},
-    "validated_against_schema_version": "1.6.1",
+    "validated_against_schema_version": "1.6.2",
     "target": {
         "target_type": "http://identifiers.org/cttv.target/gene_variant",
         "id": "http://identifiers.org/ensembl/ENSG00000163646",
@@ -89,7 +89,7 @@ class CTTVGeneticsEvidenceStringInitTest(unittest.TestCase):
                 "nice_name": "Further details in ClinVar database"}],
             "resource_score": {
                 "type": "pvalue",
-                "method": {"url": "", "description": "Not provided by data supplier"},
+                "method": {"description": "Not provided by data supplier"},
                 "value": 1e-07
             }
         },
@@ -123,7 +123,7 @@ class CTTVGeneticsEvidenceStringInitTest(unittest.TestCase):
             }],
             "resource_score": {
                 "type": "pvalue",
-                "method": {"url": "","description": "Not provided by data supplier"},
+                "method": {"description": "Not provided by data supplier"},
                 "value": 1e-07
             }
         }
@@ -182,7 +182,7 @@ class CTTVSomaticEvidenceStringInitTest(unittest.TestCase):
         test_dict = {
     "literature": {"references": [{"lit_id": "http://europepmc.org/abstract/MED/8281160"}]},
     "disease": {"id": ["http://www.ebi.ac.uk/efo/EFO_0000232"]},
-    "validated_against_schema_version": "1.6.1",
+    "validated_against_schema_version": "1.6.2",
     "target": {
         "target_type": "http://identifiers.org/cttv.target/gene_variant",
         "id": "http://identifiers.org/ensembl/ENSG00000134982",
@@ -291,7 +291,7 @@ class CTTVGeneticsEvidenceStringTest(unittest.TestCase):
         self.test_args = get_args_CTTVGeneticsEvidenceString_init()
         self.test_ges = evidence_strings.CTTVGeneticsEvidenceString(*self.test_args)
         ot_schema_path = os.path.join(
-            os.path.dirname(__file__), 'resources', 'opentargets.1.6.1.json.gz')
+            os.path.dirname(__file__), 'resources', 'opentargets.1.6.2.json.gz')
         self.ot_schema_contents = json.loads(gzip.open(ot_schema_path).read().decode('utf-8'))
 
     # CTTVEvidenceString tests
@@ -457,7 +457,7 @@ class CTTVSomaticEvidenceStringTest(unittest.TestCase):
         test_args = get_args_CTTVSomaticEvidenceString_init()
         self.test_ses = evidence_strings.CTTVSomaticEvidenceString(*test_args)
         ot_schema_path = os.path.join(
-            os.path.dirname(__file__), 'resources', 'opentargets.1.6.1.json.gz')
+            os.path.dirname(__file__), 'resources', 'opentargets.1.6.2.json.gz')
         self.ot_schema_contents = json.loads(gzip.open(ot_schema_path).read().decode('utf-8'))
 
     def test_db_xref_url(self):
