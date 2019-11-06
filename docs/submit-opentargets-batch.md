@@ -262,25 +262,7 @@ More details can be found on [OpenTargets Github wiki](https://github.com/openta
 
 The idea with ZOOMA is that we not only use it, but also provide feedback to help improve it. The evidence string generation pipeline generates two files with such a feedback.
 
-### 6.1. Trait mappings
-Upload the file containing trait mappings (`eva_clinvar.txt`) to the EVA FTP:
-
-```bash
-# You'll need to use this user to be able to make changes to FTP
-become ftpadmin /bin/bash
-# Don't forget to set ${BATCH_ROOT} variable again
-BATCH_ROOT=...
-# Create the folder and copy the file containing trait mappings to the EVA FTP
-FTP_PATH=/nfs/ftp/pub/databases/eva/ClinVar/`date +%Y/%m/%d`
-mkdir -p ${FTP_PATH}
-cp ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt ${FTP_PATH}
-# Update the symbolic link in the “latest” folder
-# Note: as of August 2019, for some reason symbolic links aren't working consistently, using copying for now
-# ln -f -s ${FTP_PATH}/eva_clinvar.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/eva_clinvar.txt
-cp ${FTP_PATH}/eva_clinvar.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/eva_clinvar.txt
-```
-
-### 6.2. ClinVar xRefs
+### 6.1. Prepare ClinVar xRefs file
 Each ClinVar record is associated with one or more traits. When submitting the data to OpenTargets, the trait needs to be specified as an ontological term present in [the Experimental Factor Ontology (EFO)](http://www.ebi.ac.uk/efo/).
 
 Traits in ClinVar may specify ontological terms for the trait name, but not to a term present in EFO. Cross-references (xrefs) to ontological terms can help in finding a good EFO term for a trait, whether an xref is in EFO itself or an xref can be used as a starting point for searching for a term in EFO later on.
@@ -299,15 +281,26 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-This file needs to be uploaded to the FTP as well:
+### 6.2. Upload ClinVar xRefs and trait mappings to the FTP
+
+Two files need to be uploaded to the FTP as feedback to ZOOMA: `clinvar_xrefs` (generated during the previous step) and `eva_clinvar` (containing the trait mappings, created during the evidence string generation). This file needs to be uploaded to the FTP. To do this, you will need to run `become ftpadmin /bin/bash` first from your personal account (*not* from `eva_etl` user). After you do this, the environment will be wiped clean, so you'll need to re-apply it again (see “Set up environment” section at the top).
+
 ```bash
-become ftpadmin /bin/bash
-BATCH_ROOT=...
+# EXECUTE UNDER FTPADMIN
+
+# Create the folder
 FTP_PATH=/nfs/ftp/pub/databases/eva/ClinVar/`date +%Y/%m/%d`
 mkdir -p ${FTP_PATH}
-cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${FTP_PATH}
-# ln -f -s ${FTP_PATH}/clinvar_xrefs.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt
-cp ${FTP_PATH}/clinvar_xrefs.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt
+
+# Copy both files to FTP
+cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt ${FTP_PATH}
+
+# Update files in the “latest” folder
+for ZOOMA_FILE in clinvar_xrefs eva_clinvar; do
+    # ln -f -s ${FTP_PATH}/${ZOOMA_FILE}.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/${ZOOMA_FILE}.txt
+    # # Note: as of August 2019, for some reason symbolic links aren't working consistently; using copying for now
+    cp ${FTP_PATH}/${ZOOMA_FILE}.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/${ZOOMA_FILE}.txt
+done
 ```
 
 After uploading both files, confirm that the changes have propagated to the FTP:
