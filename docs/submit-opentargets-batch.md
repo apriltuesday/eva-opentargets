@@ -320,16 +320,26 @@ If everything has been done correctly, hash sums will be the same. Note that the
 
 
 ## Step 7. Adding novel trait names to EFO
-Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available. Any new terms added will be picked up by ZOOMA in the next iteration of the trait mapping pipeline.
+Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available. Any new terms added will be picked up by ZOOMA in the next iteration of the trait mapping pipeline. Novel traits can be submitted to EFO using the [Webulous templates](https://www.ebi.ac.uk/efo/webulous/) **Add EFO disease** and **Import HP term**. Open a new Google spreadsheet and connect with the server using the Webulous Add-on.
 
-Novel traits can be submitted to EFO using the [Webulous templates](https://www.ebi.ac.uk/efo/webulous/) **Add EFO disease** and **Import HP term**. Open a new Google spreadsheet and connect with the server using the Webulous Add-on.
+There is a helpqer script available for preparing the table. The input file  `${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt ` must contain a list of ontology URIs for EFO import, one entry per line. Example of such a file:
 
-There is a helper script available for preparing the table. `ontology_mappings` must contain a list of ontology identifiers for EFO import (such as `MONDO_123456`, `Orphanet:123456`, etc.), one entry per line. The output file will contains a partially ready table for EFO import.
-```bash
-python bin/trait_mapping/create_efo_table.py \ 
-  -i ontology_mappings.txt \
-  -o efo_table.tsv
 ```
+http://purl.obolibrary.org/obo/HP_0002647
+http://purl.obolibrary.org/obo/MONDO_0000727
+http://www.orpha.net/ORDO/Orphanet_199306
+...
+```
+
+Before running the script, make sure to set up the environment (see above).
+
+```bash
+python ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
+  -i ${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt \
+  -o ${BATCH_ROOT}/trait_mapping/efo_import_table.tsv
+```
+
+The file `${BATCH_ROOT}/trait_mapping/efo_import_table.tsv` will contains a partially ready table for EFO import.
 
 The table needs to be amended manually:
 * Some terms will lack descriptions, because ontologies don't always contain a description field for a particular term. If possible, descriptions should be added for all traits.
