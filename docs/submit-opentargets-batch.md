@@ -339,7 +339,7 @@ python ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
   -o ${BATCH_ROOT}/trait_mapping/efo_import_table.tsv
 ```
 
-The file `${BATCH_ROOT}/trait_mapping/efo_import_table.tsv` will contains a partially ready table for EFO import.
+The file `${BATCH_ROOT}/trait_mapping/efo_import_table.tsv` will contain a partially ready table for EFO import.
 
 The table needs to be amended manually:
 * Some terms will lack descriptions, because ontologies don't always contain a description field for a particular term. If possible, descriptions should be added for all traits.
