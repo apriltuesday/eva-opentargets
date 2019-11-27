@@ -52,7 +52,6 @@ def uri_to_curie(uri):
 def get_cross_references(curie):
     """Queries OxO to return the list of cross-references for a given term curie."""
     url = oxo_url_template.format(curie=curie)
-    print(url)
     mappings = requests.get(url).json()['_embedded']['searchResults'][0]['mappingResponseList']
     return [m['curie'] for m in mappings]
 

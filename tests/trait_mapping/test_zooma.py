@@ -46,10 +46,10 @@ class TestGetZoomaResults(unittest.TestCase):
 
     def test_get_result_without_ols_label(self):
         """If OLS does not provide a label for a trait, ZOOMA original label must be used instead."""
-        requested_trait_name = 'DEFICIENCY OF PHOSPHOLIPASE A2 GROUP IV A'
-        expected_trait_label = 'Phospholipase a2, group IV a, deficiency of'
+        requested_trait_name = 'Mucopolysaccharidosis type VI'
+        expected_trait_label = 'Mucopolysaccharidosis type 6'
         zooma_result = zooma.get_zooma_results(requested_trait_name, self.filters, self.zooma_host)
         self.assertEqual(len(zooma_result), 1)
         mappings = zooma_result[0].mapping_list
-        self.assertEqual(len(mappings), 1)
-        self.assertEqual(mappings[0].ontology_label, expected_trait_label)
+        self.assertEqual(len(mappings), 3)
+        self.assertIn(expected_trait_label, [m.ontology_label for m in mappings])
