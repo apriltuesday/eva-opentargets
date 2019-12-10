@@ -283,7 +283,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
 
 ### 6.2. Upload ClinVar xRefs and trait mappings to the FTP
 
-Two files need to be uploaded to the FTP as feedback to ZOOMA: `clinvar_xrefs` (generated during the previous step) and `eva_clinvar` (containing the trait mappings, created during the evidence string generation). This file needs to be uploaded to the FTP. To do this, you will need to run `become ftpadmin /bin/bash` first from your personal account (*not* from `eva_etl` user). After you do this, the environment will be wiped clean, so you'll need to re-apply it again (see “Set up environment” section at the top).
+Two files need to be uploaded to the FTP as feedback to ZOOMA: `clinvar_xrefs` (generated during the previous step) and `eva_clinvar` (containing the trait mappings, created during the evidence string generation). This file needs to be uploaded to the FTP. To do this, you will need to run `become <FTP administrative user> /bin/bash` first from your personal account. Please see [this document](https://www.ebi.ac.uk/seqdb/confluence/display/VAR/Simplified+EVA+FTP+SOP) for details on the FTP administrative user. After you do this, the environment will be wiped clean, so you'll need to re-apply it again (see “Set up environment” section at the top).
 
 ```bash
 # EXECUTE UNDER FTPADMIN
