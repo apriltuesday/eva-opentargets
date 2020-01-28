@@ -227,6 +227,8 @@ wget \
   https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json
 ```
 
+When Open Targets schema version changes, test files in `tests/evidence_string_generation/resources` also need to be updated, as well as all mentions of old schema version throughout the code (use global search for that). 
+
 ### 5.2. Generate evidence strings
 This step depends on Open Targets providing the output file after processing the data submitted to them on Step 2, “Gene and consequence type mappings”. This file can be named in any fashion but always has a `.out.gz` suffix. Example of a file name pattern: `mergeEVA_uniq_clinvar_2019-09_manually_corrected.out.gz`. Download this file from Google Storage and save it as `${BATCH_ROOT}/gene_mapping/ot_mapping_result.out.gz`.
 
