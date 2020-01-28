@@ -88,7 +88,7 @@ The “Status” column has the following acceptable values:
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
 
 ## Exporting curation results
-Once the manual curation is completed, apply a spreadsheet filter so that only traits with Status = DONE are visible. Copy data for all non-empty rows from three columns: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Do not include header lines. Save the data to a file `${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv` directory.
+Once the manual curation is completed, apply a spreadsheet filter so that only traits with Status = DONE are visible. Copy data for all non-empty rows from three columns: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Do not include header lines. Save the data to a file `${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv`.
 
 Concatenate automated and manual mappings into a single file:
 ```bash

@@ -1,7 +1,7 @@
 # How to submit an Open Targets batch
 This protocol describes how to create and submit an Open Targets batch using ClinVar data. Additional diagrams and background explanations can be found in [this presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM).
 
-Batch submission process consists of seven major parts. For each step, a single JIRA ticket needs to be created. This can be done by cloning a corresponding ticket from one of the previous batches and adjusting its parameters. List of suitable ticket templates for each of the steps:
+Batch submission process consists of seven major parts. For each step, create a single JIRA ticket. This can be done by cloning a corresponding ticket from one of the previous batches and adjusting its parameters. List of suitable ticket templates for each of the steps:
 1. https://www.ebi.ac.uk/panda/jira/browse/EVA-1774
 2. https://www.ebi.ac.uk/panda/jira/browse/EVA-1775
 3. https://www.ebi.ac.uk/panda/jira/browse/EVA-1776
@@ -20,7 +20,7 @@ Commands throughout the protocol depend on a number of environment variables. It
 * Open Targets JSON schema version (`OT_SCHEMA_VERSION`)
 * Open Targets validator package version (`OT_VALIDATOR_VERSION`)
 
-At this step, you will need to determine which ClinVar release to use as source (`CLINVAR_RELEASE`). Each Open Targets release is synchronised with a certain Ensembl release version, which is also announced in the aforementioned e-mail. Each Ensembl release is, in turn, synchronised with a certain ClinVar version. Based on Ensembl version, we can find the ClinVar release associated to an Ensembl release in its [sources page](http://www.ensembl.org/info/genome/variation/species/sources_documentation.html). For example, if Ensembl is using ClinVar version “07/2019”, this variable will be set to `2019-07`. Note that this is generally *different* from the Open Targets release year and month.
+Next you will need to determine which ClinVar release to use as source (`CLINVAR_RELEASE`). Each Open Targets release is synchronised with a certain Ensembl release version, which is also announced in the aforementioned e-mail. Each Ensembl release is, in turn, synchronised with a certain ClinVar version. Based on Ensembl version, we can find the ClinVar release associated to an Ensembl release in its [sources page](http://www.ensembl.org/info/genome/variation/species/sources_documentation.html). For example, if Ensembl is using ClinVar version “07/2019”, this variable will be set to `2019-07`. Note that this is generally *different* from the Open Targets release year and month.
 
 ```bash
 # Year and month for the upcoming Open Targets release
