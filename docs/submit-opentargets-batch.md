@@ -320,9 +320,7 @@ If everything has been done correctly, hash sums will be the same. Note that the
 
 
 ## Step 7. Adding novel trait names to EFO
-Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available. Any new terms added will be picked up by ZOOMA in the next iteration of the trait mapping pipeline. Novel traits can be submitted to EFO using the [Webulous templates](https://www.ebi.ac.uk/efo/webulous/) **Add EFO disease** and **Import HP term**. Open a new Google spreadsheet and connect with the server using the Webulous Add-on.
-
-There is a helpqer script available for preparing the table. The input file  `${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt ` must contain a list of ontology URIs for EFO import, one entry per line. Example of such a file:
+Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available.
 
 ```
 http://purl.obolibrary.org/obo/HP_0002647

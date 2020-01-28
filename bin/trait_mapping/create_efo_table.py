@@ -52,7 +52,12 @@ def uri_to_curie(uri):
 def get_cross_references(curie):
     """Queries OxO to return the list of cross-references for a given term curie."""
     url = oxo_url_template.format(curie=curie)
-    mappings = requests.get(url).json()['_embedded']['searchResults'][0]['mappingResponseList']
+    response = requests.get(url).json()
+    if '_embedded' not in response:
+        print('Warning: OxO error for term {}. No cross-links will be available for this term. '
+              'See https://github.com/EBISPOT/OXO/issues/26'.format(curie))
+        return []
+    mappings = response['_embedded']['searchResults'][0]['mappingResponseList']
     return [m['curie'] for m in mappings]
 
 
