@@ -88,16 +88,12 @@ The “Status” column has the following acceptable values:
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
 
 ## Exporting curation results
-Once the manual curation is complete, export the results to a file named `finished_mappings_curation.tsv` and save it to `${BATCH_ROOT}/trait_mapping` directory. This file must consist of three columns from the curation spreadsheet: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Make sure to only export the mappings which the curator marked as done.
+Once the manual curation is completed, apply a spreadsheet filter so that only traits with Status = DONE are visible. Copy data for all non-empty rows from three columns: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. Do not include header lines. Save the data to a file `${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv` directory.
 
-Sometimes “Mapping to use” column may contain newline characters inserted by accident; if present, remove them using a global regexp search in Google Sheets.
- 
-After that, two files with mappings must be concatenated to a single file to be used as input for the evidence string generation:
-* `automated_trait_mappings.tsv`
-  + Mappings generated automatically by the trait mapping pipeline and already considered “finished”
-* `finished_mappings_curation.tsv`
-  + Eyeballed good quality mappings
-  + Manually curated medium and low quality mappings
-  + New mappings for previously unmapped traits
-
-The resulting file must be named `trait_names_to_ontology_mappings.tsv` and saved to `${BATCH_ROOT}/trait_mapping` directory as well.
+Concatenate automated and manual mappings into a single file:
+```bash
+cat \
+  ${BATCH_ROOT}/trait_mapping/automated_trait_mappings.tsv \
+  ${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv \
+> ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv
+```

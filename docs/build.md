@@ -102,22 +102,5 @@ questions about local OLS installation.
    * To install to develop: `python3 setup.py develop`
    * To build a source distribution: `python3 setup.py sdist`
 
-## Regenerating test data
-All the test does (for the moment) is checking that parsing 10 records from the XML will (1) not crash and (2)
-provide 10 records after parsing. So to regenerate test data, we just have to extract any 10 records (can just be the
-first 10 records) from the ClinVar XML file:
-
-```bash
-CLINVAR_RELEASE="2019-01"  # set the correct one
-zcat ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
-  | awk 'BEGIN {RS="</ClinVarSet>\n\n"; ORS=RS} {print} NR==10 {exit}' \
-  > ClinvarExample.xml
-echo "</ReleaseSet>" >> ClinvarExample.xml
-gzip -c <ClinvarExample.xml >ClinvarExample.xml.gz
-```
-
-Eyeball input & output files to ensure that the ClinVar format has not changed sufficiently enough to render this
-snippet invalid. Then put the generated files into `clinvar-xml-parser/src/test/resources/` directory.
-
 ## Tests
 You can run all tests with: `python setup.py test`
