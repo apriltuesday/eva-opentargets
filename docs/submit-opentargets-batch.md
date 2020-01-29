@@ -115,12 +115,9 @@ A new Java package will be generated in the directory `clinvar-xml-parser/src/ma
 Update the test data. All the test does (for the moment) is checking that parsing 10 records from the XML will (1) not crash and (2) provide 10 records after parsing. So to regenerate test data, we just have to extract any 10 records (can just be the first 10 records) from the ClinVar XML file:
 ```bash
 zcat ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
-  | awk 'BEGIN {RS="</ClinVarSet>\n\n"; ORS=RS} {print} NR==10 {exit}' \
-  > ${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml
-echo "</ReleaseSet>" >> ${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml
-gzip -c \
-  <${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml \
-  >${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml.gz
+  | awk 'BEGIN {RS="</ClinVarSet>\n\n"; ORS=RS} {print} NR==10 {exit} END {print "</ReleaseSet>"}' \
+  | tee ${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml \
+  | gzip -c >${CODE_ROOT}/clinvar-xml-parser/src/test/resources/ClinvarExample.xml.gz
 ```
 
 Eyeball input & output files to ensure that the ClinVar format has not changed sufficiently enough to render this snippet invalid.
