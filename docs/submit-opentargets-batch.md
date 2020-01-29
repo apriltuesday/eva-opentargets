@@ -134,7 +134,7 @@ cd ${CODE_ROOT} && \
 ${BSUB_CMDLINE} -K -n 8 -M 16G \
   -o ${BATCH_ROOT}/logs/convert_clinvar_files.out \
   -e ${BATCH_ROOT}/logs/convert_clinvar_files.err \
-  java -jar ${CODE_ROOT}/clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
+  java -Xmx15G -jar ${CODE_ROOT}/clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
   -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
   -o ${BATCH_ROOT}/clinvar && \
 ${BSUB_CMDLINE} -K \
