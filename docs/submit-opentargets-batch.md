@@ -15,12 +15,29 @@ At the end of each step there is a list of checks do be done during review of th
 Log in to the LSF cluster, where all data processing must take place. You must use a common EVA production user instead of your personal account. Follow the [Build instructions](build.md). In particular, you'll need to install Python 3.5 (if you don't have it already), build the Java ClinVar parser, build and install the Python pipeline.
 
 ## Set up environment
-Commands throughout the protocol depend on a number of environment variables. It makes sense to set them all at once before executing any of the steps. Carefully check the validity of all values. Some of them are announced in the e-mail which they send a few weeks before the data submission deadline:
+Commands throughout the protocol depend on a number of environment variables. It makes sense to set them all at once before executing any of the steps.
+
+First you will need to set up variables which are specific to your installation. For EVA use case, see “configuration” repository.
+```bash
+# This variable should point to the directory where the clone of this repository is located on the cluster
+export CODE_ROOT=
+
+# Location of Python installation which you configured using build instructions
+export PYTHON_INSTALL_PATH=
+
+# The directory where subdirectories for each batch will be created
+export BATCH_ROOT_BASE=
+
+# Base path of FTP directory on the cluster
+export FTP_PATH_BASE=
+```
+
+Next set of variables is specific to Open Targets release. They are announced the e-mail which they send a few weeks before the data submission deadline, or can be derived from it:
 * Year and month of the upcoming Open Targets release (`OT_RELEASE`). For example, if you're processing data for “20.02” release, this variable will be set to `2020-02`.
 * Open Targets JSON schema version (`OT_SCHEMA_VERSION`)
 * Open Targets validator package version (`OT_VALIDATOR_VERSION`)
 
-Next you will need to determine which ClinVar release to use as source (`CLINVAR_RELEASE`). Each Open Targets release is synchronised with a certain Ensembl release version, which is also announced in the aforementioned e-mail. Each Ensembl release is, in turn, synchronised with a certain ClinVar version. Based on Ensembl version, we can find the ClinVar release associated to an Ensembl release in its [sources page](http://www.ensembl.org/info/genome/variation/species/sources_documentation.html). For example, if Ensembl is using ClinVar version “07/2019”, this variable will be set to `2019-07`. Note that this is generally *different* from the Open Targets release year and month.
+You will also need to determine which ClinVar release to use as source (`CLINVAR_RELEASE`). Each Open Targets release is synchronised with a certain Ensembl release version, which is also announced in the aforementioned e-mail. Each Ensembl release is, in turn, synchronised with a certain ClinVar version. Based on Ensembl version, we can find the ClinVar release associated to an Ensembl release in its [sources page](http://www.ensembl.org/info/genome/variation/species/sources_documentation.html). For example, if Ensembl is using ClinVar version “07/2019”, this variable will be set to `2019-07`. Note that this is generally *different* from the Open Targets release year and month.
 
 ```bash
 # Year and month for the upcoming Open Targets release
@@ -34,22 +51,20 @@ export OT_SCHEMA_VERSION=1.6.3
 
 # Open Targets validator schema version
 export OT_VALIDATOR_VERSION=0.5.0
+```
 
-# This variable should point to the directory where the clone of this repository is located on the cluster
-export CODE_ROOT=/nfs/production3/eva/software/eva-cttv-pipeline
-
-# Setting up Python version (the same one which you installed using build instructions)
-PYTHON_VERSION=3.5.6
-INSTALL_PATH=/nfs/production3/eva/software/python-${PYTHON_VERSION}
-export PATH=${INSTALL_PATH}:$PATH
-export PYTHONPATH=${INSTALL_PATH}
-
+Finally, we define some environment variables which are either constant or based on the above two sets:
+```bash
 # Base bsub command line for all commands. For example, you can specify your e-mail to receive a notification once
 # the job has been completed.
 export BSUB_CMDLINE="bsub -u your_email@example.com"
 
-# This variable does not require modification and points out to the root of all files for the current batch
-export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-${OT_RELEASE}
+# Setting up Python paths
+export PATH=${PYTHON_INSTALL_PATH}:$PATH
+export PYTHONPATH=${PYTHON_INSTALL_PATH}
+
+# The root directory for all files for the current batch
+export BATCH_ROOT=${BATCH_ROOT_BASE}/batch-${OT_RELEASE}
 ```
 
 Before proceeding with executing the commands, update code on the cluster and create the necessary directories:
@@ -307,10 +322,11 @@ To make changes to the FTP, you will need to log in to the cluster using your **
 ```bash
 # EXECUTE UNDER FTP ADMINISTRATIVE USER
 # DON'T FORGET TO SET BATCH_ROOT AGAIN
-export BATCH_ROOT=/nfs/production3/eva/opentargets/batch-YYYY-MM/
+export BATCH_ROOT=...
 
 # Create the folder
-FTP_PATH=/nfs/ftp/pub/databases/eva/ClinVar/`date +%Y/%m/%d`
+
+FTP_PATH=${FTP_PATH_BASE}/`date +%Y/%m/%d`
 mkdir -p ${FTP_PATH}
 
 # Copy both files to FTP
@@ -318,9 +334,9 @@ cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${BATCH_ROOT}/evidence_strings/eva_cl
 
 # Update files in the “latest” folder
 for ZOOMA_FILE in clinvar_xrefs eva_clinvar; do
-    # ln -f -s ${FTP_PATH}/${ZOOMA_FILE}.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/${ZOOMA_FILE}.txt
+    # ln -f -s ${FTP_PATH}/${ZOOMA_FILE}.txt ${FTP_PATH_BASE}/latest/${ZOOMA_FILE}.txt
     # # Note: as of August 2019, for some reason symbolic links aren't working consistently; using copying for now
-    cp ${FTP_PATH}/${ZOOMA_FILE}.txt /nfs/ftp/pub/databases/eva/ClinVar/latest/${ZOOMA_FILE}.txt
+    cp ${FTP_PATH}/${ZOOMA_FILE}.txt ${FTP_PATH_BASE}/latest/${ZOOMA_FILE}.txt
 done
 ```
 
