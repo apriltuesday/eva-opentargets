@@ -10,14 +10,8 @@ from tests.evidence_string_generation import config
 
 
 def _get_mappings():
-    efo_mapping_file = os.path.join(os.path.dirname(__file__), 'resources',
-                                    'feb16_jul16_combined_trait_to_url.tsv')
-    ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
-    snp_2_gene_file = os.path.join(os.path.dirname(__file__), 'resources',
-                                   config.snp_2_gene_file)
-
-    mappings = clinvar_to_evidence_strings.get_mappings(efo_mapping_file, snp_2_gene_file)
-
+    efo_mapping_file = os.path.join(os.path.dirname(__file__), 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
+    mappings = clinvar_to_evidence_strings.get_mappings(efo_mapping_file, config.snp_2_gene_file)
     return mappings
 
 
@@ -46,12 +40,12 @@ class GetMappingsTest(unittest.TestCase):
              ('http://www.ebi.ac.uk/efo/EFO_0001645', 'coronary heart disease')])
 
     def test_consequence_type_dict(self):
-        self.assertEqual(len(self.mappings.consequence_type_dict), 34)
+        self.assertEqual(len(self.mappings.consequence_type_dict), 21)
 
-        self.assertTrue("rs121908485" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs121912888" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs137852558" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs137853008" in self.mappings.consequence_type_dict)
+        self.assertTrue("14:67727191:G:A" in self.mappings.consequence_type_dict)
+        self.assertTrue("14:67727197:C:T" in self.mappings.consequence_type_dict)
+        self.assertTrue("14:67729179:T:C" in self.mappings.consequence_type_dict)
+        self.assertTrue("14:67729307:CG:C" in self.mappings.consequence_type_dict)
 
         self.assertFalse("rs0" in self.mappings.consequence_type_dict)
         self.assertFalse("rs5" in self.mappings.consequence_type_dict)
@@ -93,7 +87,7 @@ class CreateTraitTest(unittest.TestCase):
 class SkipRecordTest(unittest.TestCase):
 
     #clinvar_record, clinvar_record_measure, consequence_type, allele_origin,
-                # allowed_clinical_significance, report
+    # allowed_clinical_significance, report
 
     def setUp(self):
         self.clinvar_record = test_clinvar.get_test_record()
@@ -119,7 +113,6 @@ class SkipRecordTest(unittest.TestCase):
 class LoadEfoMappingTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
         efo_file = \
             os.path.join(os.path.dirname(__file__), 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
 
@@ -241,18 +234,21 @@ class TestConvertAlleleOrigins(unittest.TestCase):
 
 
 class TestGetConsequenceTypes(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
+        # A single example ClinVar record
         cls.test_crm = test_clinvar.get_test_record().measures[0]
+        # Example result from the gene & functional consequence mapping pipeline for several variants
         cls.consequence_type_dict = CT.process_consequence_type_file(config.snp_2_gene_file)
 
     def test_get_consequence_types(self):
-        test_consequence_type = CT.ConsequenceType("ENSG00000163646", CT.SoTerm("stop_gained"))
-
-        self.assertEqual(clinvar_to_evidence_strings.get_consequence_types(
-            self.test_crm,
-            self.consequence_type_dict)[0],
-            test_consequence_type)
-        self.assertEqual(clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}),
-                         [None])
-
+        self.assertEqual(
+            clinvar_to_evidence_strings.get_consequence_types(self.test_crm, self.consequence_type_dict)[0],
+            CT.ConsequenceType('ENSG00000139988', CT.SoTerm('missense_variant')),
+            ''
+        )
+        self.assertEqual(
+            clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}),
+            [None]
+        )
