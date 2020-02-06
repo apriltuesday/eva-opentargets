@@ -8,12 +8,15 @@ class ClinvarRecord(UserDict):
     than dict in order to use attributes
     """
 
+    # A score for the review status of the assigned clinical significance ranges from 0 to 4 and corresponds to the
+    # number of gold stars displayed on ClinVar website. See details here:
+    # https://www.ncbi.nlm.nih.gov/clinvar/docs/details/#review_status
     score_map = {
-        "CLASSIFIED_BY_SINGLE_SUBMITTER": 1,
-        "NOT_CLASSIFIED_BY_SUBMITTER": None,
-        "CLASSIFIED_BY_MULTIPLE_SUBMITTERS": 2,
+        "CRITERIA_PROVIDED_SINGLE_SUBMITTER": 1,
+        "CRITERIA_PROVIDED_CONFLICTING_INTERPRETATIONS": 1,
+        "CRITERIA_PROVIDED_MULTIPLE_SUBMITTERS_NO_CONFLICTS": 2,
         "REVIEWED_BY_EXPERT_PANEL": 3,
-        "REVIEWED_BY_PROFESSIONAL_SOCIETY": 4
+        "PRACTICE_GUIDELINE": 4,
     }
 
     def __init__(self, cellbase_dict):
@@ -37,9 +40,9 @@ class ClinvarRecord(UserDict):
 
     @property
     def score(self):
-        return self.score_map[
-            self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus']
-        ]
+        """Returns a score for the review status of the assigned clinical significance. See score_map above. It should
+        be noted that currently this property is not used, but this might change in the future."""
+        return self.score_map.get(self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus'], 0)
 
     @property
     def accession(self):
@@ -170,20 +173,20 @@ class ClinvarRecordMeasure(UserDict):
         return self.sequence_location_helper("chr")
 
     @property
-    def start(self):
-        return self.sequence_location_helper("start")
+    def vcf_pos(self):
+        return self.sequence_location_helper("positionVCF")
 
     @property
-    def stop(self):
-        return self.sequence_location_helper("stop")
+    def vcf_ref(self):
+        return self.sequence_location_helper("referenceAlleleVCF")
 
     @property
-    def ref(self):
-        return self.sequence_location_helper("referenceAllele")
+    def vcf_alt(self):
+        return self.sequence_location_helper("alternateAlleleVCF")
 
     @property
-    def alt(self):
-        return self.sequence_location_helper("alternateAllele")
+    def has_complete_coordinates(self):
+        return self.chr and self.vcf_pos and self.vcf_ref and self.vcf_alt
 
     def sequence_location_helper(self, attr):
         if "sequenceLocation" in self.data:

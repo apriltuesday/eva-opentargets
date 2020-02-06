@@ -36,10 +36,10 @@ CLIN_SIG_TO_ACTIVITY = {'other': 'http://identifiers.org/cttv.activity/unknown',
 
 
 def get_cttv_variant_type(clinvar_record_measure):
-    if clinvar_record_measure.ref is not None and clinvar_record_measure.alt is not None:
-        if len(clinvar_record_measure.ref) < 2 and len(clinvar_record_measure.alt) < 2:
+    if clinvar_record_measure.vcf_ref is not None and clinvar_record_measure.vcf_alt is not None:
+        if len(clinvar_record_measure.vcf_ref) < 2 and len(clinvar_record_measure.vcf_alt) < 2:
             cttv_variant_type = "snp single"
-        elif len(clinvar_record_measure.ref) > 50 or len(clinvar_record_measure.alt) > 50:
+        elif len(clinvar_record_measure.vcf_ref) > 50 or len(clinvar_record_measure.vcf_alt) > 50:
             cttv_variant_type = "structural variant"
         else:
             cttv_variant_type = "snp single"  # Sam asked for this in his email 21/05/2015
