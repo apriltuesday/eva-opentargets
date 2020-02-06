@@ -1,1026 +1,758 @@
 {
-  "recordStatus": "current",
-  "title": "NM_001195794.1(CLRN1):c.567T>G (p.Tyr189Ter) AND Usher syndrome, type 3",
-  "referenceClinVarAssertion": {
-    "clinVarAccession": {
-      "acc": "RCV000002127",
-      "version": 3,
-      "type": "RCV",
-      "dateUpdated": 1435446000000
-    },
+    "title": "NM_152443.3(RDH12):c.677A>G (p.Tyr226Cys) AND Leber congenital amaurosis 13",
     "recordStatus": "current",
-    "clinicalSignificance": {
-      "reviewStatus": "CLASSIFIED_BY_SINGLE_SUBMITTER",
-      "description": "Pathogenic",
-      "dateLastEvaluated": 1435100400000
-    },
-    "assertion": {
-      "type": "VARIATION_TO_DISEASE"
-    },
-    "attributeSet": [
-      {
-        "attribute": {
-          "value": "Autosomal recessive inheritance",
-          "integerValue": 263,
-          "type": "ModeOfInheritance"
-        },
-        "xref": [
-          {
-            "db": "Laboratory for Molecular Medicine, Partners HealthCare Personalized Medicine",
-            "id": "11483565",
-            "status": "CURRENT"
-          }
-        ]
-      }
-    ],
-    "observedIn": [
-      {
-        "sample": {
-          "origin": "germline",
-          "species": {
-            "value": "human",
-            "taxonomyId": 9606
-          },
-          "affectedStatus": "not provided"
-        },
-        "method": [
-          {
-            "methodType": "CLINICAL_TESTING"
-          },
-          {
-            "methodType": "LITERATURE_ONLY"
-          }
-        ],
-        "observedData": [
-          {
-            "attribute": {
-              "integerValue": 2,
-              "type": "NumFamiliesWithVariant"
-            },
-            "id": 6557764
-          },
-          {
-            "attribute": {
-              "value": "not provided",
-              "type": "Description"
-            },
-            "id": 6557764
-          },
-          {
-            "attribute": {
-              "value": "Fields et al. (2002) demonstrated that the Fin(major) USH3A mutation in exon 3 of the USH3A gene, which had been identified by Joensuu et al. (2001) as 300C-T (TYR100TER), should be referred to as 528T-G, resulting in a tyr176-to-ter substitution. Joensuu et al. (2001) had identified homozygosity for this mutation in a Finnish family segregating Usher syndrome type IIIA (USH3A; 276902) and found it in a further 52 Finnish patients. Fields et al. (2002) found this mutation in 11 of 28 mutated alleles from affected individuals of Finnish and other northern European ancestry.",
-              "type": "Description"
-            },
-            "citation": [
-              {
-                "id": [
-                  {
-                    "value": "11524702",
-                    "source": "PubMed"
-                  }
-                ],
-                "type": "general"
-              },
-              {
-                "id": [
-                  {
-                    "value": "12145752",
-                    "source": "PubMed"
-                  }
-                ],
-                "type": "general"
-              }
-            ],
-            "id": 6557764
-          },
-          {
-            "attribute": {
-              "integerValue": 3,
-              "type": "VariantAlleles"
-            },
-            "id": 6557764
-          }
-        ]
-      }
-    ],
-    "measureSet": {
-      "measure": [
+    "clinVarAssertion": [
         {
-          "name": [
-            {
-              "elementValue": {
-                "value": "NM_001195794.1(CLRN1):c.567T>G (p.Tyr189Ter)",
-                "type": "Preferred"
-              }
-            }
-          ],
-          "attributeSet": [
-            {
-              "attribute": {
-                "value": "0.000076887590",
-                "type": "AlleleFrequency"
-              },
-              "xref": [
-                {
-                  "db": "dbSNP",
-                  "id": "121908140",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "NHLBI GO Exome Sequencing Project (ESP)",
-                  "id": "ESP6500SI-V2",
-                  "url": "http://evs.gs.washington.edu/EVS/",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "NM_174878.2:c.528T>G",
-                "type": "HGVS, coding",
-                "change": "c.528T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NM_001256819.1:c.*142T>G",
-                "type": "HGVS, coding, RefSeq",
-                "change": "c.*142T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NM_052995.2:c.300T>G",
-                "type": "HGVS, coding, RefSeq",
-                "change": "c.300T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NM_001195794.1:c.567T>G",
-                "type": "HGVS, coding, RefSeq",
-                "change": "c.567T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NG_009168.1:g.49893T>G",
-                "type": "HGVS, genomic, RefSeqGene",
-                "change": "g.49893T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NC_000003.12:g.150928107A>C",
-                "integerValue": 38,
-                "type": "HGVS, genomic, top level",
-                "change": "g.150928107A>C"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NC_000003.11:g.150645894A>C",
-                "integerValue": 37,
-                "type": "HGVS, genomic, top level, previous",
-                "change": "g.150645894A>C"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NR_046380.2:n.1009T>G",
-                "type": "HGVS, non-coding",
-                "change": "n.1009T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NR_046380.1:n.1010T>G",
-                "type": "HGVS, previous",
-                "change": "n.1010T>G"
-              }
-            },
-            {
-              "attribute": {
-                "value": "p.Tyr176X",
-                "type": "HGVS, protein"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NP_443721.1:p.Tyr100Ter",
-                "type": "HGVS, protein, RefSeq",
-                "change": "p.Tyr100Ter"
-              },
-              "xref": [
-                {
-                  "db": "dbSNP",
-                  "id": "121908140",
-                  "type": "rs",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "NP_777367.1:p.Tyr176Ter",
-                "type": "HGVS, protein, RefSeq",
-                "change": "p.Tyr176Ter"
-              },
-              "xref": [
-                {
-                  "db": "dbSNP",
-                  "id": "121908140",
-                  "type": "rs",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "NP_001182723.1:p.Tyr189Ter",
-                "type": "HGVS, protein, RefSeq",
-                "change": "p.Tyr189Ter"
-              },
-              "xref": [
-                {
-                  "db": "dbSNP",
-                  "id": "121908140",
-                  "type": "rs",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "NM_174878.2:EXON 3",
-                "type": "Location"
-              }
-            },
-            {
-              "attribute": {
-                "value": "3 prime UTR variant",
-                "type": "MolecularConsequence"
-              },
-              "xref": [
-                {
-                  "db": "Sequence Ontology",
-                  "id": "SO:0001624",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "RefSeq",
-                  "id": "NM_001256819.1:c.*142T>G",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "nonsense",
-                "type": "MolecularConsequence"
-              },
-              "xref": [
-                {
-                  "db": "Sequence Ontology",
-                  "id": "SO:0001587",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "RefSeq",
-                  "id": "NM_001195794.1:c.567T>G",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "non-coding transcript variant",
-                "type": "MolecularConsequence"
-              },
-              "xref": [
-                {
-                  "db": "Sequence Ontology",
-                  "id": "SO:0001619",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "RefSeq",
-                  "id": "NR_046380.2:n.1009T>G",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "Y176*",
-                "type": "ProteinChange1LetterCode"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "606397.0001",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "Y100*",
-                "type": "ProteinChange1LetterCode"
-              }
-            },
-            {
-              "attribute": {
-                "value": "Y189*",
-                "type": "ProteinChange1LetterCode"
-              }
-            },
-            {
-              "attribute": {
-                "value": "TYR176TER",
-                "type": "ProteinChange3LetterCode"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "606397.0001",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ],
-          "cytogeneticLocation": [
-            "3q25.1"
-          ],
-          "sequenceLocation": [
-            {
-              "assembly": "GRCh38",
-              "chr": "3",
-              "accession": "NC_000003.12",
-              "start": 150928107,
-              "stop": 150928107,
-              "displayStart": 150928107,
-              "displayStop": 150928107,
-              "variantLength": 1,
-              "referenceAllele": "A",
-              "alternateAllele": "C",
-              "assemblyAccessionVersion": "GCF_000001405.26",
-              "assemblyStatus": "current"
-            },
-            {
-              "assembly": "GRCh37",
-              "chr": "3",
-              "accession": "NC_000003.11",
-              "start": 150645894,
-              "stop": 150645894,
-              "displayStart": 150645894,
-              "displayStop": 150645894,
-              "variantLength": 1,
-              "referenceAllele": "A",
-              "alternateAllele": "C",
-              "assemblyAccessionVersion": "GCF_000001405.25",
-              "assemblyStatus": "previous"
-            }
-          ],
-          "measureRelationship": [
-            {
-              "name": [
-                {
-                  "elementValue": {
-                    "value": "clarin 1",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "symbol": [
-                {
-                  "elementValue": {
-                    "value": "CLRN1",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "sequenceLocation": [
-                {
-                  "assembly": "GRCh38",
-                  "chr": "3",
-                  "accession": "NC_000003.12",
-                  "start": 150918910,
-                  "stop": 150973019,
-                  "displayStart": 150918910,
-                  "displayStop": 150973019,
-                  "strand": "-",
-                  "variantLength": 46837,
-                  "assemblyAccessionVersion": "GCF_000001405.26",
-                  "assemblyStatus": "current"
-                },
-                {
-                  "assembly": "GRCh37",
-                  "chr": "3",
-                  "accession": "NC_000003.11",
-                  "start": 150643949,
-                  "stop": 150690785,
-                  "displayStart": 150643949,
-                  "displayStop": 150690785,
-                  "strand": "-",
-                  "variantLength": 46837,
-                  "assemblyAccessionVersion": "GCF_000001405.25",
-                  "assemblyStatus": "previous"
-                }
-              ],
-              "type": "variant in gene",
-              "xref": [
-                {
-                  "db": "Gene",
-                  "id": "7401",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ],
-          "type": "single nucleotide variant",
-          "id": 19431,
-          "xref": [
-            {
-              "db": "OMIM",
-              "id": "606397.0001",
-              "type": "Allelic variant",
-              "status": "CURRENT"
-            },
-            {
-              "db": "dbSNP",
-              "id": "121908140",
-              "type": "rs",
-              "status": "CURRENT"
-            },
-            {
-              "db": "dbvar",
-              "id": "nsv123456",
-              "status": "CURRENT"
-            }
-          ]
-        }
-      ],
-      "name": [
-        {
-          "elementValue": {
-            "value": "NM_001195794.1(CLRN1):c.567T>G (p.Tyr189Ter)",
-            "type": "Preferred"
-          }
-        }
-      ],
-      "type": "Variant",
-      "id": 4392
-    },
-    "traitSet": {
-      "trait": [
-        {
-          "name": [
-            {
-              "elementValue": {
-                "value": "Usher syndrome, type 3",
-                "type": "Preferred"
-              },
-              "xref": [
-                {
-                  "db": "Genetic Alliance",
-                  "id": "Usher+syndrome%2C+type+3/7326",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "Office of Rare Diseases",
-                  "id": "5442",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "elementValue": {
-                "value": "Usher Syndrome, Type III",
-                "type": "Alternate"
-              }
-            },
-            {
-              "elementValue": {
-                "value": "USHER SYNDROME, TYPE IIIA",
-                "type": "Alternate"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "276902",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0002",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0007",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0001",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0004",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0005",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0003",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0008",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "606397.0006",
-                  "type": "Allelic variant",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "elementValue": {
-                "value": "Usher syndrome, type 3A",
-                "type": "Alternate"
-              }
-            },
-            {
-              "elementValue": {
-                "value": "Orphanet:886",
-                "type": "EFO id"
-              }
-            },
-            {
-              "elementValue": {
-                "value": "Usher syndrome",
-                "type": "EFO name"
-              }
-            },
-            {
-              "elementValue": {
-                "value": "http://www.orpha.net/ORDO/Orphanet_886",
-                "type": "EFO URL"
-              }
-            }
-          ],
-          "symbol": [
-            {
-              "elementValue": {
-                "value": "USH3",
-                "type": "Preferred"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "276902",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "Office of Rare Diseases",
-                  "id": "5442",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "elementValue": {
-                "value": "USH3A",
-                "type": "Alternate"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "276902",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "Office of Rare Diseases",
-                  "id": "5442",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ],
-          "attributeSet": [
-            {
-              "attribute": {
-                "value": "Neonatal/infancy",
-                "type": "age of onset"
-              },
-              "xref": [
-                {
-                  "db": "Orphanet",
-                  "id": "886",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "Orphanet",
-                  "id": "231183",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ],
-          "citation": [
-            {
-              "id": [
-                {
-                  "value": "21697857",
-                  "source": "PubMed"
-                }
-              ],
-              "type": "Translational/Evidence-based",
-              "abbrev": "EuroGenetest, 2011"
-            }
-          ],
-          "type": "Disease",
-          "id": 5092,
-          "xref": [
-            {
-              "db": "MedGen",
-              "id": "C1568248",
-              "status": "CURRENT"
-            },
-            {
-              "db": "Orphanet",
-              "id": "231183",
-              "status": "CURRENT"
-            },
-            {
-              "db": "Orphanet",
-              "id": "886",
-              "status": "CURRENT"
-            },
-            {
-              "db": "OMIM",
-              "id": "276902",
-              "type": "MIM",
-              "status": "CURRENT"
-            }
-          ]
-        }
-      ],
-      "type": "Disease",
-      "id": 1209
-    },
-    "dateCreated": 1344812400000,
-    "dateLastUpdated": 1435359600000,
-    "id": 62145
-  },
-  "clinVarAssertion": [
-    {
-      "clinVarSubmissionID": {
-        "submitter": "OMIM",
-        "title": "CLRN1, TYR176TER_USHER SYNDROME, TYPE IIIA",
-        "localKey": "606397.0001_USHER SYNDROME, TYPE IIIA",
-        "submitterDate": 1435100400000
-      },
-      "clinVarAccession": {
-        "acc": "SCV000024816",
-        "version": 2,
-        "type": "SCV",
-        "orgID": 3,
-        "dateUpdated": 1435359600000
-      },
-      "recordStatus": "current",
-      "clinicalSignificance": {
-        "reviewStatus": "NO_ASSERTION_CRITERIA_PROVIDED",
-        "description": [
-          "Pathogenic"
-        ],
-        "dateLastEvaluated": 1435100400000
-      },
-      "assertion": {
-        "type": "variation to disease"
-      },
-      "externalID": {
-        "db": "OMIM",
-        "id": "606397.0001",
-        "type": "Allelic variant",
-        "status": "CURRENT"
-      },
-      "observedIn": [
-        {
-          "sample": {
-            "origin": "germline",
-            "species": {
-              "value": "human"
-            },
-            "affectedStatus": "not provided"
-          },
-          "method": [
-            {
-              "methodType": "LITERATURE_ONLY"
-            }
-          ],
-          "observedData": [
-            {
-              "attribute": {
-                "value": "Fields et al. (2002) demonstrated that the Fin(major) USH3A mutation in exon 3 of the USH3A gene, which had been identified by Joensuu et al. (2001) as 300C-T (TYR100TER), should be referred to as 528T-G, resulting in a tyr176-to-ter substitution. Joensuu et al. (2001) had identified homozygosity for this mutation in a Finnish family segregating Usher syndrome type IIIA (USH3A; 276902) and found it in a further 52 Finnish patients. Fields et al. (2002) found this mutation in 11 of 28 mutated alleles from affected individuals of Finnish and other northern European ancestry.",
-                "type": "Description"
-              },
-              "citation": [
-                {
-                  "id": [
-                    {
-                      "value": "12145752",
-                      "source": "PubMed"
-                    }
-                  ]
-                },
-                {
-                  "id": [
-                    {
-                      "value": "11524702",
-                      "source": "PubMed"
-                    }
-                  ]
-                }
-              ],
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "276902",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "measureSet": {
-        "measure": [
-          {
-            "name": [
-              {
-                "elementValue": {
-                  "value": "CLRN1, TYR176TER",
-                  "type": "Preferred"
-                }
-              }
-            ],
-            "attributeSet": [
-              {
-                "attribute": {
-                  "value": "TYR176TER",
-                  "type": "NonHGVS"
-                }
-              }
-            ],
-            "measureRelationship": [
-              {
-                "symbol": [
-                  {
-                    "elementValue": {
-                      "value": "CLRN1",
-                      "type": "Preferred"
-                    }
-                  }
-                ],
-                "type": "variant in gene"
-              }
-            ],
-            "type": "Variation",
-            "xref": [
-              {
+            "externalID": {
                 "db": "OMIM",
-                "id": "606397.0001",
                 "type": "Allelic variant",
+                "id": "608830.0001",
                 "status": "CURRENT"
-              }
-            ]
-          }
-        ],
-        "type": "Variant"
-      },
-      "traitSet": {
-        "trait": [
-          {
-            "name": [
-              {
-                "elementValue": {
-                  "value": "USHER SYNDROME, TYPE IIIA",
-                  "type": "Preferred"
-                }
-              }
-            ],
-            "type": "Disease"
-          }
-        ],
-        "type": "Disease"
-      },
-      "id": 24816
-    },
-    {
-      "clinVarSubmissionID": {
-        "submitter": "Laboratory for Molecular Medicine,Partners HealthCare Personalized Medicine",
-        "localKey": "11483565|OMIM:276902",
-        "submitterDate": 1422489600000
-      },
-      "clinVarAccession": {
-        "acc": "SCV000203992",
-        "version": 1,
-        "type": "SCV",
-        "orgID": 21766,
-        "dateUpdated": 1422576000000
-      },
-      "recordStatus": "current",
-      "clinicalSignificance": {
-        "reviewStatus": "CLASSIFIED_BY_SINGLE_SUBMITTER",
-        "description": [
-          "Pathogenic"
-        ],
-        "citation": [
-          {
-            "id": [
-              {
-                "value": "11524702",
-                "source": "PubMed"
-              }
-            ]
-          }
-        ],
-        "comment": [
-          {
-            "value": "The Tyr176X variant in CLRN1 has been previously identified in 52 homozygous and 2 compound heterozygous individuals with Usher syndrome type III (Joensuu 2001). This variant has been identified in 1/8,600 European American chromosomes by the NHLBI Exome Sequencing Project (http://evs.gs.washington.edu/EVS/; dbSNP rs121908140). Although this variant has been seen in the general population, its frequency is low enough to be consistent with a recessive carrier frequency. This nonsense variant leads to a premature termination codon at position 176, which is predicted to lead to a truncated or absent protein. In summary, this variant meets our criteria to be classified as pathogenic in a recessive manner for Usher syndrome (http://pcpgm.partners.org/LMM)."
-          }
-        ],
-        "dateLastEvaluated": 1388620800000
-      },
-      "assertion": {
-        "type": "variation to disease"
-      },
-      "externalID": {
-        "db": "Laboratory for Molecular Medicine (Partners HealthCare Personalized Medicine)",
-        "id": "11483565",
-        "status": "CURRENT"
-      },
-      "attributeSet": [
-        {
-          "attribute": {
-            "value": "Autosomal recessive inheritance",
-            "type": "ModeOfInheritance"
-          }
-        }
-      ],
-      "observedIn": [
-        {
-          "sample": {
-            "origin": "germline",
-            "species": {
-              "value": "human",
-              "taxonomyId": 9606
             },
-            "affectedStatus": "not provided",
-            "familyData": {
-              "numFamiliesWithVariant": 2
-            }
-          },
-          "method": [
-            {
-              "methodType": "CLINICAL_TESTING"
-            }
-          ],
-          "observedData": [
-            {
-              "attribute": {
-                "integerValue": 3,
-                "type": "VariantAlleles"
-              }
-            }
-          ]
-        }
-      ],
-      "measureSet": {
-        "measure": [
-          {
-            "name": [
-              {
-                "elementValue": {
-                  "value": "NM_174878.2:c.528T>G",
-                  "type": "Alternate"
-                }
-              },
-              {
-                "elementValue": {
-                  "value": "p.Tyr176X",
-                  "type": "Alternate"
-                }
-              }
-            ],
-            "attributeSet": [
-              {
-                "attribute": {
-                  "value": "NM_174878.2:EXON 3",
-                  "type": "Location"
-                }
-              },
-              {
-                "attribute": {
-                  "value": "NC_000003.11:g.150645894A>C",
-                  "type": "HGVS"
-                }
-              }
-            ],
-            "sequenceLocation": [
-              {
-                "assembly": "GRCh37",
-                "chr": "3",
-                "start": 150645894,
-                "stop": 150645894,
-                "variantLength": 1,
-                "referenceAllele": "A",
-                "alternateAllele": "C"
-              }
-            ],
-            "measureRelationship": [
-              {
-                "symbol": [
-                  {
-                    "elementValue": {
-                      "value": "CLRN1",
-                      "type": "Preferred"
-                    }
-                  }
+            "clinicalSignificance": {
+                "description": [
+                    "Pathogenic"
                 ],
-                "type": "variant in gene"
-              }
-            ],
-            "type": "Variation",
-            "xref": [
-              {
-                "db": "dbSNP",
-                "id": "121908140",
-                "type": "rsNumber",
-                "status": "CURRENT"
-              }
-            ]
-          }
-        ],
-        "type": "Variant"
-      },
-      "traitSet": {
-        "trait": [
-          {
-            "name": [
-              {
-                "elementValue": {
-                  "value": "Usher syndrome, type 3A",
-                  "type": "Preferred"
+                "dateLastEvaluated": 1096585200000,
+                "reviewStatus": "NO_ASSERTION_CRITERIA_PROVIDED"
+            },
+            "assertion": {
+                "type": "variation to disease"
+            },
+            "observedIn": [
+                {
+                    "observedData": [
+                        {
+                            "xref": [
+                                {
+                                    "db": "OMIM",
+                                    "type": "MIM",
+                                    "id": "612712",
+                                    "status": "CURRENT"
+                                }
+                            ],
+                            "attribute": {
+                                "value": "In affected members of 3 consanguineous Austrian kindreds with Leber congenital amaurosis-13 (LCA13; 612712), Janecke et al. (2004) identified homozygosity for a 677A-G transition in exon 6 of the RDH12 gene, resulting in a tyr226-to-cys (Y226C) substitution. The same mutation was identified in 2 Austrian individuals with sporadic LCA13. Janecke et al. (2004) demonstrated that, when expressed in COS-7 cells, the cys226 variant had diminished activity in interconverting isomers of retinol and retinal.",
+                                "type": "Description"
+                            },
+                            "citation": [
+                                {
+                                    "id": [
+                                        {
+                                            "value": "15258582",
+                                            "source": "PubMed"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "attribute": {
+                                "value": "In affected members of a French family with LCA, Perrault et al. (2004) identified the Y226C mutation in compound heterozygous state with a 523T-C transition in exon 5 of the RDH12 gene, resulting in a ser175-to-pro substitution (S175P; 608830.0011).",
+                                "type": "Description"
+                            },
+                            "citation": [
+                                {
+                                    "id": [
+                                        {
+                                            "value": "15322982",
+                                            "source": "PubMed"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "method": [
+                        {
+                            "methodType": "LITERATURE_ONLY"
+                        }
+                    ],
+                    "sample": {
+                        "affectedStatus": "not provided",
+                        "origin": "germline",
+                        "species": {
+                            "value": "human"
+                        }
+                    }
                 }
-              }
             ],
-            "type": "Disease",
-            "xref": [
-              {
-                "db": "OMIM",
-                "id": "276902",
-                "type": "MIM",
-                "status": "CURRENT"
-              }
-            ]
-          }
+            "clinVarSubmissionID": {
+                "submitter": "OMIM",
+                "title": "RDH12, TYR226CYS_LEBER CONGENITAL AMAUROSIS 13",
+                "localKey": "608830.0001_LEBER CONGENITAL AMAUROSIS 13",
+                "submitterDate": 1435791600000
+            },
+            "clinVarAccession": {
+                "orgID": 3,
+                "orgType": "primary",
+                "organizationCategory": "resource",
+                "type": "SCV",
+                "dateUpdated": 1553990400000,
+                "version": 2,
+                "acc": "SCV000022285"
+            },
+            "measureSet": {
+                "type": "Variant",
+                "measure": [
+                    {
+                        "xref": [
+                            {
+                                "db": "OMIM",
+                                "type": "Allelic variant",
+                                "id": "608830.0001",
+                                "status": "CURRENT"
+                            }
+                        ],
+                        "type": "Variation",
+                        "name": [
+                            {
+                                "elementValue": {
+                                    "value": "RDH12, TYR226CYS",
+                                    "type": "Preferred"
+                                }
+                            }
+                        ],
+                        "measureRelationship": [
+                            {
+                                "symbol": [
+                                    {
+                                        "elementValue": {
+                                            "value": "RDH12",
+                                            "type": "Preferred"
+                                        }
+                                    }
+                                ],
+                                "type": "variant in gene"
+                            }
+                        ],
+                        "attributeSet": [
+                            {
+                                "attribute": {
+                                    "value": "TYR226CYS",
+                                    "type": "NonHGVS"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "id": 22285,
+            "recordStatus": "current",
+            "traitSet": {
+                "trait": [
+                    {
+                        "name": [
+                            {
+                                "elementValue": {
+                                    "value": "LEBER CONGENITAL AMAUROSIS 13",
+                                    "type": "Preferred"
+                                }
+                            }
+                        ],
+                        "type": "Disease"
+                    }
+                ],
+                "type": "Disease"
+            }
+        }
+    ],
+    "id": 44958984,
+    "referenceClinVarAssertion": {
+        "observedIn": [
+            {
+                "observedData": [
+                    {
+                        "attribute": {
+                            "value": "In affected members of 3 consanguineous Austrian kindreds with Leber congenital amaurosis-13 (LCA13; 612712), Janecke et al. (2004) identified homozygosity for a 677A-G transition in exon 6 of the RDH12 gene, resulting in a tyr226-to-cys (Y226C) substitution. The same mutation was identified in 2 Austrian individuals with sporadic LCA13. Janecke et al. (2004) demonstrated that, when expressed in COS-7 cells, the cys226 variant had diminished activity in interconverting isomers of retinol and retinal.",
+                            "type": "Description"
+                        },
+                        "id": 43427415,
+                        "citation": [
+                            {
+                                "type": "general",
+                                "id": [
+                                    {
+                                        "value": "15258582",
+                                        "source": "PubMed"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "attribute": {
+                            "value": "In affected members of a French family with LCA, Perrault et al. (2004) identified the Y226C mutation in compound heterozygous state with a 523T-C transition in exon 5 of the RDH12 gene, resulting in a ser175-to-pro substitution (S175P; 608830.0011).",
+                            "type": "Description"
+                        },
+                        "id": 43427415,
+                        "citation": [
+                            {
+                                "type": "general",
+                                "id": [
+                                    {
+                                        "value": "15322982",
+                                        "source": "PubMed"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "method": [
+                    {
+                        "methodType": "LITERATURE_ONLY"
+                    }
+                ],
+                "sample": {
+                    "affectedStatus": "not provided",
+                    "origin": "germline",
+                    "species": {
+                        "value": "human",
+                        "taxonomyId": 9606
+                    }
+                }
+            }
         ],
-        "type": "Disease"
-      },
-      "submissionName": "LMM_all.variants_NCBI_3.16.2013",
-      "id": 366075
+        "dateLastUpdated": 1567033200000,
+        "clinicalSignificance": {
+            "description": "Pathogenic",
+            "dateLastEvaluated": 1096585200000,
+            "reviewStatus": "NO_ASSERTION_CRITERIA_PROVIDED"
+        },
+        "assertion": {
+            "type": "VARIATION_TO_DISEASE"
+        },
+        "id": 59630,
+        "dateCreated": 1344812400000,
+        "clinVarAccession": {
+            "dateUpdated": 1567119600000,
+            "acc": "RCV000002127",
+            "type": "RCV",
+            "version": 3
+        },
+        "measureSet": {
+            "measure": [
+                {
+                    "cytogeneticLocation": [
+                        "14q24.1"
+                    ],
+                    "xref": [
+                        {
+                            "db": "UniProtKB",
+                            "status": "CURRENT",
+                            "id": "Q96NR8#VAR_020864"
+                        },
+                        {
+                            "db": "OMIM",
+                            "type": "Allelic variant",
+                            "id": "608830.0001",
+                            "status": "CURRENT"
+                        },
+                        {
+                            "db": "dbSNP",
+                            "type": "rs",
+                            "id": "28940313",
+                            "status": "CURRENT"
+                        }
+                    ],
+                    "type": "single nucleotide variant",
+                    "attributeSet": [
+                        {
+                            "attribute": {
+                                "accession": "NM_152443",
+                                "version": 3,
+                                "value": "NM_152443.3:c.677A>G",
+                                "type": "HGVS, coding, RefSeq",
+                                "change": "c.677A>G"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "NG_008321",
+                                "version": 1,
+                                "value": "NG_008321.1:g.32324A>G",
+                                "type": "HGVS, genomic, RefSeqGene",
+                                "change": "g.32324A>G"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "NC_000014",
+                                "value": "NC_000014.9:g.67729209A>G",
+                                "type": "HGVS, genomic, top level",
+                                "integerValue": 38,
+                                "version": 9,
+                                "change": "g.67729209A>G"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "NC_000014",
+                                "value": "NC_000014.8:g.68195926A>G",
+                                "type": "HGVS, genomic, top level, previous",
+                                "integerValue": 37,
+                                "version": 8,
+                                "change": "g.68195926A>G"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "NM_152443",
+                                "version": 2,
+                                "value": "NM_152443.2:c.677A>G",
+                                "type": "HGVS, previous",
+                                "change": "c.677A>G"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "Q96NR8",
+                                "value": "Q96NR8:p.Tyr226Cys",
+                                "type": "HGVS, protein",
+                                "change": "p.Tyr226Cys"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "accession": "NP_689656",
+                                "version": 2,
+                                "value": "NP_689656.2:p.Tyr226Cys",
+                                "type": "HGVS, protein, RefSeq",
+                                "change": "p.Tyr226Cys"
+                            }
+                        },
+                        {
+                            "xref": [
+                                {
+                                    "db": "Sequence Ontology",
+                                    "status": "CURRENT",
+                                    "id": "SO:0001583"
+                                },
+                                {
+                                    "db": "RefSeq",
+                                    "status": "CURRENT",
+                                    "id": "NM_152443.3:c.677A>G"
+                                }
+                            ],
+                            "attribute": {
+                                "value": "missense variant",
+                                "type": "MolecularConsequence"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "value": "Y226C",
+                                "type": "ProteinChange1LetterCode"
+                            }
+                        },
+                        {
+                            "attribute": {
+                                "value": "TYR226CYS",
+                                "type": "ProteinChange3LetterCode"
+                            }
+                        }
+                    ],
+                    "measureRelationship": [
+                        {
+                            "xref": [
+                                {
+                                    "db": "Gene",
+                                    "status": "CURRENT",
+                                    "id": "10243"
+                                },
+                                {
+                                    "db": "OMIM",
+                                    "type": "MIM",
+                                    "id": "603930",
+                                    "status": "CURRENT"
+                                },
+                                {
+                                    "db": "HGNC",
+                                    "status": "CURRENT",
+                                    "id": "HGNC:15465"
+                                }
+                            ],
+                            "attributeSet": [
+                                {
+                                    "attribute": {
+                                        "dateValue": 1409180400000,
+                                        "value": "Some evidence for dosage pathogenicity",
+                                        "type": "Haploinsufficiency"
+                                    },
+                                    "citation": [
+                                        {
+                                            "url": "https://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=GPHN"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "attribute": {
+                                        "dateValue": 1409180400000,
+                                        "value": "No evidence available",
+                                        "type": "Triplosensitivity"
+                                    },
+                                    "citation": [
+                                        {
+                                            "url": "https://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=GPHN"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "type": "within multiple genes by overlap",
+                            "sequenceLocation": [
+                                {
+                                    "stop": 67735831,
+                                    "accession": "NC_000014.9",
+                                    "assemblyAccessionVersion": "GCF_000001405.38",
+                                    "displayStop": 67735831,
+                                    "assemblyStatus": "current",
+                                    "assembly": "GRCh38",
+                                    "start": 66507407,
+                                    "chr": "14",
+                                    "displayStart": 66507407,
+                                    "strand": "+"
+                                },
+                                {
+                                    "stop": 67648524,
+                                    "accession": "NC_000014.8",
+                                    "assemblyAccessionVersion": "GCF_000001405.25",
+                                    "displayStop": 67648524,
+                                    "assemblyStatus": "previous",
+                                    "assembly": "GRCh37",
+                                    "start": 66974124,
+                                    "chr": "14",
+                                    "variantLength": 674401,
+                                    "displayStart": 66974124,
+                                    "strand": "+"
+                                }
+                            ],
+                            "name": [
+                                {
+                                    "elementValue": {
+                                        "value": "gephyrin",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ],
+                            "symbol": [
+                                {
+                                    "elementValue": {
+                                        "value": "GPHN",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "xref": [
+                                {
+                                    "db": "Gene",
+                                    "status": "CURRENT",
+                                    "id": "145226"
+                                },
+                                {
+                                    "db": "OMIM",
+                                    "type": "MIM",
+                                    "id": "608830",
+                                    "status": "CURRENT"
+                                },
+                                {
+                                    "db": "HGNC",
+                                    "status": "CURRENT",
+                                    "id": "HGNC:19977"
+                                }
+                            ],
+                            "sequenceLocation": [
+                                {
+                                    "stop": 67734451,
+                                    "accession": "NC_000014.9",
+                                    "assemblyAccessionVersion": "GCF_000001405.38",
+                                    "displayStop": 67734451,
+                                    "assemblyStatus": "current",
+                                    "assembly": "GRCh38",
+                                    "start": 67701886,
+                                    "chr": "14",
+                                    "displayStart": 67701886,
+                                    "strand": "+"
+                                },
+                                {
+                                    "stop": 68201167,
+                                    "accession": "NC_000014.8",
+                                    "assemblyAccessionVersion": "GCF_000001405.25",
+                                    "displayStop": 68201167,
+                                    "assemblyStatus": "previous",
+                                    "assembly": "GRCh37",
+                                    "start": 68168602,
+                                    "chr": "14",
+                                    "variantLength": 32566,
+                                    "displayStart": 68168602,
+                                    "strand": "+"
+                                }
+                            ],
+                            "name": [
+                                {
+                                    "elementValue": {
+                                        "value": "retinol dehydrogenase 12",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ],
+                            "type": "within multiple genes by overlap",
+                            "symbol": [
+                                {
+                                    "elementValue": {
+                                        "value": "RDH12",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "xref": [
+                                {
+                                    "db": "Gene",
+                                    "status": "CURRENT",
+                                    "id": "23503"
+                                },
+                                {
+                                    "db": "OMIM",
+                                    "type": "MIM",
+                                    "id": "612012",
+                                    "status": "CURRENT"
+                                },
+                                {
+                                    "db": "HGNC",
+                                    "status": "CURRENT",
+                                    "id": "HGNC:20761"
+                                }
+                            ],
+                            "sequenceLocation": [
+                                {
+                                    "stop": 67817293,
+                                    "accession": "NC_000014.9",
+                                    "assemblyAccessionVersion": "GCF_000001405.38",
+                                    "displayStop": 67817293,
+                                    "assemblyStatus": "current",
+                                    "assembly": "GRCh38",
+                                    "start": 67728892,
+                                    "chr": "14",
+                                    "displayStart": 67728892,
+                                    "strand": "-"
+                                },
+                                {
+                                    "stop": 68283305,
+                                    "accession": "NC_000014.8",
+                                    "assemblyAccessionVersion": "GCF_000001405.25",
+                                    "displayStop": 68283305,
+                                    "assemblyStatus": "previous",
+                                    "assembly": "GRCh37",
+                                    "start": 68213236,
+                                    "chr": "14",
+                                    "variantLength": 70070,
+                                    "displayStart": 68213236,
+                                    "strand": "-"
+                                }
+                            ],
+                            "name": [
+                                {
+                                    "elementValue": {
+                                        "value": "zinc finger FYVE-type containing 26",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ],
+                            "type": "within multiple genes by overlap",
+                            "symbol": [
+                                {
+                                    "elementValue": {
+                                        "value": "ZFYVE26",
+                                        "type": "Preferred"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "sequenceLocation": [
+                        {
+                            "stop": 67729209,
+                            "accession": "NC_000014.9",
+                            "referenceAlleleVCF": "A",
+                            "assemblyStatus": "current",
+                            "alternateAllele": "G",
+                            "chr": "14",
+                            "start": 67729209,
+                            "alternateAlleleVCF": "G",
+                            "displayStop": 67729209,
+                            "displayStart": 67729209,
+                            "assembly": "GRCh38",
+                            "positionVCF": 67729209,
+                            "referenceAllele": "A",
+                            "variantLength": 1,
+                            "assemblyAccessionVersion": "GCF_000001405.38"
+                        },
+                        {
+                            "stop": 68195926,
+                            "accession": "NC_000014.8",
+                            "referenceAlleleVCF": "A",
+                            "assemblyStatus": "previous",
+                            "alternateAllele": "G",
+                            "chr": "14",
+                            "start": 68195926,
+                            "alternateAlleleVCF": "G",
+                            "displayStop": 68195926,
+                            "displayStart": 68195926,
+                            "assembly": "GRCh37",
+                            "positionVCF": 68195926,
+                            "referenceAllele": "A",
+                            "variantLength": 1,
+                            "assemblyAccessionVersion": "GCF_000001405.25"
+                        }
+                    ],
+                    "id": 17085,
+                    "name": [
+                        {
+                            "elementValue": {
+                                "value": "NM_152443.3(RDH12):c.677A>G (p.Tyr226Cys)",
+                                "type": "Preferred"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "xref": [
+                {
+                    "db": "ClinGen",
+                    "status": "CURRENT",
+                    "id": "CA252077"
+                }
+            ],
+            "id": 2046,
+            "type": "Variant",
+            "version": 1,
+            "acc": "VCV000002046",
+            "name": [
+                {
+                    "elementValue": {
+                        "value": "NM_152443.3(RDH12):c.677A>G (p.Tyr226Cys)",
+                        "type": "Preferred"
+                    }
+                }
+            ]
+        },
+        "recordStatus": "current",
+        "traitSet": {
+            "trait": [
+                {
+                    "attributeSet": [
+                        {
+                            "xref": [
+                                {
+                                    "db": "Genetics Home Reference",
+                                    "status": "CURRENT",
+                                    "id": "leber-congenital-amaurosis"
+                                }
+                            ],
+                            "attribute": {
+                                "value": "Leber congenital amaurosis is an eye disorder that primarily affects the retina, which is the specialized tissue at the back of the eye that detects light and color. People with this disorder typically have severe visual impairment beginning in infancy. The visual impairment tends to be stable, although it may worsen very slowly over time.Leber congenital amaurosis is also associated with other vision problems, including an increased sensitivity to light (photophobia), involuntary movements of the eyes (nystagmus), and extreme farsightedness (hyperopia). The pupils, which usually expand and contract in response to the amount of light entering the eye, do not react normally to light. Instead, they expand and contract more slowly than normal, or they may not respond to light at all. Additionally, the clear front covering of the eye (the cornea) may be cone-shaped and abnormally thin, a condition known as keratoconus.A specific behavior called Franceschetti's oculo-digital sign is characteristic of Leber congenital amaurosis. This sign consists of poking, pressing, and rubbing the eyes with a knuckle or finger. Researchers suspect that this behavior may contribute to deep-set eyes and keratoconus in affected children.In rare cases, delayed development and intellectual disability have been reported in people with the features of Leber congenital amaurosis. However, researchers are uncertain whether these individuals actually have Leber congenital amaurosis or another syndrome with similar signs and symptoms.At least 13 types of Leber congenital amaurosis have been described. The types are distinguished by their genetic cause, patterns of vision loss, and related eye abnormalities.",
+                                "type": "public definition"
+                            }
+                        }
+                    ],
+                    "type": "Disease",
+                    "symbol": [
+                        {
+                            "xref": [
+                                {
+                                    "db": "OMIM",
+                                    "type": "MIM",
+                                    "id": "612712",
+                                    "status": "CURRENT"
+                                }
+                            ],
+                            "elementValue": {
+                                "value": "LCA13",
+                                "type": "Preferred"
+                            }
+                        }
+                    ],
+                    "xref": [
+                        {
+                            "db": "MedGen",
+                            "status": "CURRENT",
+                            "id": "C2675186"
+                        },
+                        {
+                            "db": "OMIM",
+                            "type": "MIM",
+                            "id": "612712",
+                            "status": "CURRENT"
+                        }
+                    ],
+                    "id": 2542,
+                    "name": [
+                        {
+                            "xref": [
+                                {
+                                    "db": "Genetic Alliance",
+                                    "status": "CURRENT",
+                                    "id": "Leber+congenital+amaurosis+type+13/4135"
+                                }
+                            ],
+                            "elementValue": {
+                                "value": "Leber congenital amaurosis 13",
+                                "type": "Preferred"
+                            }
+                        }
+                    ],
+                    "citation": [
+                        {
+                            "abbrev": "GeneReviews",
+                            "type": "review",
+                            "id": [
+                                {
+                                    "value": "20301475",
+                                    "source": "PubMed"
+                                },
+                                {
+                                    "value": "NBK1298",
+                                    "source": "BookShelf"
+                                }
+                            ]
+                        },
+                        {
+                            "abbrev": "GeneReviews",
+                            "type": "review",
+                            "id": [
+                                {
+                                    "value": "20301590",
+                                    "source": "PubMed"
+                                },
+                                {
+                                    "value": "NBK1417",
+                                    "source": "BookShelf"
+                                }
+                            ]
+                        },
+                        {
+                            "abbrev": "GeneReviews",
+                            "type": "review",
+                            "id": [
+                                {
+                                    "value": "30285347",
+                                    "source": "PubMed"
+                                },
+                                {
+                                    "value": "NBK531510",
+                                    "source": "BookShelf"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "id": 522,
+            "type": "Disease"
+        }
     }
-  ],
-  "id": 6973966
 }
