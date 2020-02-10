@@ -18,19 +18,27 @@ logging.basicConfig()
 logger = logging.getLogger('consequence_mapping')
 logger.setLevel(logging.INFO)
 
+# The "distance to the nearest gene" parameters, used to query VEP in first and second iterations, respectively.
+VEP_SHORT_QUERY_DISTANCE = 5000
+VEP_LONG_QUERY_DISTANCE = 500000
+
 
 def deduplicate_list(lst):
     """Removes duplicates from a list containing arbitrary (possibly unhashable) values."""
     return [element for element, _ in itertools.groupby(sorted(lst))]
 
 
-def colon_to_vep(colon_id):
+def colon_based_id_to_vep_id(colon_id):
     """Converts a colon-based identifier to VEP compatible one. Example: '15:7237571:C:T' → '15 7237571 . C T'"""
-    return '{} {} . {} {}'.format(*colon_id.split(':'))
+    id_fields = colon_id.split(':')
+    assert len(id_fields) == 4, 'Invalid colon-based identifier supplied (should contain exactly 4 fields)'
+    return '{} {} . {} {}'.format(*id_fields)
 
 
-def vep_to_colon(vep_id):
-    """Converts a VEP compatible identifier to colon-based."""
+def vep_id_to_colon_id(vep_id):
+    """Converts a specific type of VEP compatible identifier to colon-based one. VEP supports several types of variant
+    identifiers. This function only converts a single type, of the form 'CHROM POS . REF ALT', delimited by spaces and
+    compatible with the first five columns of VCF."""
     vep_id_fields = vep_id.split(' ')
     return ':'.join([vep_id_fields[0], vep_id_fields[1], vep_id_fields[3], vep_id_fields[4]])
 
@@ -77,7 +85,9 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
         all_consequence_terms.sort(key=lambda term: consequence_term_severity_rank[term])
         most_severe_consequence_term = all_consequence_terms[0]
 
-        # Keep only consequences which include the most severe consequence term; sort by increasing order of distance
+        # Keep only consequences which include the most severe consequence term; sort by increasing order of distance.
+        # If there is no 'distance' attribute in VEP results, it means that it is not applicable as the variant resides
+        # *inside* the gene; hence, in this case the distance is set to 0.
         consequences = [c for c in consequences if most_severe_consequence_term in c['consequence_terms']]
         consequences.sort(key=lambda consequence: abs(consequence.get('distance', 0)))
 
@@ -90,6 +100,8 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
             (variant_identifier, c['gene_id'], c['gene_symbol'], most_severe_consequence_term, c.get('distance', 0))
             for c in consequences
         ])
+
+    return results_by_variant
 
 
 def get_variants_without_consequences(results_by_variant):
@@ -108,9 +120,9 @@ def process_variants(variants):
     # First, we query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
     # up to a standard distance (5000 nucleotides either way, which is default for VEP) from the variant.
     results_by_variant = {}
-    vep_results = query_vep(variants=variants, search_distance=5000)
-    extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
-                         only_closest=False, results_by_variant=results_by_variant)
+    vep_results = query_vep(variants=variants, search_distance=VEP_SHORT_QUERY_DISTANCE)
+    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
+                                              only_closest=False, results_by_variant=results_by_variant)
 
     # See if there are variants with no consequences up to the default distance
     variants_without_consequences = get_variants_without_consequences(results_by_variant)
@@ -119,7 +131,7 @@ def process_variants(variants):
     if variants_without_consequences:
         logger.info('Found {} variant(s) without standard consequences: {}. Querying distant regions'.format(
             len(variants_without_consequences), '|'.join(variants_without_consequences)))
-        distant_vep_results = query_vep(variants=variants_without_consequences, search_distance=500000)
+        distant_vep_results = query_vep(variants=variants_without_consequences, search_distance=VEP_LONG_QUERY_DISTANCE)
         extract_consequences(vep_results=distant_vep_results, acceptable_biotypes={'protein_coding'},
                              only_closest=True, results_by_variant=results_by_variant)
 
@@ -144,11 +156,12 @@ if __name__ == '__main__':
     severity_ranking = open(severity_ranking_path).read().splitlines()
     consequence_term_severity_rank = {term: index for index, term in enumerate(severity_ranking)}
 
-    variants_to_query = [colon_to_vep(v) for v in sys.stdin.read().splitlines()]
+    # Load variants to query from STDIN
+    variants_to_query = [colon_based_id_to_vep_id(v) for v in sys.stdin.read().splitlines()]
 
     # Query VEP with all variants at once (for the purpose of efficiency), print out the consequences to STDOUT.
     for variant_id, gene_id, gene_symbol, consequence_term, distance in process_variants(variants_to_query):
         # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
-        print('\t'.join([vep_to_colon(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))
+        print('\t'.join([vep_id_to_colon_id(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))
 
     logger.info('Successfully processed {} variants'.format(len(variants_to_query)))
