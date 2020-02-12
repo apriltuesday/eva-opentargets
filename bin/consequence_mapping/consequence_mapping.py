@@ -56,6 +56,13 @@ def query_vep(variants, search_distance):
     return result.json()
 
 
+def load_consequence_severity_rank():
+    """Loads severity rankings for consequence terms."""
+    severity_ranking_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'severity_ranking.txt')
+    severity_ranking = open(severity_ranking_path).read().splitlines()
+    return {term: index for index, term in enumerate(severity_ranking)}
+
+
 def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant):
     """Given VEP results, return a list of consequences matching certain criteria.
 
@@ -70,6 +77,7 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
             be returned.
         results_by_variant: a dict to write the results into.
     """
+    consequence_term_severity_rank = load_consequence_severity_rank()
     for result in vep_results:
         variant_identifier = result['input']
         results_by_variant.setdefault(variant_identifier, [])
@@ -149,13 +157,7 @@ def process_variants(variants):
             yield consequence_to_yield
 
 
-if __name__ == '__main__':
-
-    # Load severity rankings for consequence terms
-    severity_ranking_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'severity_ranking.txt')
-    severity_ranking = open(severity_ranking_path).read().splitlines()
-    consequence_term_severity_rank = {term: index for index, term in enumerate(severity_ranking)}
-
+def main():
     # Load variants to query from STDIN
     variants_to_query = [colon_based_id_to_vep_id(v) for v in sys.stdin.read().splitlines()]
 
@@ -165,3 +167,7 @@ if __name__ == '__main__':
         print('\t'.join([vep_id_to_colon_id(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))
 
     logger.info('Successfully processed {} variants'.format(len(variants_to_query)))
+
+
+if __name__ == '__main__':
+    main()
