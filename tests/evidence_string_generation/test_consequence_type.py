@@ -23,12 +23,9 @@ class ProcessGeneTest(unittest.TestCase):
 
 class ProcessConsequenceTypeFileTsvTest(unittest.TestCase):
     def test__process_consequence_type_file_tsv(self):
-        test_consequence_type = CT.ConsequenceType("ENSG00000021488", CT.SoTerm("missense_variant"))
-        snp_2_gene_file_path = os.path.join(os.path.dirname(__file__), 'resources',
-                                            config.snp_2_gene_file)
-        consequence_type_dict, one_rs_multiple_genes = \
-            CT.process_consequence_type_file_tsv(snp_2_gene_file_path)
-        self.assertEqual(consequence_type_dict["rs121908485"][0], test_consequence_type)
+        test_consequence_type = CT.ConsequenceType("ENSG00000139988", CT.SoTerm("synonymous_variant"))
+        consequence_type_dict, one_rs_multiple_genes = CT.process_consequence_type_file_tsv(config.snp_2_gene_file)
+        self.assertEqual(consequence_type_dict["14:67729241:C:T"][0], test_consequence_type)
 
 
 class SoTermTest(unittest.TestCase):

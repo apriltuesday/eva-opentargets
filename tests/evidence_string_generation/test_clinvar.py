@@ -16,26 +16,24 @@ class TestClinvarRecord(unittest.TestCase):
         cls.test_clinvar_record = get_test_record()
 
     def test_date(self):
+        """Check that the last updated date of the referenceClinVarAssertion is loaded correctly"""
         self.assertEqual(self.test_clinvar_record.date,
-                         datetime.utcfromtimestamp(1435359600000/1000).isoformat())
+                         datetime.utcfromtimestamp(1567033200000/1000).isoformat())
 
     def test_score(self):
-        self.assertEqual(self.test_clinvar_record.score, 1)
+        self.assertEqual(self.test_clinvar_record.score, 0)
 
     def test_acc(self):
         self.assertEqual(self.test_clinvar_record.accession, "RCV000002127")
 
     def test_traits(self):
-        self.assertEqual(self.test_clinvar_record.traits, [['Usher syndrome, type 3',
-                                                            'Usher Syndrome, Type III',
-                                                            'USHER SYNDROME, TYPE IIIA',
-                                                            'Usher syndrome, type 3A']])
+        self.assertEqual(self.test_clinvar_record.traits, [['Leber congenital amaurosis 13']])
 
     def test_trait_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.trait_pubmed_refs, [[21697857]])
+        self.assertEqual(self.test_clinvar_record.trait_pubmed_refs, [[20301475, 20301590, 30285347]])
 
     def test_observed_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [11524702, 12145752])
+        self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [15258582, 15322982])
 
     def test_clinical_significance(self):
         self.assertEqual(self.test_clinvar_record.clinical_significance, "Pathogenic")
@@ -52,25 +50,19 @@ class TestClinvarRecordMeasure(unittest.TestCase):
 
     def test_hgvs(self):
         self.assertEqual(self.test_crm.hgvs,
-                         ['NM_174878.2:c.528T>G',
-                          'NM_001256819.1:c.*142T>G',
-                          'NM_052995.2:c.300T>G',
-                          'NM_001195794.1:c.567T>G',
-                          'NG_009168.1:g.49893T>G',
-                          'NC_000003.12:g.150928107A>C',
-                          'NC_000003.11:g.150645894A>C',
-                          'NR_046380.2:n.1009T>G',
-                          'NR_046380.1:n.1010T>G',
-                          'p.Tyr176X',
-                          'NP_443721.1:p.Tyr100Ter',
-                          'NP_777367.1:p.Tyr176Ter',
-                          'NP_001182723.1:p.Tyr189Ter'])
+                         ['NM_152443.3:c.677A>G',
+                          'NG_008321.1:g.32324A>G',
+                          'NC_000014.9:g.67729209A>G',
+                          'NC_000014.8:g.68195926A>G',
+                          'NM_152443.2:c.677A>G',
+                          'Q96NR8:p.Tyr226Cys',
+                          'NP_689656.2:p.Tyr226Cys'])
 
     def test_rs(self):
-        self.assertEqual(self.test_crm.rs_id, "rs121908140")
+        self.assertEqual(self.test_crm.rs_id, "rs28940313")
 
     def test_nsv(self):
-        self.assertEqual(self.test_crm.nsv_id, "nsv123456")
+        self.assertEqual(self.test_crm.nsv_id, None)
 
     def test_variant_type(self):
         self.assertEqual(self.test_crm.variant_type, "single nucleotide variant")
@@ -80,10 +72,8 @@ class TestClinvarRecordMeasure(unittest.TestCase):
 
 
 def get_test_record():
-    test_clinvar_record_filepath = os.path.join(os.path.dirname(__file__), 'resources',
-                                              'test_clinvar_record.json')
+    test_clinvar_record_filepath = os.path.join(os.path.dirname(__file__), 'resources', 'test_clinvar_record.json')
     with utilities.open_file(test_clinvar_record_filepath, "rt") as f:
         test_record_dict = json.load(f)
     test_record = clinvar.ClinvarRecord(test_record_dict)
     return test_record
-

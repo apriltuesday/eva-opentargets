@@ -211,15 +211,13 @@ class Report:
                 "n_total_clinvar_records": 0}
 
 
-def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file,
-                    snp_2_gene_file, json_file, ot_schema):
+def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file, snp_2_gene_file, json_file, ot_schema):
 
     allowed_clinical_significance = (allowed_clinical_significance.split(',')
                                      if allowed_clinical_significance
                                      else get_default_allowed_clinical_significance())
     mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
-    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file,
-                                         ot_schema)
+    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema)
     output(report, dir_out)
 
 
@@ -262,6 +260,8 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                 elif allele_origin == 'somatic':
                     evidence_string = evidence_strings.CTTVSomaticEvidenceString(
                         clinvar_record, clinvar_record_measure, report, trait, consequence_type)
+                else:
+                    raise AssertionError('Unknown allele_origin present in the data: {}'.format(allele_origin))
                 report.add_evidence_string(evidence_string, clinvar_record, trait,
                                            consequence_type.ensembl_gene_id, ot_schema_contents)
                 report.evidence_list.append([clinvar_record.accession,
@@ -310,25 +310,27 @@ def skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele
 
 
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
-    alt_str = clinvar_record_measure.alt if clinvar_record_measure.alt is not None else "-"
-    coord_id = "{}:{}-{}:1/{}".format(clinvar_record_measure.chr, clinvar_record_measure.start,
-                                      clinvar_record_measure.stop, alt_str)
+    """Return the list of functional consequences for a given ClinVar record measure."""
 
-    consequence_type_dict_id = None
+    # First, we attempt to pair by coordinates (only if they are present in the record measure)
+    if clinvar_record_measure.has_complete_coordinates:
+        # This VCF-flavoured identifier is used to pair ClinVar records with functional consequence predictions.
+        # Example of such an identifier: 14:23423715:G:A
+        coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
+                             clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
+        if coord_id in consequence_type_dict:
+            return consequence_type_dict[coord_id]
 
-    if clinvar_record_measure.rs_id is not None and \
-                    clinvar_record_measure.rs_id in consequence_type_dict:
-        consequence_type_dict_id = clinvar_record_measure.rs_id
-    elif clinvar_record_measure.nsv_id is not None and \
-                    clinvar_record_measure.nsv_id in consequence_type_dict:
-        consequence_type_dict_id = clinvar_record_measure.nsv_id
-    elif coord_id in consequence_type_dict:
-        consequence_type_dict_id = coord_id
-    elif clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
-        consequence_type_dict_id = clinvar_record_measure.clinvar_record.accession  # todo change this depending upon OT gene mapping file
+    # If no luck, try to pair by ClinVar record accession. This is not a good option because ClinVar accessions do not
+    # necessarily correspond to single variants. This pairing is only retained for compatibility purposes to handle
+    # trinucleotide repeat expansion variants records, which are added manually using RCV identifiers. This will be
+    # removed as soon as correct handling of NT repeat variants is implemented.
+    if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
+        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
 
-    return consequence_type_dict[consequence_type_dict_id] \
-        if consequence_type_dict_id is not None else [None]
+    # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
+    # specificity, and has been removed.
+    return [None]
 
 
 def create_traits(clinvar_traits, trait_2_efo_dict, report):
