@@ -76,6 +76,7 @@ cd $CODE_ROOT
 git fetch
 git checkout master
 git reset --hard origin/master
+git submodule update --init --recursive
 python setup.py install
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
