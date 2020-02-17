@@ -64,35 +64,7 @@ For each variant:
 * If we found nothing during the previous step, repeat VEP search for this variant, now with a distance up to 500,000 bases either way. If there are any consequences which affect a **protein coding** transcript, choose the most severe consequence type (usually this will be either an upstream or a downstream gene variant) and output **a single consequence with the smallest distance**.
 
 ## Note on porting & changes from the original pipeline
-This pipeline originated as a Python port of the original Open Targets "SNP to gene" pipeline (see https://github.com/opentargets/snp_to_gene). An effort has been taken to retain backwards compatibility where possible; however, many important changes have been introduced.
-
-### Breaking changes
-* Original pipeline supported both RS IDs and full variant description for querying. Because RS IDs are in general not allele specific, their support has been dropped. New pipeline only accepts complete, VCF-compatible variant descriptions.
-* Input file for the original pipeline was a TSV consisting of 10 columns, most of which were not used, at least in the EVA/ClinVar use case. New pipeline uses a simpler VCF-derived format, which can be used to query VEP directly and can be easily produced from VCF (wrapper script does this already).
-* Output format for the new pipeline is a 6 column TSV, mostly the same as for the old pipeline. Changes:
-  + Column 1 (variant identifier) is using a different, VCF-compatible notation.
-  + Column 5 (functional consequence): special consequence type “nearest_gene_five_prime_end” has been dropped and replaced by conventional “upstream_gene_variant” / “downstream_gene_variant”.
-  + Column 6 (distance from variant to gene) is now always non-negative, for both upstream and downstream gene variants. It also always denotes a distance to the gene as reported by VEP, not to the nearest gene 5' end.
-
-### Changes in handling upstream and downstream gene variants
-The original mapping process was similar, but not identical, to the new one. The second step did not attempt to queue VEP, but instead searched for the nearest gene 5' end and, if found, output that gene with the special, non-standard consequence type of “nearest_gene_five_prime_end”, along with the computed distance.
-
-However, this consequence type was not used (at least in the EVA/ClinVar use case), and the variants in question are essentially downstream/upstream variants. Hence, the new pipeline handles all downstream/upstream variants in a similar manner, and outputs distance for all of them.
-
-### Changes in handling severity of transcript consequences
-The original pipeline contained a serious bug in determining the most severe consequence for a given variant. It worked in the following way:
-1. Query VEP with default parameters for a given variant, obtain a list of results.
-2. Take note of the `most_severe_consequence` reported by VEP.
-3. Filter the list of results based on biotype, leaving only protein coding and miRNA transcripts.
-4. Output all consequences in the list from step 3, where type matches the `most_severe_consequence` determined during step 2.
-
-The problem with this approach is that sometimes the `most_severe_consequence` calculated by VEP comes from transcripts of other biotypes (not transcript coding or miRNA), which are filtered out during step 3. This results in the pipeline not outputting any results for such variants.
-
-The new approach does not use VEP's `most_severe_consequence` field. Instead, it first filters the consequences based on the list of acceptable biotypes, and then scans the list of the _remaining_ ones the most severe consequence, based on the severity list described on [Ensembl website](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html). (This is the same list used by VEP internally.) 
-
-### Technical changes (should not affect the results)
-* Ensembl REST API (https://rest.ensembl.org/) is used instead of Perl API.
-* VEP is queried with multiple variants at once (`vep/:species/region`), rather than querying them one by one (`vep/:species/id/:id` and `vep/:species/region/:region/:allele/`), which greatly speeds up the pipeline and lowers the strain on VEP servers.
+This pipeline originated as a Python port of the original Open Targets ["SNP to gene"](https://github.com/opentargets/snp_to_gene) pipeline. An effort has been taken to retain backwards compatibility where possible; however, many important changes have been introduced. Please see the release notes for description of those changes.
 
 ## Note on external use
 The pipeline is implemented to be as standalone as possible, in hope that it could in future become useful to other people (including, but not limited to, other Open Targets submitters). Feel free to contact the maintainers of this repository if you need any assistance in adopting this pipeline for your use case.
