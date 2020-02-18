@@ -168,7 +168,7 @@ cd ${CODE_ROOT} && \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/consequence_mapping.out \
   -e ${BATCH_ROOT}/logs/consequence_mapping.err \
-  bash ${CODE_ROOT}/bin/consequence_mapping/run_consequence_mapping.sh \
+  bash ${CODE_ROOT}/vep-mapping-pipeline/vep_mapping_pipeline/run_consequence_mapping.sh \
   ${BATCH_ROOT}/clinvar/clinvar.vcf.gz \
   ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv
 ```
@@ -209,7 +209,6 @@ When Open Targets schema version changes, test files in `tests/evidence_string_g
 In order to generate the evidence strings, run the following command:
 
 ```bash
-# Set the variable for the name of output file provided by Open Targets, without the path
 cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K \
   -M 10G \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
