@@ -1,0 +1,3 @@
+[submodule "vep-mapping-pipeline"]
+	path = vep-mapping-pipeline
+	url = https://github.com/EBIvariation/vep-mapping-pipeline
