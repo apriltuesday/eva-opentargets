@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
+"""Pipeline for mapping variants to the genes they affect and their functional consequences, using Ensembl VEP API. For
+documentation, refer to /README.md"""
 
-"""
-Pipeline for mapping variants to the genes they affect and their functional consequences, using Ensembl VEP API.
-For documentation, refer to /README.md
-"""
-
+import argparse
 import itertools
 import json
 import logging
@@ -13,6 +11,12 @@ import requests
 import sys
 
 from retry import retry
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument(
+    '--enable-distant-querying', action='store_true',
+    help='Enables a second iteration of querying VEP for distant gene variants, which is disabled by default'
+)
 
 logging.basicConfig()
 logger = logging.getLogger('consequence_mapping')
@@ -121,9 +125,14 @@ def get_variants_without_consequences(results_by_variant):
     })
 
 
-def process_variants(variants):
+def process_variants(variants, enable_distant_querying=False):
     """Given a list of variant IDs, return a list of consequence types (each including Ensembl gene name & ID and a
-    functional consequence code) for a given variant."""
+    functional consequence code) for a given variant.
+
+    Args:
+        enable_distant_querying: If set to True, an additional VEP query will be performed for variants for which no
+            consequences were found during the first iteration, in an attempt to find distant variant consequences.
+    """
 
     # First, we query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
     # up to a standard distance (5000 nucleotides either way, which is default for VEP) from the variant.
@@ -134,21 +143,27 @@ def process_variants(variants):
 
     # See if there are variants with no consequences up to the default distance
     variants_without_consequences = get_variants_without_consequences(results_by_variant)
-    # If there are, we will now do a second round of querying, this time looking only at protein coding biotypes (vs.
-    # miRNA *and* protein coding during the first round) up to a distance of 500,000 bases each way.
     if variants_without_consequences:
-        logger.info('Found {} variant(s) without standard consequences: {}. Querying distant regions'.format(
+        logger.info('Found {} variant(s) without standard consequences: {}'.format(
             len(variants_without_consequences), '|'.join(variants_without_consequences)))
-        distant_vep_results = query_vep(variants=variants_without_consequences, search_distance=VEP_LONG_QUERY_DISTANCE)
-        extract_consequences(vep_results=distant_vep_results, acceptable_biotypes={'protein_coding'},
-                             only_closest=True, results_by_variant=results_by_variant)
 
-    # See if there are still variants with no consequences, even up to a wide search window
-    variants_without_consequences = get_variants_without_consequences(results_by_variant)
-    if variants_without_consequences:
-        logger.info('After distant querying, still remaining {} variant(s) without consequences: {}'.format(
-            len(variants_without_consequences), '|'.join(variants_without_consequences)
-        ))
+        if enable_distant_querying:
+            logger.info('Attempting to find distant consequences for the remaining variants')
+
+            # If there are, we will now do a second round of querying, this time looking only at protein coding biotypes
+            # (vs. miRNA *and* protein coding during the first round) up to a distance of 500,000 bases each way.
+            if variants_without_consequences:
+                distant_vep_results = query_vep(variants=variants_without_consequences,
+                                                search_distance=VEP_LONG_QUERY_DISTANCE)
+                extract_consequences(vep_results=distant_vep_results, acceptable_biotypes={'protein_coding'},
+                                     only_closest=True, results_by_variant=results_by_variant)
+
+            # See if there are still variants with no consequences, even up to a wide search window
+            variants_without_consequences = get_variants_without_consequences(results_by_variant)
+            if variants_without_consequences:
+                logger.info('After distant querying, still remaining {} variant(s) without consequences: {}'.format(
+                    len(variants_without_consequences), '|'.join(variants_without_consequences)
+                ))
 
     # Yield all consequences for all variants. Note they are not grouped by variant, all consequences are yielded in a
     # common sequence.
@@ -158,11 +173,15 @@ def process_variants(variants):
 
 
 def main():
+    # Parse command line arguments
+    args = parser.parse_args()
+
     # Load variants to query from STDIN
     variants_to_query = [colon_based_id_to_vep_id(v) for v in sys.stdin.read().splitlines()]
 
     # Query VEP with all variants at once (for the purpose of efficiency), print out the consequences to STDOUT.
-    for variant_id, gene_id, gene_symbol, consequence_term, distance in process_variants(variants_to_query):
+    consequences = process_variants(variants_to_query, enable_distant_querying=args.enable_distant_querying)
+    for variant_id, gene_id, gene_symbol, consequence_term, distance in consequences:
         # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
         print('\t'.join([vep_id_to_colon_id(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))
 

@@ -17,7 +17,7 @@ The pipeline uses succinct, VCF-compatible variant identifiers, in the format of
 ### Output file
 Output is a TSV file consisting of six columns:
 1. Variant identifier: the same one as in the input files.
-2. The second column is not used and is always set to 1. It is retained for compabitility purposes (see more about that below).
+2. The second column is not used and is always set to 1. It is retained for compabitility purposes (see more about that in the release notes).
 3. Ensembl gene ID.
 4. Ensembl gene name.
 5. Most severe functional consequence of that variant for that gene.
@@ -33,7 +33,7 @@ Example (note that tabs have been replaced with spaces here for readability):
 ```
 
 ### Running the script directly (on a small number of entries, for testing/debugging only)
-The pipeline core module is [consequence_mapping.py](/bin/consequence_mapping/consequence_mapping.py). It reads data from STDIN and writes to STDOUT in the formats described above. It can be run as follows:
+The pipeline core module is [consequence_mapping.py](/vep_mapping_pipeline/consequence_mapping.py). It reads data from STDIN and writes to STDOUT in the formats described above. It can be run as follows:
 ```bash
 python3 consequence_mapping.py <input_variants.txt >output_mappings.tsv
 ```
@@ -41,7 +41,7 @@ python3 consequence_mapping.py <input_variants.txt >output_mappings.tsv
 This should only be done for testing purposes and only for a small number of variants, because when querying VEP API, the script submits of all of the variants it receives in a single query (this is more efficient than submitting them one by one).
 
 ### Running the pipeline using a wrapper script
-In production environment the pipeline should be run using a wrapper script which would take care of preprocessing and parallelisation. There is a simple wrapper script available, [run_consequence_mapping.sh](/bin/consequence_mapping/run_consequence_mapping.sh). It can be run as follows:
+In production environment the pipeline should be run using a wrapper script which would take care of preprocessing and parallelisation. There is a simple wrapper script available, [run_consequence_mapping.sh](/vep_mapping_pipeline/run_consequence_mapping.sh). It can be run as follows:
 ```bash
 bash run_consequence_mapping.sh input_variants.vcf output_mappings.tsv
 ``` 
@@ -60,8 +60,10 @@ The wrapper script depends on `bcftools` and `parallel` (GNU Parallel).
 
 ## Mapping process
 For each variant:
-* Query VEP with default distance to the gene (5,000 bases either way). Consider only consequences which affect **either a protein coding transcript or a miRNA**. Find the most severe consequence for either of those transcripts, according to the list of priorities described [on Ensembl website](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html). Output **all non-redundant** consequences of this (most severe) type.
-* If we found nothing during the previous step, repeat VEP search for this variant, now with a distance up to 500,000 bases either way. If there are any consequences which affect a **protein coding** transcript, choose the most severe consequence type (usually this will be either an upstream or a downstream gene variant) and output **a single consequence with the smallest distance**.
+1. Query VEP with default distance to the gene (5,000 bases either way). Consider only consequences which affect **either a protein coding transcript or a miRNA**. Find the most severe consequence for either of those transcripts, according to the list of priorities described [on Ensembl website](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html). Output **all non-redundant** consequences of this (most severe) type.
+2. *Optionally:* if we found nothing during the previous step, repeat VEP search for this variant, now with a distance up to 500,000 bases either way. If there are any consequences which affect a **protein coding** transcript, choose the most severe consequence type (usually this will be either an upstream or a downstream gene variant) and output **a single consequence with the smallest distance**.
+
+Distant querying (Step 2), while disabled by default, can be enabled by appending `--enable-distant-querying` flag to the core pipeline.
 
 ## Note on porting & changes from the original pipeline
 This pipeline originated as a Python port of the original Open Targets ["SNP to gene"](https://github.com/opentargets/snp_to_gene) pipeline. An effort has been taken to retain backwards compatibility where possible; however, many important changes have been introduced. Please see the release notes for description of those changes.
