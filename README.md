@@ -63,7 +63,7 @@ For each variant:
 1. Query VEP with default distance to the gene (5,000 bases either way). Consider only consequences which affect **either a protein coding transcript or a miRNA**. Find the most severe consequence for either of those transcripts, according to the list of priorities described [on Ensembl website](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html). Output **all non-redundant** consequences of this (most severe) type.
 2. *Optionally:* if we found nothing during the previous step, repeat VEP search for this variant, now with a distance up to 500,000 bases either way. If there are any consequences which affect a **protein coding** transcript, choose the most severe consequence type (usually this will be either an upstream or a downstream gene variant) and output **a single consequence with the smallest distance**.
 
-Step 2 can be enabled with the `--enable-distant-querying` flag to the core pipeline. It is disabled by default, as well as in the [run_consequence_mapping.sh](/vep_mapping_pipeline/run_consequence_mapping.sh) wrapper script and in the ClinVar batch processing use case. 
+Distant querying (Step 2), while disabled by default, can be enabled by appending `--enable-distant-querying` flag to the core pipeline.
 
 ## Note on porting & changes from the original pipeline
 This pipeline originated as a Python port of the original Open Targets ["SNP to gene"](https://github.com/opentargets/snp_to_gene) pipeline. An effort has been taken to retain backwards compatibility where possible; however, many important changes have been introduced. Please see the release notes for description of those changes.

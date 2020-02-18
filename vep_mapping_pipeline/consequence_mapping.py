@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Pipeline for mapping variants to the genes they affect and their functional consequences, using Ensembl VEP API. For
+documentation, refer to /README.md"""
 
 import argparse
 import itertools
@@ -10,10 +12,7 @@ import sys
 
 from retry import retry
 
-parser = argparse.ArgumentParser(
-    description='Pipeline for mapping variants to the genes they affect and their functional consequences, using '
-                'Ensembl VEP API. For documentation, refer to /README.md'
-)
+parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
     '--enable-distant-querying', action='store_true',
     help='Enables a second iteration of querying VEP for distant gene variants, which is disabled by default'
