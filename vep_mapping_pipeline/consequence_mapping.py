@@ -47,7 +47,7 @@ def vep_id_to_colon_id(vep_id):
     return ':'.join([vep_id_fields[0], vep_id_fields[1], vep_id_fields[3], vep_id_fields[4]])
 
 
-@retry(requests.HTTPError, tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
+@retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
 def query_vep(variants, search_distance):
     """Query VEP and return results in JSON format. Upstream/downstream genes are searched up to a given distance."""
     ensembl_request_url = 'https://rest.ensembl.org/vep/human/region'
