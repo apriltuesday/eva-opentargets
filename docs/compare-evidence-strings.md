@@ -10,7 +10,7 @@ chmod a+x jq
 ```
 
 ## Sort keys in evidence strings
-This makes them more readable and helps comparison through word diff.
+This makes them more readable and helps comparison through word diff. Set the paths to old and new evidence strings in the environment variables below.
 ```bash
 sort_keys () {
   cat $1 \
@@ -22,8 +22,9 @@ sort_keys () {
 }
 export -f sort_keys
 
-sort_keys /nfs/production3/eva/opentargets/batch-2020-02/evidence_strings/evidence_strings.json old.json &
-sort_keys /nfs/production3/eva/opentargets/batch-2020-02-experimental/evidence_strings/evidence_strings.json new.json
+OLD_EVIDENCE_STRINGS=...
+NEW_EVIDENCE_STRINGS=...
+sort_keys ${OLD_EVIDENCE_STRINGS} old.json & sort_keys ${NEW_EVIDENCE_STRINGS} new.json
 ```
 
 # Extract some fields from the evidence strings
