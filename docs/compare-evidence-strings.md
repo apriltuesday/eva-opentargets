@@ -69,6 +69,30 @@ cut -f1-2 new.json.fields | sort -u > new.consequences
 join 3_common old.consequences -j 1 | join /dev/stdin new.consequences -j1 | awk '$2 != $3' > 3_common_changed
 ```
 
-# Compare the fields
+## Compare the fields
+```bash
 sort -u old > old.sorted & sort -u new > new.sorted
 git diff --minimal -U0 --color=always --word-diff=color old.sorted new.sorted
+```
+
+## Future improvements
+There is a [json-diff](https://pypi.org/project/json-diff/) module which allows detailed comparison of JSON objects. If this protocol is going to be updated in the future, this module might be helpful. It provides structured overview of differences; however, it has a few limitations:
+ * It can only compare individual evidence strings (so they must be sorted and matched beforehand)
+ * When a field's value is updated, `json-diff` only reports the new value of the field, but not the old one, for example:
+```json
+{
+    "_update": {
+        "evidence": {
+            "_update": {
+                "gene2variant": {
+                    "_update": {
+                        "functional_consequence": "http://purl.obolibrary.org/obo/SO_0001575"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+Here, the change was from SO_0001589 to SO_0001575, but only the second value is reported.
