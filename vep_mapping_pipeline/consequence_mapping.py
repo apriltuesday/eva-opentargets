@@ -17,6 +17,10 @@ parser.add_argument(
     '--enable-distant-querying', action='store_true',
     help='Enables a second iteration of querying VEP for distant gene variants, which is disabled by default'
 )
+parser.add_argument(
+    '--report-distance', action='store_true',
+    help='Report a distance to the gene for upstream/downstream gene variants. Disabled by default'
+)
 
 logging.basicConfig()
 logger = logging.getLogger('consequence_mapping')
@@ -67,7 +71,7 @@ def load_consequence_severity_rank():
     return {term: index for index, term in enumerate(severity_ranking)}
 
 
-def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant):
+def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant, report_distance=False):
     """Given VEP results, return a list of consequences matching certain criteria.
 
     Args:
@@ -80,6 +84,8 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
             consequence is selected at random. If this flag is not specified, all consequences for each variant will
             be returned.
         results_by_variant: a dict to write the results into.
+        report_distance: if set to True, a distance from the variant to the gene it affects will be reported
+            (applicable to upstream and downstream gene variants). Otherwise, the distance parameter will always be 0.
     """
     consequence_term_severity_rank = load_consequence_severity_rank()
     for result in vep_results:
@@ -109,7 +115,8 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
 
         # Return a subset of fields (required for output) of filtered consequences
         results_by_variant[variant_identifier].extend([
-            (variant_identifier, c['gene_id'], c['gene_symbol'], most_severe_consequence_term, c.get('distance', 0))
+            (variant_identifier, c['gene_id'], c['gene_symbol'], most_severe_consequence_term,
+             c.get('distance', 0) if report_distance else 0)
             for c in consequences
         ])
 
@@ -125,13 +132,15 @@ def get_variants_without_consequences(results_by_variant):
     })
 
 
-def process_variants(variants, enable_distant_querying=False):
+def process_variants(variants, enable_distant_querying=False, report_distance=False):
     """Given a list of variant IDs, return a list of consequence types (each including Ensembl gene name & ID and a
     functional consequence code) for a given variant.
 
     Args:
         enable_distant_querying: If set to True, an additional VEP query will be performed for variants for which no
             consequences were found during the first iteration, in an attempt to find distant variant consequences.
+        report_distance: Whether to report distance to the nearest gene for upstream and downstream gene variants.
+            See extract_consequences() for details.
     """
 
     # First, we query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
@@ -139,7 +148,8 @@ def process_variants(variants, enable_distant_querying=False):
     results_by_variant = {}
     vep_results = query_vep(variants=variants, search_distance=VEP_SHORT_QUERY_DISTANCE)
     results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
-                                              only_closest=False, results_by_variant=results_by_variant)
+                                              only_closest=False, results_by_variant=results_by_variant,
+                                              report_distance=report_distance)
 
     # See if there are variants with no consequences up to the default distance
     variants_without_consequences = get_variants_without_consequences(results_by_variant)
@@ -156,7 +166,8 @@ def process_variants(variants, enable_distant_querying=False):
                 distant_vep_results = query_vep(variants=variants_without_consequences,
                                                 search_distance=VEP_LONG_QUERY_DISTANCE)
                 extract_consequences(vep_results=distant_vep_results, acceptable_biotypes={'protein_coding'},
-                                     only_closest=True, results_by_variant=results_by_variant)
+                                     only_closest=True, results_by_variant=results_by_variant,
+                                     report_distance=report_distance)
 
             # See if there are still variants with no consequences, even up to a wide search window
             variants_without_consequences = get_variants_without_consequences(results_by_variant)
@@ -180,7 +191,9 @@ def main():
     variants_to_query = [colon_based_id_to_vep_id(v) for v in sys.stdin.read().splitlines()]
 
     # Query VEP with all variants at once (for the purpose of efficiency), print out the consequences to STDOUT.
-    consequences = process_variants(variants_to_query, enable_distant_querying=args.enable_distant_querying)
+    consequences = process_variants(variants_to_query,
+                                    enable_distant_querying=args.enable_distant_querying,
+                                    report_distance=args.report_distance)
     for variant_id, gene_id, gene_symbol, consequence_term, distance in consequences:
         # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
         print('\t'.join([vep_id_to_colon_id(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))

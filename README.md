@@ -21,7 +21,9 @@ Output is a TSV file consisting of six columns:
 3. Ensembl gene ID.
 4. Ensembl gene name.
 5. Most severe functional consequence of that variant for that gene.
-6. Distance from a variant to a gene. This will be nonzero only for upstream and downstream variants, and zero for all others.
+6. Distance from a variant to a gene. The contents of this field will vary depending on the pipeline options:
+  * By default, distance to the gene is not reported, and the field will always be zero.
+  * With `--report-distance` flag, this will be nonzero only for upstream and downstream gene variants, and zero for all others.
 
 In general, each variant can have more than one record in the output file, because it may affect multiple genes.
 
