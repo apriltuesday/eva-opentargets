@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o pipefail
+set -euxo pipefail
 
 # A wrapper script for running the consequence mapping pipeline concurrently and based on a VCF input.
 # See /README.md for detailed information.
