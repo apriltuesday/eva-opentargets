@@ -10,7 +10,7 @@ Batch submission process consists of five major parts. For each step, create a s
 
 At the end of each step there is a list of checks do be done during review of the ticket.
 
-Log in to the LSF cluster, where all data processing must take place. You must use a common EVA production user instead of your personal account. Follow the [Build instructions](build.md). In particular, you'll need to install Python 3.5 (if you don't have it already), build the Java ClinVar parser, build and install the Python pipeline.
+Log in to the LSF cluster, where all data processing must take place. You must use a common EVA production user instead of your personal account. Follow the [Build instructions](build.md). In particular, you'll need to install Python 3.8 (if you don't have it already), build the Java ClinVar parser, build and install the Python pipeline.
 
 ## Set up environment
 Commands throughout the protocol depend on a number of environment variables. It makes sense to set them all at once before executing any of the steps.
@@ -62,7 +62,7 @@ Finally, we define some environment variables which are either constant or based
 export BSUB_CMDLINE="bsub -u your_email@example.com"
 
 # Setting up Python paths
-export PATH=${PYTHON_INSTALL_PATH}:${BCFTOOLS_INSTALL_PATH}:$PATH
+export PATH=${PYTHON_INSTALL_PATH}:${PYTHON_INSTALL_PATH}/bin:${BCFTOOLS_INSTALL_PATH}:$PATH
 export PYTHONPATH=${PYTHON_INSTALL_PATH}
 
 # The root directory for all files for the current batch
@@ -77,7 +77,7 @@ git fetch
 git checkout master
 git reset --hard origin/master
 git submodule update --init --recursive
-python setup.py install
+python3 setup.py install
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 mkdir -p clinvar gene_mapping trait_mapping evidence_strings logs
@@ -109,7 +109,7 @@ The current supported version is **1.59**. **If the version changes (and only in
 cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/update_clinvar_schema.out \
   -e ${BATCH_ROOT}/logs/update_clinvar_schema.err \
-  python bin/update_clinvar_schema.py \
+  python3 bin/update_clinvar_schema.py \
   -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
   -j clinvar-xml-parser/src/main/java
 ```
@@ -144,13 +144,13 @@ ${BSUB_CMDLINE} -K -n 8 -M 16G \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/filter_clinvar_json.out \
   -e ${BATCH_ROOT}/logs/filter_clinvar_json.err \
-  python bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
+  python3 bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz && \
 ${BSUB_CMDLINE} -K -M 4G \
   -o ${BATCH_ROOT}/logs/trait_mapping.out \
   -e ${BATCH_ROOT}/logs/trait_mapping.err \
-  python bin/trait_mapping.py \
+  python3 bin/trait_mapping.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   -o ${BATCH_ROOT}/trait_mapping/automated_trait_mappings.tsv \
   -c ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv
@@ -213,7 +213,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K \
   -M 10G \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
-  python bin/evidence_string_generation.py \
+  python3 bin/evidence_string_generation.py \
   -e ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv \
   -g ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
@@ -223,12 +223,12 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K \
 
 This outputs multiple files, including the evidence strings (`evidence_strings.json`) for submitting to Open Targets and the file of trait mappings for submitting to ZOOMA (`eva_clinvar.txt`).
 
-Generated evidence strings must be additionally validated using tool provided by Open Targets. _Note: as of August 2019, there is a problem running `opentargets_validator` module using Python 3; as a workaround you can install and run it locally using Python 2. To solve this, Python version needs to be updated to at least 3.6.__
+Generated evidence strings must be additionally validated using tool provided by Open Targets:
 
 ```bash
-python -m pip install --upgrade pip
-python -m pip install --upgrade opentargets-validator==${OT_VALIDATOR_VERSION}
-python -m opentargets_validator.cli \
+pip3 install --upgrade pip
+pip3 install --upgrade opentargets-validator==${OT_VALIDATOR_VERSION}
+python3 -m opentargets_validator.cli \
   --schema https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json \
   < ${BATCH_ROOT}/evidence_strings/evidence_strings.json
 ```
@@ -266,7 +266,7 @@ The mappings are parsed from the ClinVar JSON file into a TSV suitable for submi
 cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
-  python bin/clinvar_jsons/traits_to_zooma_format.py \
+  python3 bin/clinvar_jsons/traits_to_zooma_format.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
@@ -329,7 +329,7 @@ http://www.orpha.net/ORDO/Orphanet_199306
 
 Run the helper script to prepare the table for import:
 ```bash
-python ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
+python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
   -i ${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt \
   -o ${BATCH_ROOT}/trait_mapping/efo_import_table.tsv
 ```
