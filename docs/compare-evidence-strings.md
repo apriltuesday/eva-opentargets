@@ -2,11 +2,16 @@
 
 When major updates to the pipeline are implemented, an important measure of control is comparing evidence strings before and after the update for the same input data. This protocol contains commands which help do this.
 
-## Install JQ locally
+## Install JQ locally & set up environment
 JQ is a command line JSON processor.
 ```bash
 wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 chmod a+x jq
+```
+
+To ensure that the sort results are consistent, set the sort order locale directly:
+```bash
+export LC_COLLATE=C
 ```
 
 ## Sort keys in evidence strings
