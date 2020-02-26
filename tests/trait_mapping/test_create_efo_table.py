@@ -33,7 +33,7 @@ class TestCreateEFOTableComponents(unittest.TestCase):
             self.assertEqual(len(trait), 22, 'Each output line must contain correct number of columns')
 
         # Trait 1
-        self.assertEqual(trait_1[0], 'gyrate atrophy')                                # disease
+        self.assertEqual(trait_1[0], 'ornithine aminotransferase deficiency')         # disease
         self.assertIn('unclassified familial retinal dystrophy', trait_1[1])          # child of
         self.assertEqual(trait_1[7], 'MeSH:C538071 || MeSH:D015799')                  # MeSH cross-refs
         self.assertEqual(trait_1[8], 'NCIT:C84744')                                   # NCIT cross-ref
