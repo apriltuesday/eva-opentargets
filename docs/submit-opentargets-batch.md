@@ -47,10 +47,10 @@ export CLINVAR_RELEASE_YEAR=YYYY
 export CLINVAR_RELEASE_MONTH=MM
 
 # Open Targets JSON schema version
-export OT_SCHEMA_VERSION=1.6.3
+export OT_SCHEMA_VERSION=1.6.6
 
 # Open Targets validator schema version
-export OT_VALIDATOR_VERSION=0.5.0
+export OT_VALIDATOR_VERSION=0.6.0
 ```
 
 Finally, we define some environment variables which are either constant or based on the above two sets:
