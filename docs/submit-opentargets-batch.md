@@ -1,12 +1,10 @@
 # How to submit an Open Targets batch
 This protocol describes how to process and submit data for an Open Targets batch. Additional diagrams and background explanations can be found in [this presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM).
 
-Batch submission process consists of five major parts. For each step, create a single JIRA ticket. This can be done by cloning a corresponding ticket from one of the previous batches and adjusting its fields. List of suitable ticket templates for each of the steps:
-1. https://www.ebi.ac.uk/panda/jira/browse/EVA-1774 — _description will need to be updated to include all substeps of Step 1 which has been recently expanded_
-2. https://www.ebi.ac.uk/panda/jira/browse/EVA-1777
-3. https://www.ebi.ac.uk/panda/jira/browse/EVA-1778
-4. https://www.ebi.ac.uk/panda/jira/browse/EVA-1779
-5. https://www.ebi.ac.uk/panda/jira/browse/EVA-1780
+Batch submission process consists of three major parts. For each step, create a single JIRA ticket. This can be done by cloning a corresponding ticket from one of the previous batches and adjusting its fields. List of suitable ticket templates for each of the steps:
+1. https://www.ebi.ac.uk/panda/jira/browse/EVA-1910
+2. https://www.ebi.ac.uk/panda/jira/browse/EVA-1911
+3. https://www.ebi.ac.uk/panda/jira/browse/EVA-1912
 
 At the end of each step there is a list of checks do be done during review of the ticket.
 
@@ -49,10 +47,10 @@ export CLINVAR_RELEASE_YEAR=YYYY
 export CLINVAR_RELEASE_MONTH=MM
 
 # Open Targets JSON schema version
-export OT_SCHEMA_VERSION=1.6.3
+export OT_SCHEMA_VERSION=1.6.6
 
 # Open Targets validator schema version
-export OT_VALIDATOR_VERSION=0.5.0
+export OT_VALIDATOR_VERSION=0.6.0
 ```
 
 Finally, we define some environment variables which are either constant or based on the above two sets:
@@ -184,12 +182,44 @@ ${BSUB_CMDLINE} -K \
 ## Step 2. Manual curation
 See separate protocol, [Manual curation](manual-curation.md).
 
+After the manual curation has been completed, traits remaining unmapped or poorly mapped should be submitted to EFO if a suitable parent term is available.
+
+### IMPORT terms
+Open the curation spreadsheets and use filters to display only terms with the status of `IMPORT`. Copy just the ontology URLs into the file `${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt`, one URL per line. Example:
+```
+http://purl.obolibrary.org/obo/HP_0002647
+http://purl.obolibrary.org/obo/MONDO_0000727
+http://www.orpha.net/ORDO/Orphanet_199306
+...
+```
+
+Run the helper script to prepare the table for import:
+```bash
+python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
+  -i ${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt \
+  -o ${BATCH_ROOT}/trait_mapping/efo_import_table.tsv
+```
+
+The file `${BATCH_ROOT}/trait_mapping/efo_import_table.tsv` will contain a partially ready table for EFO import. Copy its contents into the “Add EFO disease” sheet in the curation spreadsheet.
+
+The table needs to be amended manually:
+* Some terms will lack descriptions, because ontologies don't always contain a description field for a particular term. If possible, descriptions should be added for all traits.
+* Some terms (or their parent terms) might be marked as obsolete. Although an effort is made to exclude such traits during upstream analysis (inside the trait mapping pipeline), sometimes a trait is not properly marked as obsolete in the ontology but its obsoleteness is indicated in its name or in its parent term. The easy way to detect such issues is to search the table for the term “obsolete”. They must be corrected manually by selecting another term or just removed from the import table.
+
+Open a new git issue with EFO to review and import these novel trait names, e.g. [https://github.com/EBISPOT/efo/issues/223](https://github.com/EBISPOT/efo/issues/223).
+
+### NEW terms
+Terms which don't have a suitable mapping cannot be added to the “Add EFO disease“ sheet and must be specified manually in PR description.
+
 ### Review checklist
 * (See general review checklist at the bottom of the page)
 * The mappings selected for each trait are adequate
 * Good/bad criteria for curation are observed (see the manual curation protocol, section “Criteria to manually evaluate mapping quality”)
 * The number of traits in the `finished_mappings_curation.tsv` file is the same as in the spreadsheet after applying all relevant filters
 * _Important:_ spreadhseet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
+* For submitting terms to EFO
+  + Cross-references has been populated for as many traits as possible
+  + GitHub issue has been created and linked in the issue
 
 ## Step 3. Generate evidence strings
 Here, we integrate all of the information produced to generate the evidence strings. 
@@ -241,24 +271,12 @@ The evidence string file (`evidence_strings.json`) must be uploaded to the [Open
 
 More details can be found on [Open Targets Github wiki](https://github.com/opentargets/data_release/wiki/OT006-Data-Submission#ot009-evidence-string-generation-json-schema-validation--submission).
 
-### Review checklist
-* (See general review checklist at the bottom of the page)
-* Version of JSON schema is the same as specified in the Open Targets e-mail
-* The summary metrics
-  + Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
-  + Are calculated correctly (re-calculate using the commands in the spreadsheet as required)
-  + Are not worse than for the previous release
-* Generated evidence strings validate against the schema
-  + Have actually been submitted to the Open Targets cloud storage
-  + The file is the same as on the cluster (check md5)
-  + (After review) E-mail has been sent to Open Targets, with eva-dev in copy
-
-## Step 4. Submit feedback to ZOOMA
+### 3.5. Submit feedback to ZOOMA
 The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use it, but also provide feedback to help improve it. The evidence string generation pipeline generates two files with such a feedback:
 1. **clinvar_xrefs.** ClinVar data already includes some cross-links from trait names to disease ontologies. Unfortunately, it almost exclusively uses MedGen and OMIM, which are not acceptable for Open Targets (since they're using EFO). However, mappings from trait names to MedGen and OMIM might still be useful to other users. Hence, we extract and submit them to ZOOMA under the evidence handle “ClinVar_xRefs”.
 1. **eva_clinvar.** This contains the trait mappings (to EFO) created during the evidence string generation, including automated and manual mappings.
 
-### 4.1. Prepare ClinVar xRefs file
+#### 3.5.1. Prepare ClinVar xRefs file
 The mappings are parsed from the ClinVar JSON file into a TSV suitable for submitting to ZOOMA, excluding any traits which already have mappings in ZOOMA from trusted data sources (EVA, Open Targets, GWAS, Uniprot). In order to do so, execute the following command:
 
 ```bash
@@ -271,7 +289,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-### 4.2. Upload ClinVar xRefs and trait mappings to the FTP
+### 3.5.2. Upload ClinVar xRefs and trait mappings to the FTP
 You need to upload two files to the FTP as feedback to ZOOMA: `clinvar_xrefs` (prepared during the previous step) and `eva_clinvar`.
 
 To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then run `become <FTP administrative user> /bin/bash`. (Please see [this document](https://www.ebi.ac.uk/seqdb/confluence/display/VAR/Simplified+EVA+FTP+SOP) for details on the FTP administrative user.) After you do this, the environment will be wiped clean, so you will need to set the `BATCH_ROOT` variable again.
@@ -312,49 +330,23 @@ If everything has been done correctly, hash sums will be the same. Note that the
 
 ### Review checklist
 * (See general review checklist at the bottom of the page)
-* The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
-* The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
+* Version of JSON schema is the same as specified in the Open Targets e-mail
+* The summary metrics
+  + Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
+  + Are calculated correctly (re-calculate using the commands in the spreadsheet as required)
+  + Are not worse than for the previous release
+* Generated evidence strings validate against the schema
+  + Have actually been submitted to the Open Targets cloud storage
+  + The file is the same as on the cluster (check md5)
+  + (After review) E-mail has been sent to Open Targets, with eva-dev in copy
+* ZOOMA feedback
+  + The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
+  + The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
 
-## Step 5. Importing & adding novel trait names to EFO
-Traits remaining unmapped or poorly mapped can be submitted to EFO if a suitable parent term is available.
-
-### IMPORT terms
-Open the curation spreadsheets and use filters to display only terms with the status of `IMPORT`. Copy just the ontology URLs into the file `${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt`, one URL per line. Example:
-```
-http://purl.obolibrary.org/obo/HP_0002647
-http://purl.obolibrary.org/obo/MONDO_0000727
-http://www.orpha.net/ORDO/Orphanet_199306
-...
-```
-
-Run the helper script to prepare the table for import:
-```bash
-python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
-  -i ${BATCH_ROOT}/trait_mapping/efo_ontology_terms.txt \
-  -o ${BATCH_ROOT}/trait_mapping/efo_import_table.tsv
-```
-
-The file `${BATCH_ROOT}/trait_mapping/efo_import_table.tsv` will contain a partially ready table for EFO import. Copy its contents into the “Add EFO disease” sheet in the curation spreadsheet.
-
-The table needs to be amended manually:
-* Some terms will lack descriptions, because ontologies don't always contain a description field for a particular term. If possible, descriptions should be added for all traits.
-* Some terms (or their parent terms) might be marked as obsolete. Although an effort is made to exclude such traits during upstream analysis (inside the trait mapping pipeline), sometimes a trait is not properly marked as obsolete in the ontology but its obsoleteness is indicated in its name or in its parent term. The easy way to detect such issues is to search the table for the term “obsolete”. They must be corrected manually by selecting another term or just removed from the import table.
-
-Open a new git issue with EFO to review and import these novel trait names, e.g. [https://github.com/EBISPOT/efo/issues/223](https://github.com/EBISPOT/efo/issues/223).
-
-### NEW terms
-Terms which don't have a suitable mapping cannot be added to the “Add EFO disease“ sheet and must be specified manually in PR description.
-
-### Review checklist
-* (See general review checklist at the bottom of the page)
-* Cross-references has been populated for as many traits as possible
-* GitHub issue has been created and linked in the issue
-
-## General review checklist for all issues
-Applies to all issues:
+## General review checklist for all steps
 * All relevant logs are present and contain no unexpected warnings or errors
 * All intermediate and output files
   + Are present
   + In the correct format without obvious errors (compare with the previous OT batch)
   + Line/record count is the same or more compared to the previous OT batch
-  + Files are terminated correctly (not ending abruptly after an incomplete record) 
+  + Files are terminated correctly (not ending abruptly after an incomplete record)

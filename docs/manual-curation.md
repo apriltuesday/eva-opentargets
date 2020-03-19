@@ -15,7 +15,7 @@ wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
 
 ## Create the final table for manual curation
 ```bash
-python bin/trait_mapping/create_table_for_manual_curation.py \
+cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py \
   --traits-for-curation ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv \
   --previous-mappings ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv \
   --output ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv
