@@ -296,8 +296,9 @@ To make changes to the FTP, you will need to log in to the cluster using your **
 
 ```bash
 # EXECUTE UNDER FTP ADMINISTRATIVE USER
-# DON'T FORGET TO SET BATCH_ROOT AGAIN
+# DON'T FORGET TO SET THE TWO VARIABLES BELOW AGAIN
 export BATCH_ROOT=...
+export FTP_PATH_BASE=...
 
 # Create the folder
 
