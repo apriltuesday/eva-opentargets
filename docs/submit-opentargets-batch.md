@@ -342,6 +342,8 @@ If everything has been done correctly, hash sums will be the same. Note that the
   + (After review) E-mail has been sent to Open Targets, with eva-dev in copy
 * ZOOMA feedback
   + The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
+    - The FTP path is http://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest
+    - To see where files are located on the cluster, see variable `BATCH_ROOT_BASE` on [this page](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md)
   + The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
 
 ## General review checklist for all steps
