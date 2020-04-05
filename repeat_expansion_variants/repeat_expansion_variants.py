@@ -3,16 +3,12 @@
 
 import argparse
 from io import StringIO
-import itertools
-import json
 import logging
 import math
-import os
-import pandas as pd
 import re
 import requests
-import sys
 
+import pandas as pd
 from retry import retry
 
 logging.basicConfig()
