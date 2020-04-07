@@ -41,13 +41,14 @@ biomart_request_template = """http://www.ensembl.org/biomart/martservice?query=<
 # be handled and the request will be retried.
 @retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
 def query_biomart(key_column, query_column, identifier_list):
-    """Query Ensembl BioMart with a list of identifiers (`identifier_list`) from one column (`key_column`) and return
+    """
+    Query Ensembl BioMart with a list of identifiers (`identifier_list`) from one column (`key_column`) and return
     all mappings from those identifiers to another column (`query_column`) in form of a two-column Pandas dataframe.
 
     Args:
-        key_column: A tuple of key column names in Ensembl and in the resulting dataframe, e. g. ('hgnc_id', 'HGNC_ID')
-        query_column: A tuple of query column names, similar to `key_column`, e. g. ('ensembl_gene_id', 'EnsemblGeneID')
-        identifier_list: List of identifiers to query, e. g. ['HGNC:10548', 'HGNC:10560']
+        key_column: A tuple of key column names in Ensembl and in the resulting dataframe, e.g. ('hgnc_id', 'HGNC_ID')
+        query_column: A tuple of query column names, similar to `key_column`, e.g. ('ensembl_gene_id', 'EnsemblGeneID')
+        identifier_list: List of identifiers to query, e.g. ['HGNC:10548', 'HGNC:10560']
 
 
     Returns:
@@ -80,7 +81,7 @@ def query_biomart(key_column, query_column, identifier_list):
 # module cannot be applied here because not all expression used by ClinVar are actually valid HGVS, and that module
 # imposes strict validation.
 
-# Common part for all HGVS-like transcript definitions, e. g. 'NM_001256054.2(C9orf72):'
+# Common part for all HGVS-like transcript definitions, e.g. 'NM_001256054.2(C9orf72):'
 hgvs_like_transcript_part = (
     r'(?P<transcript_id>[A-Za-z0-9_]+)'   # Transcript accession                      NM_001256054
     r'\.'                                 # Delimiter, transcript accession/version   .
@@ -142,11 +143,32 @@ re_description = re.compile(
 )
 
 
-# #############################################   MAIN PROCESSING LOGIC   #############################################
+# #############################################   DATA PROCESSING STEPS   #############################################
+
+def load_clinvar_data(clinvar_summary_tsv):
+    """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
+    # Load variants
+    variants = pd.read_table(clinvar_summary_tsv)
+    # Filter only NT expansion variants
+    variants = variants[variants['Type'] == 'NT expansion']
+    # Drop all columns except the ones we require
+    variants = variants[['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID']]
+    # Records may contain multiple RCVs per row, delimited by semicolon. Here we explode them into separate rows
+    variants['RCVaccession'] = variants['RCVaccession'].str.split(';')
+    variants = variants.explode('RCVaccession')
+    # The same is true for having multiple gene symbols per record, they should also be split
+    variants['GeneSymbol'] = variants['GeneSymbol'].str.split(';')
+    variants = variants.explode('GeneSymbol')
+    # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
+    variants = variants.drop_duplicates()
+    # Sort values by variant name
+    return variants.sort_values(by=['Name'])
+
 
 def parse_variant_identifier(row):
-    """Parses variant identifier and extract certain characteristics into separate columns:
-        * TranscriptID: NCBI RefSeq transcript ID, e. g. NM_000044
+    """
+    Parses variant identifier and extract certain characteristics into separate columns:
+        * TranscriptID: NCBI RefSeq transcript ID, e.g. NM_000044
         * CoordinateSpan: the distance between start and end coordinates described in the HGVS-like notation.
               E. g., for 'NM_000044.4(AR):c.172_174CAG(7_34) (p.Gln66_Gln80del)', it will be 174 - 172 + 1 = 3
         * RepeatUnitLength: length of the sequence being repeated.
@@ -183,11 +205,71 @@ def parse_variant_identifier(row):
     return row
 
 
+def annotate_ensembl_gene_info(variants):
+    """Annotate the `variants` dataframe with information about Ensembl gene ID and name"""
+
+    # Ensembl gene ID can be determined using three ways, listed in the order of decreasing priority. Having multiple
+    # ways is necessary because no single method works on all ClinVar variants.
+    gene_annotation_sources = (
+        # Dataframe column    Biomart column   Filtering function
+        ('HGNC_ID',                 'hgnc_id', lambda i: i.startswith('HGNC:')),
+        ('GeneSymbol',   'external_gene_name', lambda i: i != '-'),
+        ('TranscriptID',        'refseq_mrna', lambda i: i is not None),
+    )
+    # This copy of the dataframe is required to facilitate filling in data using the `combine_first()` method. This
+    # allows us to apply priorities: e.g., if a gene ID was already populated using HGNC_ID, it will not be overwritten
+    # by a gene ID determined using GeneSymbol.
+    variants_original = variants.copy(deep=True)
+
+    for column_name_in_dataframe, column_name_in_biomart, filtering_function in gene_annotation_sources:
+        # Step 1: get all identifiers we want to query BioMart with
+        identifiers_to_query = sorted({
+            i for i in variants[column_name_in_dataframe]
+            if filtering_function(i)
+        })
+        # Step 2: query BioMart for Ensembl Gene IDs
+        annotation_info = query_biomart(
+            key_column=(column_name_in_biomart, column_name_in_dataframe),
+            query_column=('ensembl_gene_id', 'EnsemblGeneID'),
+            identifier_list=identifiers_to_query,
+        )
+        # Step 3: make note where the annotations came from
+        annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
+        # Step 4: combine the information we received with the *original* dataframe (a copy made before any iterations
+        # of this cycle were allowed to run). This is similar to SQL merge.
+        annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
+        # Step 5: update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
+        # available in another dataframe we just created, `annotation_df`.
+        variants = variants \
+            .set_index([column_name_in_dataframe]) \
+            .combine_first(annotation_df.set_index([column_name_in_dataframe]))
+
+    # Reset index to default
+    variants.reset_index(inplace=True)
+    # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
+    # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
+    variants = variants.explode('EnsemblGeneID')
+    # Fetch Ensembl gene name based on Ensembl gene ID
+    annotation_info = query_biomart(
+        key_column=('ensembl_gene_id', 'EnsemblGeneID'),
+        query_column=('external_gene_name', 'EnsemblGeneName'),
+        identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
+    )
+    variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
+    # Check that there are no multiple gene name mappings for any given gene ID
+    assert variants['EnsemblGeneName'].str.len().dropna().max() == 1, 'Multiple gene ID → gene name mappings found!'
+    # Convert the one-item list into a plain column
+    return variants.explode('EnsemblGeneName')
+
+
 def determine_repeat_type(row):
-    """Based on all available information about a variant, determine its type. The resulting type can be:
+    """
+    Based on all available information about a variant, determine its type. The resulting type can be:
         * trinucleotide_repeat_expansion, corresponding to SO:0002165
         * short_tandem_repeat_expansion, corresponding to SO:0002162
         * None (not able to determine)
+    Also, depending on the information, determine whether the record is complete, i.e., whether it has all necessary
+    fields to be output for the final "consequences" table.
     """
     repeat_type = None
     if row['IsProteinHGVS']:
@@ -206,108 +288,15 @@ def determine_repeat_type(row):
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
     row['RepeatType'] = repeat_type
+    # Based on the information which we have, determine whether the record is complete
+    row['RecordIsComplete'] = (row['EnsemblGeneID'].notnull() &
+                               row['EnsemblGeneName'].notnull() &
+                               row['RepeatType'].notnull())
     return row
 
 
-def main(clinvar_summary_tsv, output_consequences, output_dataframe):
-    """Process data and generate output files.
-
-    Args:
-        clinvar_summary_tsv: filepath to the ClinVar variant summary file.
-        output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
-            compatible with the VEP mapping pipeline (see /vep-mapping-pipeline/README.md).
-        output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
-            all relevant columns and can be used for review or debugging purposes.
-    """
-    # Load variants
-    variants = pd.read_table(clinvar_summary_tsv)
-
-    # Filter only NT expansion variants (in case we got anything else in the file)
-    variants = variants[variants['Type'] == 'NT expansion']
-
-    # Drop all columns except: name; RCV accessions; HGNC gene ID
-    variants = variants[['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID']]
-
-    # Records may contain multiple RCVs per row, delimited by semicolon. Here we explode them into separate rows
-    variants['RCVaccession'] = variants['RCVaccession'].str.split(';')
-    variants = variants.explode('RCVaccession')
-
-    # The same is true for having multiple #gene symbols# per record, they should also be split
-    variants['GeneSymbol'] = variants['GeneSymbol'].str.split(';')
-    variants = variants.explode('GeneSymbol')
-
-    # Because the same (Name, RCV) pair can have coordinate in multiple builds, it can be repeated. Remove duplicates
-    variants = variants.drop_duplicates()
-
-    # Sort values by variant name
-    variants = variants.sort_values(by=['Name'])
-
-    # Assign "Repeat Unit" and "Repeat Type" columns
-    variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
-
-    # OK, now we need to match each (RCV, variant) pair to Ensembl gene ID and name.
-    # And it's so much more complicated than you could imagine.
-
-    gene_annotation_sources = (
-        # Dataframe column  Biomart column        Filtering function
-        ('HGNC_ID',        'hgnc_id',             lambda i: i.startswith('HGNC:')),
-        ('GeneSymbol', 'external_gene_name', lambda i: i != '-'),
-        ('TranscriptID',   'refseq_mrna',         lambda i: i is not None),
-    )
-    variants_original = variants.copy(deep=True)
-    for column_name_in_dataframe, column_name_in_biomart, filtering_function in gene_annotation_sources:
-        # Step 1: get all identifiers we want to query BioMart with
-        identifiers_to_query = sorted({
-            i for i in variants[column_name_in_dataframe]
-            if filtering_function(i)
-        })
-
-        # Step 2: query BioMart for Ensembl Gene IDs
-        annotation_info = query_biomart(
-            key_column=(column_name_in_biomart, column_name_in_dataframe),
-            query_column=('ensembl_gene_id', 'EnsemblGeneID'),
-            identifier_list=identifiers_to_query,
-        )
-
-        # Step 3: make note where the annotations came from
-        annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
-
-        # Step 4: combine the information we received with the #original# dataframe
-        annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
-
-        # Step 5: update main dataframe with the new values
-        variants = variants \
-            .set_index([column_name_in_dataframe]) \
-            .combine_first(annotation_df.set_index([column_name_in_dataframe]))
-
-    # Reset index to default
-    variants.reset_index(inplace=True)
-
-    # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
-    # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
-    variants = variants.explode('EnsemblGeneID')
-
-    # Fetch Ensembl gene name based on Ensembl gene ID
-    annotation_info = query_biomart(
-        key_column=('ensembl_gene_id', 'EnsemblGeneID'),
-        query_column=('external_gene_name', 'EnsemblGeneName'),
-        identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
-    )
-    variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
-
-    # Check that there are no multiple gene name mappings for any given gene ID
-    assert variants['EnsemblGeneName'].str.len().dropna().max() == 1, 'Multiple gene ID → gene name mappings found!'
-
-    # Convert the one-item list into a plain column
-    variants = variants.explode('EnsemblGeneName')
-
-    # Populate variant type
-    variants = variants.apply(lambda row: determine_repeat_type(row), axis=1)
-
-    # Based on all information, mark records as either complete or incomplete
-    variants['RecordIsComplete'] = (variants['EnsemblGeneID'].notnull()
-                                    & variants['EnsemblGeneName'].notnull()
-                                    & variants['RepeatType'].notnull())
+def generate_output_files(variants, output_consequences, output_dataframe):
+    """Postprocess and output final tables."""
 
     # Rearrange order of dataframe columns
     variants = variants[
@@ -316,21 +305,18 @@ def main(clinvar_summary_tsv, output_consequences, output_dataframe):
          'EnsemblGeneID', 'EnsemblGeneName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']
     ]
-
+    # Write the full dataframe. This is used for debugging and investigation purposes.
     variants.to_csv(output_dataframe, sep='\t', index=False)
 
     # Generate consequences table
     consequences = variants[variants['RecordIsComplete']] \
         .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'])['RepeatType'] \
         .apply(set).reset_index(name='RepeatType')
-
     # Check that for every (RCV, gene) pair there is only one consequence type
     assert consequences['RepeatType'].str.len().dropna().max() == 1, 'Multiple (RCV, gene) → variant type mappings!'
-
     # Get rid of sets
     consequences['RepeatType'] = consequences['RepeatType'].apply(list)
     consequences = consequences.explode('RepeatType')
-
     # Form six-column file compatible with the consequence mapping pipeline
     # RCV000005966    1       ENSG00000156475 PPP2R2B trinucleotide_repeat_expansion  0
     consequences['PlaceholderOnes'] = 1
@@ -338,9 +324,36 @@ def main(clinvar_summary_tsv, output_consequences, output_dataframe):
     consequences = consequences[['RCVaccession', 'PlaceholderOnes', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType',
                                  'PlaceholderZeroes']]
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
-
-    # Write the consequences table
+    # Write the consequences table. This is used by the main evidence string generation pipeline.
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
+
+
+def main(clinvar_summary_tsv, output_consequences, output_dataframe):
+    """
+    Process data and generate output files.
+
+    Args:
+        clinvar_summary_tsv: filepath to the ClinVar variant summary file.
+        output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
+            compatible with the VEP mapping pipeline (see /vep-mapping-pipeline/README.md).
+        output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
+            all relevant columns and can be used for review or debugging purposes.
+    """
+
+    # Load and preprocess variant data
+    variants = load_clinvar_data(clinvar_summary_tsv)
+
+    # Parse variant names and extract information about transcript ID and repeat length
+    variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
+
+    # Match each record to Ensembl gene ID and name
+    variants = annotate_ensembl_gene_info(variants)
+
+    # Determine variant type and whether the record is complete
+    variants = variants.apply(lambda row: determine_repeat_type(row), axis=1)
+
+    # Postprocess data and output the two final tables
+    generate_output_files(variants, output_consequences, output_dataframe)
 
 
 if __name__ == '__main__':
