@@ -43,7 +43,7 @@ python3 consequence_mapping.py <input_variants.txt >output_mappings.tsv
 This should only be done for testing purposes and only for a small number of variants, because when querying VEP API, the script submits of all of the variants it receives in a single query (this is more efficient than submitting them one by one).
 
 ### Running the pipeline using a wrapper script
-In production environment the pipeline should be run using a wrapper script which would take care of preprocessing and parallelisation. There is a simple wrapper script available, [run_consequence_mapping.sh](/vep_mapping_pipeline/run_consequence_mapping.sh). It can be run as follows:
+In production environment the pipeline should be run using a wrapper script which would take care of preprocessing and parallelisation. There is a simple wrapper script available, [run_consequence_mapping.sh](/run_consequence_mapping.sh). It can be run as follows:
 ```bash
 bash run_consequence_mapping.sh input_variants.vcf output_mappings.tsv
 ``` 

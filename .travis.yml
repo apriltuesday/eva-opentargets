@@ -2,11 +2,11 @@ language: python
 python:
   - "3.8"
 
-# The pipeline requires GNU parallel; Python retry and requests modules; and bcftools.
+# The pipeline requires GNU parallel; bcftools; and certain Python modules
 before_install:
   - sudo apt-get -y install parallel
 install:
-  - pip -q install retry requests
+  - pip -q install -r requirements.txt
   - git clone -q git://github.com/samtools/htslib.git
   - git clone -q git://github.com/samtools/bcftools.git
   - cd bcftools && make --quiet --jobs `nproc` && cd ..
@@ -18,5 +18,5 @@ install:
 # able to compare the results and see if they make sense.
 script:
   - ls
-  - bash vep_mapping_pipeline/run_consequence_mapping.sh test/input.vcf output_mappings.tsv
-  - diff test/output_mappings.tsv output_mappings.tsv
+  - bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.vcf output_mappings.tsv
+  - diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
