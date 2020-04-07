@@ -17,7 +17,7 @@ The pipeline uses succinct, VCF-compatible variant identifiers, in the format of
 ### Output file
 Output is a TSV file consisting of six columns:
 1. Variant identifier: the same one as in the input files.
-2. The second column is not used and is always set to 1. It is retained for compabitility purposes (see more about that in the release notes).
+2. The second column is not used and is always set to 1. It is retained for compatibility purposes (see more about that in the release notes).
 3. Ensembl gene ID.
 4. Ensembl gene name.
 5. Most severe functional consequence of that variant for that gene.
