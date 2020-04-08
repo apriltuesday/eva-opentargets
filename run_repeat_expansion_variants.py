@@ -19,11 +19,3 @@ parser.add_argument(
 )
 args = parser.parse_args()
 repeat_expansion_variants.pipeline.main(args.clinvar_summary_tsv, args.output_consequences, args.output_dataframe)
-#
-#
-# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-# # Awk expression prints the first line, and also all lines where column 2 (variant type) is "NT expansion"
-# python3 "${DIR}/repeat_expansion_variants/pipeline.py" \
-#   --clinvar-summary-tsv <(zcat "${VARIANT_SUMMARY}" | awk -F$'\t' '(NR==1) || ($2 == "NT expansion")') \
-#   --output-consequences "${OUTPUT_CONSEQUENCES}" \
-#   --output-dataframe "${OUTPUT_DATAFRAME}"
