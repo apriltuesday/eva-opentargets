@@ -12,7 +12,7 @@ hgvs_like_transcript_part = (
     r'(?P<transcript_id>[A-Za-z0-9_]+)'  # Transcript accession                      NM_001256054
     r'\.'                                # Delimiter, transcript accession/version   .
     r'[0-9]+'                            # Transcript version                        2
-    r'[A-Za-z0-9_.()]#'                  # Gene symbol in parentheses, optional      (C9orf72)
+    r'[A-Za-z0-9_.()]*'                  # Gene symbol in parentheses, optional      (C9orf72)
     r':'                                 # Delimiter, transcript/variant info        :
 )
 
@@ -46,12 +46,12 @@ re_hgvs_like_transcript_or_genomic = re.compile(
 
     r'(?:'                           # Non-capruting group for end coordinate
     r'_'                                 # Delimiter: start coordinate/end coordinate       _
-    + coordinate_pivot_part +            # End coordinate base, optional                    -45
+    + coordinate_pivot_part +            # End coordinate pivot, optional                   -45
     r'\*?'                               # Coordinate may start with an asterisk
-    r'(?P<end_coord>[+-]?[0-9]#)'        # End coordinate                                   +80
+    r'(?P<end_coord>[+-]?[0-9]+)'        # End coordinate                                   +80
     r')?'                            # The entire end coordinate part is optional
 
-    r'(?P<sequence>[ATGC]#)'         # Repeat unit sequence, optional                       GGGGCC
+    r'(?P<sequence>[ATGC]*)'         # Repeat unit sequence, optional                       GGGGCC
 )
 
 # Pattern 2. HGVS-like notation for protein coordinates. This pattern is used for a few variants. From it we do not
@@ -81,7 +81,7 @@ def parse_variant_identifier(variant_name):
               E.g., for 'NP_002964.3:p.Gln166(>=33)' it will be TRUE, and for the two examples above FALSE.
     """
     # A variant "name", or identifier, can come from either of three patterns described in the section above.
-    transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs = None, None, None, None
+    transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs = None, None, None, False
 
     # Try to match HGVS-like transcript/genomic ID
     match = re_hgvs_like_transcript_or_genomic.search(variant_name)

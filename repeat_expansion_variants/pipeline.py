@@ -5,6 +5,7 @@ import gzip
 from io import StringIO
 import logging
 
+import numpy as np
 import pandas as pd
 
 from . import biomart, clinvar_identifier_parsing
@@ -12,6 +13,11 @@ from . import biomart, clinvar_identifier_parsing
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+def none_to_nan(*args):
+    """Converts all arguments which are None to np.nan, for consistency inside a Pandas dataframe."""
+    return [np.nan if a is None else a for a in args]
 
 
 def load_clinvar_data(clinvar_summary_tsv):
@@ -44,7 +50,7 @@ def parse_variant_identifier(row):
     """Parse variant identifier and extract certain characteristics into separate columns."""
     variant_name = str(row.Name)
     row['TranscriptID'], row['CoordinateSpan'], row['RepeatUnitLength'], row['IsProteinHGVS'] = \
-        clinvar_identifier_parsing.parse_variant_identifier(variant_name)
+        none_to_nan(*clinvar_identifier_parsing.parse_variant_identifier(variant_name))
     return row
 
 
@@ -57,7 +63,7 @@ def annotate_ensembl_gene_info(variants):
         # Dataframe column    Biomart column   Filtering function
         ('HGNC_ID',                 'hgnc_id', lambda i: i.startswith('HGNC:')),
         ('GeneSymbol',   'external_gene_name', lambda i: i != '-'),
-        ('TranscriptID',        'refseq_mrna', lambda i: i is not None),
+        ('TranscriptID',        'refseq_mrna', lambda i: pd.notnull(i)),
     )
     # This copy of the dataframe is required to facilitate filling in data using the `combine_first()` method. This
     # allows us to apply priorities: e.g., if a gene ID was already populated using HGNC_ID, it will not be overwritten
@@ -110,11 +116,11 @@ def determine_repeat_type(row):
     Based on all available information about a variant, determine its type. The resulting type can be:
         * trinucleotide_repeat_expansion, corresponding to SO:0002165
         * short_tandem_repeat_expansion, corresponding to SO:0002162
-        * None (not able to determine)
+        * NaN (not able to determine)
     Also, depending on the information, determine whether the record is complete, i.e., whether it has all necessary
     fields to be output for the final "consequences" table.
     """
-    repeat_type = None
+    repeat_type = np.nan
     if row['IsProteinHGVS']:
         # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
         repeat_type = 'trinucleotide_repeat_expansion'
@@ -122,17 +128,21 @@ def determine_repeat_type(row):
         # As a priority, use the repeat unit length determined directly from base sequence
         repeat_unit_length = row['RepeatUnitLength']
         # If not available, fall back to using and end coordinate difference
-        if not repeat_unit_length:
+        if pd.isnull(repeat_unit_length):
             repeat_unit_length = row['CoordinateSpan']
         # Determine repeat type based on repeat unit length
-        if repeat_unit_length:
+        if pd.notnull(repeat_unit_length):
             if repeat_unit_length % 3 == 0:
                 repeat_type = 'trinucleotide_repeat_expansion'
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
     row['RepeatType'] = repeat_type
     # Based on the information which we have, determine whether the record is complete
-    row['RecordIsComplete'] = (row['EnsemblGeneID'] and row['EnsemblGeneName'] and row['RepeatType']) is not None
+    row['RecordIsComplete'] = (
+        pd.notnull(row['EnsemblGeneID']) and
+        pd.notnull(row['EnsemblGeneName']) and
+        pd.notnull(row['RepeatType'])
+    )
     return row
 
 
