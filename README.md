@@ -1,9 +1,9 @@
 # Consequence prediction pipelines for ClinVar/Open Targets
 
 This repository contains two modules and their corresponding wrapper scripts:
-* [vep_mapping_pipeline](`vep_mapping_pipeline`): maps variants (CHROM:POS:REF:ALT) to their most severe functional
+* [vep_mapping_pipeline](vep_mapping_pipeline): maps variants (CHROM:POS:REF:ALT) to their most severe functional
   consequence according to Ensembl VEP, as well as their Ensembl gene ID and name.
-* [repeat_expansion_variants](`repeat_expansion_variants`): parses ClinVar `variant_summary` file and extracts
+* [repeat_expansion_variants](repeat_expansion_variants): parses ClinVar `variant_summary` file and extracts
   information about repeat expansion variants.
 
 Please see the corresponding module README file for more information.
