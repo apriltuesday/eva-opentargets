@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""A script to extract repeat expansion variants from ClinVar TSV dump. For documentation refer to README.md"""
+"""A pipeline to extract repeat expansion variants from ClinVar TSV dump. For documentation refer to README.md"""
 
-import argparse
+import gzip
+from io import StringIO
 import logging
-import math
 
 import pandas as pd
 
@@ -16,8 +16,14 @@ logger.setLevel(logging.INFO)
 
 def load_clinvar_data(clinvar_summary_tsv):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
+    # Load and pre-filter the file
+    gzip_stream = gzip.open(clinvar_summary_tsv, 'r')
+    repeat_expansion_data = ''.join([
+        line.decode() for i, line in enumerate(gzip_stream)
+        if i == 0 or line.decode().split('\t')[1] == 'NT expansion'
+    ])
     # Load variants
-    variants = pd.read_table(clinvar_summary_tsv)
+    variants = pd.read_table(StringIO(repeat_expansion_data), low_memory=False)
     # Filter only NT expansion variants
     variants = variants[variants['Type'] == 'NT expansion']
     # Drop all columns except the ones we require
@@ -115,20 +121,18 @@ def determine_repeat_type(row):
     else:
         # As a priority, use the repeat unit length determined directly from base sequence
         repeat_unit_length = row['RepeatUnitLength']
-        # If not available luck, fall back to using and end coordinate difference
-        if math.isnan(repeat_unit_length):
+        # If not available, fall back to using and end coordinate difference
+        if not repeat_unit_length:
             repeat_unit_length = row['CoordinateSpan']
         # Determine repeat type based on repeat unit length
-        if not math.isnan(repeat_unit_length):
+        if repeat_unit_length:
             if repeat_unit_length % 3 == 0:
                 repeat_type = 'trinucleotide_repeat_expansion'
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
     row['RepeatType'] = repeat_type
     # Based on the information which we have, determine whether the record is complete
-    row['RecordIsComplete'] = (row['EnsemblGeneID'].notnull() &
-                               row['EnsemblGeneName'].notnull() &
-                               row['RepeatType'].notnull())
+    row['RecordIsComplete'] = (row['EnsemblGeneID'] and row['EnsemblGeneName'] and row['RepeatType']) is not None
     return row
 
 
@@ -177,35 +181,19 @@ def main(clinvar_summary_tsv, output_consequences, output_dataframe):
             all relevant columns and can be used for review or debugging purposes.
     """
 
-    # Load and preprocess variant data
+    logger.info('Load and preprocess variant data')
     variants = load_clinvar_data(clinvar_summary_tsv)
 
-    # Parse variant names and extract information about transcript ID and repeat length
+    logger.info('Parse variant names and extract information about transcript ID and repeat length')
     variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
 
-    # Match each record to Ensembl gene ID and name
+    logger.info('Match each record to Ensembl gene ID and name')
     variants = annotate_ensembl_gene_info(variants)
 
-    # Determine variant type and whether the record is complete
+    logger.info('Determine variant type and whether the record is complete')
     variants = variants.apply(lambda row: determine_repeat_type(row), axis=1)
 
-    # Postprocess data and output the two final tables
+    logger.info('Postprocess data and output the two final tables')
     generate_output_files(variants, output_consequences, output_dataframe)
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        '--clinvar-summary-tsv', required=True,
-        help='ClinVar summary TSV dump file (variant_summary.txt.gz)'
-    )
-    parser.add_argument(
-        '--output-consequences', required=True,
-        help='File to output functional consequences to. Format is compatible with the main VEP mapping pipeline.'
-    )
-    parser.add_argument(
-        '--output-dataframe', required=True,
-        help='File to output full dataframe for subsequent analysis and debugging.'
-    )
-    args = parser.parse_args()
-    main(args.clinvar_summary_tsv, args.output_consequences, args.output_dataframe)
+    logger.info('Completed successfully')
