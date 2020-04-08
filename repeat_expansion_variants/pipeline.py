@@ -71,23 +71,23 @@ def annotate_ensembl_gene_info(variants):
     variants_original = variants.copy(deep=True)
 
     for column_name_in_dataframe, column_name_in_biomart, filtering_function in gene_annotation_sources:
-        # Step 1: get all identifiers we want to query BioMart with
+        # Get all identifiers we want to query BioMart with
         identifiers_to_query = sorted({
             i for i in variants[column_name_in_dataframe]
             if filtering_function(i)
         })
-        # Step 2: query BioMart for Ensembl Gene IDs
+        # Query BioMart for Ensembl Gene IDs
         annotation_info = biomart.query_biomart(
             key_column=(column_name_in_biomart, column_name_in_dataframe),
             query_column=('ensembl_gene_id', 'EnsemblGeneID'),
             identifier_list=identifiers_to_query,
         )
-        # Step 3: make note where the annotations came from
+        # Make note where the annotations came from
         annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
-        # Step 4: combine the information we received with the *original* dataframe (a copy made before any iterations
-        # of this cycle were allowed to run). This is similar to SQL merge.
+        # Combine the information we received with the *original* dataframe (a copy made before any iterations of this
+        # cycle were allowed to run). This is similar to SQL merge.
         annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
-        # Step 5: update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
+        # Update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
         # available in another dataframe we just created, `annotation_df`.
         variants = variants \
             .set_index([column_name_in_dataframe]) \
