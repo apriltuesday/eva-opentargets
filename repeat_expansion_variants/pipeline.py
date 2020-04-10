@@ -168,8 +168,8 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     # Get rid of sets
     consequences['RepeatType'] = consequences['RepeatType'].apply(list)
     consequences = consequences.explode('RepeatType')
-    # Form six-column file compatible with the consequence mapping pipeline
-    # RCV000005966    1       ENSG00000156475 PPP2R2B trinucleotide_repeat_expansion  0
+    # Form a six-column file compatible with the consequence mapping pipeline, for example:
+    # RCV000005966    1    ENSG00000156475    PPP2R2B    trinucleotide_repeat_expansion    0
     consequences['PlaceholderOnes'] = 1
     consequences['PlaceholderZeroes'] = 0
     consequences = consequences[['RCVaccession', 'PlaceholderOnes', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType',
