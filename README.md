@@ -16,5 +16,5 @@ samtools/bcftools versions.
 
 ```bash
 sudo apt -y install samtools bcftools parallel libbz2-dev liblzma-dev
-sudo pip3 -q install -r requirements.txt
+sudo python3 -m pip -q install -r requirements.txt
 ```
