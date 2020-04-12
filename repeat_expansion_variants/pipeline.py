@@ -149,12 +149,13 @@ def generate_output_files(variants, output_consequences, output_dataframe):
 
     # Rearrange order of dataframe columns
     variants = variants[
-        ['Name', 'RCVaccession', 'HGNC_ID', 'GeneSymbol',
+        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
          'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
          'EnsemblGeneID', 'EnsemblGeneName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']
     ]
     # Write the full dataframe. This is used for debugging and investigation purposes.
+    variants.sort_values(by=['Name', 'RCVaccession', 'GeneSymbol'])
     variants.to_csv(output_dataframe, sep='\t', index=False)
 
     # Generate consequences table
