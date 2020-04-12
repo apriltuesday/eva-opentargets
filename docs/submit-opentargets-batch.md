@@ -174,19 +174,32 @@ ${BSUB_CMDLINE} -K -M 4G \
 
 See additional information about the trait mapping pipeline [here](trait-mapping-pipeline.md).
 
-### 1.4. Perform gene & functional consequence mapping
+### 1.4. Map variants to genes and functional consequences
 This step can be done in parallel with the previous one (1.3), because their input and output files are independent.
 
-To generate the evidence strings, it is necessary to have the gene mapping and functional consequence annotation for each variant. This step was previously performed on the Open Targets side, but is now integrated into our workflow:
+Each evidence string must include the variant, the gene it affects, and the functional effect it has in that gene. We obtain this information separately for repeat expansion variants and for all other types. Detailed information can be found in the [repository](https://github.com/EBIvariation/vep-mapping-pipeline) where the pipelines are contained.
+
+This step was previously performed on the Open Targets side, but is now integrated into our workflow.
 
 ```bash
 cd ${CODE_ROOT} && \
 ${BSUB_CMDLINE} -K \
-  -o ${BATCH_ROOT}/logs/consequence_mapping.out \
-  -e ${BATCH_ROOT}/logs/consequence_mapping.err \
-  bash ${CODE_ROOT}/vep-mapping-pipeline/vep_mapping_pipeline/run_consequence_mapping.sh \
+  -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
+  -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
+  python3 ${CODE_ROOT}/vep-mapping-pipeline/run_repeat_expansion_variants.py \
+  --clinvar-summary-tsv ${BATCH_ROOT}/clinvar/variant_summary_${CLINVAR_RELEASE}.txt.gz \
+  --output-consequences ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
+  --output-dataframe ${BATCH_ROOT}/gene_mapping/repeat_dataframe.tsv && \
+${BSUB_CMDLINE} -K \
+  -o ${BATCH_ROOT}/logs/consequence_vep.out \
+  -e ${BATCH_ROOT}/logs/consequence_vep.err \
+  bash ${CODE_ROOT}/vep-mapping-pipeline/run_consequence_mapping.sh \
   ${BATCH_ROOT}/clinvar/clinvar.vcf.gz \
-  ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv
+  ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv && \
+cat \
+  ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
+  ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv \
+  > ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv
 ```
 
 ### Review checklist
@@ -263,7 +276,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
   python3 bin/evidence_string_generation.py \
   -e ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv \
-  -g ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv \
+  -g ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   --ot-schema ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   --out ${BATCH_ROOT}/evidence_strings/
