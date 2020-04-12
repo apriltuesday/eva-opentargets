@@ -103,7 +103,8 @@ class SoTerm(object):
                               'gene_variant': 1564,
                               'sequence_variant': 1060,
                               'trinucleotide_repeat_microsatellite_feature': 291,
-                              'trinucleotide_repeat_expansion': 2165}
+                              'trinucleotide_repeat_expansion': 2165,
+                              'short_tandem_repeat_expansion': 2162}
 
     ranked_so_names_list = ['transcript_ablation',
                             'splice_acceptor_variant',
