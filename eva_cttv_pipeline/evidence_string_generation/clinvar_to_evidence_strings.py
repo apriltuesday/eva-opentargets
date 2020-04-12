@@ -312,7 +312,19 @@ def skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     """Return the list of functional consequences for a given ClinVar record measure."""
 
-    # First, we attempt to pair by coordinates (only if they are present in the record measure)
+    # As the first option, try to link a variant and its functional consequence by RCV accession. For most variants this
+    # would not be a good idea, because ClinVar accessions do not necessarily correspond to single variants. However,
+    # the consequences file will *only* include RCV accessions in the key column for repeat expansion variants. For them
+    # pairing using coordinates (see below) is not feasible. This is because of two reasons: not all repeat expansion
+    # variants even include genomic coordinates in ClinVar data; and for those which do, the REF and ALT sequences might
+    # be quite long. We use this type of pairing first because some repeat expansion variants actually do have
+    # coordinates in ClinVar data, and for them VEP might issue some predictions and output them with CHROM:POS:REF:ALT
+    # notation as the key. Those predictions will be incorrect, as VEP cannot handle repeat expansion variants
+    # correctly, so we want to avoid using them.
+    if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
+        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
+
+    # If RCV is not present in the consequences file, pair using full variant description (CHROM:POS:REF:ALT)
     if clinvar_record_measure.has_complete_coordinates:
         # This VCF-flavoured identifier is used to pair ClinVar records with functional consequence predictions.
         # Example of such an identifier: 14:23423715:G:A
@@ -320,13 +332,6 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
-
-    # If no luck, try to pair by ClinVar record accession. This is not a good option because ClinVar accessions do not
-    # necessarily correspond to single variants. This pairing is only retained for compatibility purposes to handle
-    # trinucleotide repeat expansion variants records, which are added manually using RCV identifiers. This will be
-    # removed as soon as correct handling of NT repeat variants is implemented.
-    if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
-        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.
