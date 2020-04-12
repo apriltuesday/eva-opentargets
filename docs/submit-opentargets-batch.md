@@ -85,13 +85,31 @@ Note that most of the commands below use `bsub` to submit jobs to LSF cluster ra
 
 ## Step 1. Process ClinVar data
 
-### 1.1 Download data: XML dump & VCF summary
+### 1.1 Download data
 
-Two files are required (full release XML and VCF variant summary) and are downloaded from the ClinVar FTP into the `clinvar` subfolder:
+ClinVar data is available in several formats. Different formats are convenient for different use cases, hence we download three of them: XML dump; VCF summary; and TSV summary.
 ```bash
+
+CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
+
+# ClinVar FTP paths are different depending on whether the current year is the same as the year of the ClinVar release
+# which we are trying to download.
+if [[ `date +"%Y"` = ${CLINVAR_RELEASE_YEAR} ]]
+then
+  # Same year
+  CLINVAR_XML="/xml/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="/tab_delimited/archive/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+else
+  # Different (past) year
+  CLINVAR_XML="/xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="/tab_delimited/archive/${CLINVAR_RELEASE_YEAR}/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+fi
+
+# Download three files
 wget --directory-prefix ${BATCH_ROOT}/clinvar/ \
-  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
-  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+  "${CLINVAR_PATH_BASE}/${CLINVAR_XML}" \
+  "${CLINVAR_PATH_BASE}/${CLINVAR_TSV}" \
+  "${CLINVAR_PATH_BASE}/vcf_GRCh38/clinvar.vcf.gz" \
 ```
 
 ### 1.2. Update ClinVar XML schema version (if necessary)
