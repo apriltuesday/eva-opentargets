@@ -70,11 +70,24 @@ export CLINVAR_RELEASE=${CLINVAR_RELEASE_YEAR}-${CLINVAR_RELEASE_MONTH}
 
 Before proceeding with executing the commands, update code on the cluster and create the necessary directories:
 ```bash
+# By modifying those four variables, you can run arbitrary versions of both the main and the VEP pipeline
+export MAIN_REMOTE=origin
+export MAIN_BRANCH=master
+export VEP_REMOTE=origin
+export VEP_BRANCH=master
+
 cd $CODE_ROOT
-git fetch
-git checkout master
-git reset --hard origin/master
+git fetch ${MAIN_REMOTE}
+git checkout ${MAIN_BRANCH}
+git reset --hard ${MAIN_REMOTE}/${MAIN_BRANCH}
+
 git submodule update --init --recursive
+cd vep-mapping-pipeline
+git fetch ${VEP_REMOTE}
+git checkout ${VEP_BRANCH}
+git reset --hard ${VEP_REMOTE}/${VEP_BRANCH}
+cd ..
+
 python3 setup.py install
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
