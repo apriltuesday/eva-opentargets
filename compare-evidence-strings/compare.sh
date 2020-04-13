@@ -98,7 +98,13 @@ paste 02.fields.old 01.keys-sorted.old.json | sort -u > 03.fields-and-strings.ol
 #$(sed 's|^|  |' 3_common_changed)
 
 echo "Compute difference"
-git diff --minimal -U0 --color=always --word-diff=color 03.fields-and-strings.old 03.fields-and-strings.new &> "diff"
+git diff \
+  --minimal \
+  -U0 \
+  --color=always \
+  --word-diff=color \
+  03.fields-and-strings.old \
+  03.fields-and-strings.new &> "diff"
 
 echo "Producing the report"
 cat << EOF > report
@@ -106,16 +112,17 @@ Compared:
 
 File 1
 ${OLD_EVIDENCE_STRINGS}
-Total unique records: $(wc -l 03.fields-and-strings.old)
+Total unique records: $(wc -l <03.fields-and-strings.old)
 
 File 2
 ${NEW_EVIDENCE_STRINGS}
-Total unique records: $(wc -l 03.fields-and-strings.new)
+Total unique records: $(wc -l <03.fields-and-strings.new)
 
 The full diff between two files follows.
 
-$(cat diff)
+$(tail -n+5 diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}')
 EOF
 
 ./aha --word-wrap < report > report.html
+
 cd ..
