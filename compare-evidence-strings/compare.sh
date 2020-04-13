@@ -98,13 +98,19 @@ paste 02.fields.old 01.keys-sorted.old.json | sort -u > 03.fields-and-strings.ol
 #$(sed 's|^|  |' 3_common_changed)
 
 echo "Compute difference"
-git diff --minimal -U0 --color=always --word-diff=color old.sorted new.sorted &> "diff"
+git diff --minimal -U0 --color=always --word-diff=color 03.fields-and-strings.old 03.fields-and-strings.new &> "diff"
 
 echo "Producing the report"
 cat << EOF > report
 Compared:
-File 1, ${OLD_EVIDENCE_STRINGS}, contained $(wc -l 03.fields-and-strings.old) records
-File 2, ${NEW_EVIDENCE_STRINGS}, contained $(wc -l 03.fields-and-strings.new) records
+
+File 1
+${OLD_EVIDENCE_STRINGS}
+Total unique records: $(wc -l 03.fields-and-strings.old)
+
+File 2
+${NEW_EVIDENCE_STRINGS}
+Total unique records: $(wc -l 03.fields-and-strings.new)
 
 The full diff between two files follows.
 
