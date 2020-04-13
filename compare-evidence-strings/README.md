@@ -10,7 +10,7 @@ bash compare.sh \
 ```
 
 The script should take a few minutes to run and will create the `comparison/` subdirectory in the current working directory. It will contain several files:
-* `old.json` and `new.json` — evidence strings with their keys sorted lexicographically
+* `old.json` and `new.json` — evidence strings with their keys sorted lexicographically and with the `validated_aginst_schema_version` field removed, as it frequently changes between the versions, and this change is not important.
 * `old.json.fields` and `new.json.fields` — TSV files with fields extracted from the evidence strings
   + Column 1: RCV accession and the associated variant, e. g. `RCV000162096>rs730882195`. In case the record is addressed using its RCV ID (in case of repeat expansion variants), it will look like `RCV000075958>RCV000075958`.
   + Column 2: functional consequence code, e. g. SO_0001583
