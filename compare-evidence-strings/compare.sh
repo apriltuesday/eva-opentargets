@@ -25,35 +25,34 @@ extract_fields () {
   > "$1.fields"
 }
 
-# Set up environment & parse parameters
+echo "Set up environment & parse parameters"
 export -f sort_keys extract_fields
+# To ensure that the sort results are consistent, set the sort order locale directly
+export LC_COLLATE=C
 export OLD_EVIDENCE_STRINGS="$1"
 export NEW_EVIDENCE_STRINGS="$2"
 
-# Install JQ — a command line JSON processor
+echo "Install JQ — a command line JSON processor"
 rm -rf jq
 wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 chmod a+x jq
 
-# To ensure that the sort results are consistent, set the sort order locale directly
-export LC_COLLATE=C
-
-# Sort keys to make comparison easier
+echo "Sort keys to make comparison easier"
 sort_keys "${OLD_EVIDENCE_STRINGS}" old.json \
   & sort_keys "${NEW_EVIDENCE_STRINGS}" new.json \
   & wait
 
-# Extract some fields to pair old and new evidence strings together
+echo "Extract some fields to pair old and new evidence strings together"
 extract_fields old.json \
   & extract_fields new.json \
   & wait
 
-# Paste fields & original strings into the same document
+echo "Paste fields & original strings into the same document"
 paste old.json.fields old.json > old \
   & paste new.json.fields new.json > new \
   & wait
 
-# Classify records into (disappeared; new; common)
+echo "Classify records into (disappeared; new; common)"
 cut -f1 old.json.fields | sort -u > old.variants \
   & cut -f1 new.json.fields | sort -u > new.variants \
   & wait
@@ -62,14 +61,16 @@ comm -23 old.variants new.variants > 1_deleted \
   & comm -12 old.variants new.variants > 3_common \
   & wait
 
-# Find variants which appear in both files but where functional mappings have changed
+echo "Find variants which appear in both files but where functional mappings have changed"
 cut -f1-2 old.json.fields | sort -u > old.consequences \
   & cut -f1-2 new.json.fields | sort -u > new.consequences \
   & wait
 join 3_common old.consequences -j 1 | join /dev/stdin new.consequences -j1 | awk '$2 != $3' > 3_common_changed
 
-# Compare the fields
+echo "Sort the results"
 sort -u old > old.sorted \
   & sort -u new > new.sorted \
   & wait
+
+echo "Compute difference"
 git diff --minimal -U0 --color=always --word-diff=color old.sorted new.sorted &> "diff"
