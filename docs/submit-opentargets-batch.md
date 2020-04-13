@@ -222,7 +222,9 @@ cat \
   + If the PR is submitted, check that there are no breaking changes in the schema version
   + If the PR is submitted, tests must be updated as well
 * There shouldn't be any warnings such as “Error on last attempt, skipping” in the logs. This might mean that one of the servers was down during processing, and potentially not all information has been gathered.
-* The final file with the genes & consequences contains both “normal variants”, and a few dozen repeat variants, including `short_tandem_repeat_expansion` and `trinucleotide_repeat_expansion` ones.
+* Functional consequences
+  + The final file with the genes & consequences contains both “normal variants”, and a few dozen repeat variants, including `short_tandem_repeat_expansion` and `trinucleotide_repeat_expansion` ones.
+  + The `${BATCH_ROOT}/logs/consequence_repeat_expansion.err` log will record all repeat expansion variants which could not be parsed using any of the regular expressions. Verify that there are no new such variants compared to the previous batch.
 
 ## Step 2. Manual curation
 See separate protocol, [Manual curation](manual-curation.md).
