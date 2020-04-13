@@ -9,16 +9,7 @@ bash compare.sh \
   new_evidence_strings.json
 ```
 
-The script should take a few minutes to run and will create the `comparison/` subdirectory in the current working directory. It will contain several files:
-* `old.json` and `new.json` — evidence strings with their keys sorted lexicographically and with the `validated_aginst_schema_version` field removed, as it frequently changes between the versions, and this change is not important.
-* `old.json.fields` and `new.json.fields` — TSV files with fields extracted from the evidence strings
-  + Column 1: RCV accession and the associated variant, e. g. `RCV000162096>rs730882195`. In case the record is addressed using its RCV ID (in case of repeat expansion variants), it will look like `RCV000075958>RCV000075958`.
-  + Column 2: functional consequence code, e. g. SO_0001583
-* `old` and `new` — previous two files pasted together; extracted fields plus the original evidence string with the sorted keys
-* `1_deleted`, `2_added` and `3_common` — the variants which were deleted or added compared to the old evidence strings, or which appear in both files
-* `3_common_changed` — a subsection of `3_common` where the variant is present in both old and new evidence strings, but its functional consequence has changed
-* `old.sorted` and `new.sorted` — same as `old` and `new`, but this time sorted for comparison
-* `diff` — the difference between `old.sorted` and `new.sorted`, should be viewed using `less -r`
+The script should take a few minutes to run and will create the `comparison/` subdirectory in the current working directory. It will contain several files, the most important of which is `report.html`, which can be viewed in a browser.
 
 ## Future improvements
 There is a [json-diff](https://pypi.org/project/json-diff/) module which allows detailed comparison of JSON objects. If this protocol is going to be updated in the future, this module might be helpful. It provides structured overview of differences; however, it has a few limitations:
