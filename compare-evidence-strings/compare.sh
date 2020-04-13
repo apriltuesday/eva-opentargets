@@ -29,12 +29,10 @@ echo "Set up environment & parse parameters"
 export -f sort_keys extract_fields
 # To ensure that the sort results are consistent, set the sort order locale directly
 export LC_COLLATE=C
-export OLD_EVIDENCE_STRINGS="$1"
-export NEW_EVIDENCE_STRINGS="$2"
-mkdir comparison
-ln -s "${OLD_EVIDENCE_STRINGS}" comparison/old.input.json
-ln -s "${NEW_EVIDENCE_STRINGS}" comparison/new.input.json
-cd comparison || exit 1
+# The realpath is required to make the paths work after the working directory change
+OLD_EVIDENCE_STRINGS=$(realpath "$1")
+NEW_EVIDENCE_STRINGS=$(realpath "$2")
+mkdir comparison && cd comparison || exit 1
 
 echo "Install JQ — a command line JSON processor"
 rm -rf jq
@@ -42,8 +40,8 @@ wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 chmod a+x jq
 
 echo "Sort keys to make comparison easier"
-sort_keys old.input.json old.json \
-  & sort_keys new.input.json new.json \
+sort_keys "${OLD_EVIDENCE_STRINGS}" old.json \
+  & sort_keys "${NEW_EVIDENCE_STRINGS}" new.json \
   & wait
 
 echo "Extract some fields to pair old and new evidence strings together"
