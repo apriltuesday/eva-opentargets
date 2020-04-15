@@ -22,16 +22,14 @@ def none_to_nan(*args):
 
 def load_clinvar_data(clinvar_summary_tsv):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
-    # Load and pre-filter the file
-    gzip_stream = gzip.open(clinvar_summary_tsv, 'r')
-    repeat_expansion_data = ''.join([
-        line.decode() for i, line in enumerate(gzip_stream)
-        if i == 0 or line.decode().split('\t')[1] == 'NT expansion'
-    ])
+    # Load and pre-filter the file, using only "NT expansion" variants
+    with gzip.open(clinvar_summary_tsv, 'r') as gzip_stream:
+        repeat_expansion_data = ''.join([
+            line.decode() for i, line in enumerate(gzip_stream)
+            if i == 0 or line.decode().split('\t')[1] == 'NT expansion'
+        ])
     # Load variants
     variants = pd.read_table(StringIO(repeat_expansion_data), low_memory=False)
-    # Filter only NT expansion variants
-    variants = variants[variants['Type'] == 'NT expansion']
     # Drop all columns except the ones we require
     variants = variants[['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID']]
     # Records may contain multiple RCVs per row, delimited by semicolon. Here we explode them into separate rows
@@ -175,6 +173,8 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     consequences = consequences[['RCVaccession', 'PlaceholderOnes', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType',
                                  'PlaceholderZeroes']]
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
+    # Check that there are no empty cells in the final consequences table
+    assert consequences.isnull().to_numpy().sum() == 0
     # Write the consequences table. This is used by the main evidence string generation pipeline.
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
 
