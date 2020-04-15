@@ -1,7 +1,7 @@
 # Repeat expansion variants pipeline for ClinVar data
 
 ## 1. Introduction
-This pipeline is a companion to the main [functional consequence & gene mapping pipeline](../vep_mapping_pipeline) and is intended to be used in conjunction with it. The main pipeline uses Ensembl's Variant Effect Predictor to assign functional consequences to variants. The problem with VEP is that it does not support _repeat expansion variants._ They are a special subclass of duplication variants which cause a small repeat unit to increase in number. As a result of this limitation, the main pipeline cannot process these variants and ignores them. This submodule was created to address this problem.
+This pipeline is a companion to the main [functional consequence & gene mapping pipeline](../vep_mapping_pipeline) and is intended to be used in conjunction with it. The main pipeline uses Ensembl's Variant Effect Predictor (VEP) to assign functional consequences to variants. The problem with VEP is that it does not support _repeat expansion variants._ They are a special class of duplication variants which represent uncertain number of repeats of a small set of nucleotides (see [Table 1 in this abstract](https://www.annualreviews.org/doi/10.1146/annurev.neuro.29.051605.113042) for examples). As a result of this limitation, the main pipeline cannot process these variants and ignores them. This sub-module was created to address this problem.
 
 ## 2. Running the pipeline
 The pipeline has one input file and two output files.
