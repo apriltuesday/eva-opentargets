@@ -10,7 +10,7 @@ The pipeline has one input file and two output files.
 The input file is ClinVar's [TSV summary file](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz).
 
 ### Consequences table
-The first output file, in TSV format, it the consequences table. It uses the same six-column format as the main pipeline. Example (tabs are replaced with spaces for readability):
+The first output file, in TSV format, is the consequences table. It uses the same six-column format as the main pipeline. Example (tabs are replaced with spaces for readability):
 ```
 RCV000986111    1    ENSG00000177570    SAMD12    short_tandem_repeat_expansion     0
 RCV001003411    1    ENSG00000197386    HTT       trinucleotide_repeat_expansion    0
