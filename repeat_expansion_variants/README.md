@@ -64,20 +64,21 @@ The **Name** column contains a variant description which can be in three possibl
 2. HGVS-like variant description in protein coordinates, e. g. `NP_003915.2:p.Ala260(5_9)`.
 3. Human-readable, however standardised, description, e. g. `ATN1, (CAG)n REPEAT EXPANSION`.
 
-There are also three properties which we would like to extract:
-1. Lengh of the repeat unit, determined directly from the sequence. In examples 1 and 3 it would be len(CAG) = 3.
-2. Length of the repeat unit, determined indirectly from the coordinate span of the variant. In example 1, it would be 174 – 172 + 1 = 3.
-3. Transcript in which the variant resides. In example 1, it would be NM_000044.
+There are also two properties which we would like to extract:
+1. Length of the repeat unit. It can be determined using two approaches:
+  + Directly from the sequence. In examples 1 and 3 it would be len(CAG) = 3.
+  + Indirectly from the coordinate span of the variant. In example 1, it would be 174 – 172 + 1 = 3.
+2. Transcript in which the variant resides. In example 1, it would be NM_000044.
 
 Here is the table describing which properties can be extracted from which identifier types:
 
-| Identifier type           | Repeat unit length | Coordinate span | Transcript ID |
-| ------------------------- | ------------------ | --------------- | ------------- |
-| HGVS-like, coding/genomic | sometimes*         | sometimes*      | yes           |
-| HGVS-like, protein        | –                  | –               | –             |
-| Free text                 | yes                | –               | –             |
+| Identifier type           | Repeat sequence | Coordinate span | Transcript ID |
+| ------------------------- | --------------- | --------------- | ------------- |
+| HGVS-like, coding/genomic | sometimes*      | sometimes*      | yes           |
+| HGVS-like, protein        | –               | –               | –             |
+| Free text                 | yes             | –               | –             |
 
-_\* At least one of (repeat unit length, coordinate span) is always present in this case_
+_\* At least one of (repeat sequence, coordinate span) is always present in this case._
 
 At this step, we extract all properties which we can from the variant identifiers and save them to separate dataframe columns.
 
