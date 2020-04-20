@@ -9,11 +9,11 @@ import re
 
 # Common part for all HGVS-like transcript definitions, e.g. 'NM_001256054.2(C9orf72):'
 hgvs_like_transcript_part = (
-    r'(?P<transcript_id>[A-Za-z0-9_]+)'  # Transcript accession                      NM_001256054
-    r'\.'                                # Delimiter, transcript accession/version   .
-    r'[0-9]+'                            # Transcript version                        2
-    r'[A-Za-z0-9_.()]*'                  # Gene symbol in parentheses, optional      (C9orf72)
-    r':'                                 # Delimiter, transcript/variant info        :
+    r'(?P<transcript_id>[a-zA-Z][a-zA-Z0-9_]+)'  # Transcript accession                      NM_001256054
+    r'\.'                                        # Delimiter, transcript accession/version   .
+    r'[0-9]+'                                    # Transcript version                        2
+    r'[A-Za-z0-9_.()]*'                          # Gene symbol in parentheses, optional      (C9orf72)
+    r':'                                         # Delimiter, transcript/variant info        :
 )
 
 # Common part for start and end coordinate pivots. Pivots for introns and other cases where a coordinate in a noncoding
