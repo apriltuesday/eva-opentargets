@@ -14,7 +14,13 @@ hgvs_like_transcript_part = (
     r'(?P<transcript_id>[a-zA-Z][a-zA-Z0-9_]+)'  # Transcript accession                      NM_001256054
     r'\.'                                        # Delimiter, transcript accession/version   .
     r'[0-9]+'                                    # Transcript version                        2
-    r'[A-Za-z0-9_.()]*'                          # Gene symbol in parentheses, optional      (C9orf72)
+
+    r'(?:'                                       # Non-capturing group for the gene symbol
+    r'\('                                            # Opening parenthesis                   (
+    r'[a-zA-Z0-9_.]+'                                # Gene name                             C9orf72
+    r'\)'                                            # Closing parenthesis                   )
+    r')?'                                        # The entire gene symbol part is optional
+    
     r':'                                         # Delimiter, transcript/variant info        :
 )
 
