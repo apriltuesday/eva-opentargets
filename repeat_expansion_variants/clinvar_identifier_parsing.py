@@ -6,6 +6,8 @@ module imposes strict validation. Hence, custom regular expressions are necessar
 
 import re
 
+from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
+
 
 # Common part for all HGVS-like transcript definitions, e.g. 'NM_001256054.2(C9orf72):'
 hgvs_like_transcript_part = (
@@ -51,7 +53,8 @@ re_hgvs_like_transcript_or_genomic = re.compile(
     r'(?P<end_coord>[+-]?[0-9]+)'        # End coordinate                                   +80
     r')?'                            # The entire end coordinate part is optional
 
-    r'(?P<sequence>[ATGC]*)'         # Repeat unit sequence, optional                       GGGGCC
+    r'(?P<sequence>[{}]*)'.format(   # Repeat unit sequence, optional                       GGGGCC or
+        IUPACAmbiguousDNA.letters)   # IUPAC ambiguity codes are supported                  CGN
 )
 
 # Pattern 2. HGVS-like notation for protein coordinates. This pattern is used for a few variants. From it we do not
@@ -63,7 +66,7 @@ re_hgvs_like_protein = re.compile(hgvs_like_transcript_part + r'p\.')
 # extract the repeat unit sequence. Example: 'ATXN8, (CAG)n REPEAT EXPANSION'
 re_description = re.compile(
     r'\('
-    r'(?P<sequence>[ATGC]+)'
+    r'(?P<sequence>[{}]+)'.format(IUPACAmbiguousDNA.letters) +
     r'\)n'
     r' REPEAT EXPANSION'
 )
