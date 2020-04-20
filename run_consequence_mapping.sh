@@ -13,5 +13,5 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # -N 200: number of records (lines) per worker
 bcftools query "$1" -f '%CHROM:%POS:%REF:%ALT\n' \
   | sort -u \
-  | parallel --halt now,fail=1 --pipe -j 20 -N 200 python3 $DIR/consequence_mapping.py \
+  | parallel --halt now,fail=1 --pipe -j 20 -N 200 python3 $DIR/vep_mapping_pipeline/consequence_mapping.py \
   | sort -u > "$2"
