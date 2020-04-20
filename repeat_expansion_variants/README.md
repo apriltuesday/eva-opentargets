@@ -96,7 +96,7 @@ There are two repeat types detected by this pipeline:
 
 Similarly to the previous step, repeat type can be determined using several fields. The determination algorithm is as follows:
 
-* If the variant identifier is type 3, “Protein HGVS”: assume repeat is a `trinucleotide_repeat_expansion`, since it affects entire amino acids
+* If the variant identifier is type 3, “Protein HGVS”: assume repeat is a `trinucleotide_repeat_expansion`, since it affects entire amino acids. (Each amino acid is encoded by a triplet of nucleotides. So if we see an insertion of N amino acids, it means an insertion of 3×N nucleotides took place, hence this will be a trinucleotide repeat expansion.)
 * Otherwise:
   + Determine repeat unit length
     - If available, use length determined directly from sequence as a priority
