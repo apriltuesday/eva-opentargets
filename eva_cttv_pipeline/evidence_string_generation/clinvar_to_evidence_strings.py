@@ -310,17 +310,34 @@ def skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele
 
 
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
-    """Return the list of functional consequences for a given ClinVar record measure."""
+    """
+    Return the list of functional consequences for a given ClinVar record measure.
 
-    # As the first option, try to link a variant and its functional consequence by RCV accession. For most variants this
-    # would not be a good idea, because ClinVar accessions do not necessarily correspond to single variants. However,
-    # the consequences file will *only* include RCV accessions in the key column for repeat expansion variants. For them
-    # pairing using coordinates (see below) is not feasible. This is because of two reasons: not all repeat expansion
-    # variants even include genomic coordinates in ClinVar data; and for those which do, the REF and ALT sequences might
-    # be quite long. We use this type of pairing first because some repeat expansion variants actually do have
-    # coordinates in ClinVar data, and for them VEP might issue some predictions and output them with CHROM:POS:REF:ALT
-    # notation as the key. Those predictions will be incorrect, as VEP cannot handle repeat expansion variants
-    # correctly, so we want to avoid using them.
+    This is the place where ClinVar records are paired with the information about gene and functional consequences.
+    This information is produced by two pipelines in the `vep-mapping-pipeline` repository:
+    1. The main one, `vep_mapping_pipeline`, runs all records in the ClinVar VCF dump through Variant Effect Predictor
+       and outputs the results using a VCF-compatible "CHROM:POS:REF:ALT" identifier.
+    2. The auxiliary one, `repeat_expansion_variants`, uses a different approach to extract information about repeat
+       expansion variants from the ClinVar TSV dump. The repeat expansion variants have several important features:
+       a. Most (but not all) of them are not present in ClinVar VCF dump, only in the TSV dump.
+       b. Even the variants which have the coordinates cannot be adequately processed by VEP: it will output the wrong
+          functional consequence type.
+       c. The "CHROM:POS:REF:ALT" notation is not useful for these variants, because some of them have an indeterminate
+          number of repeats, hence there is no single ALT allele.
+       This second pipeline outputs the results using the RCV identifier from ClinVar.
+    """
+
+    # As the first option, try to link a variant and its functional consequence by RCV accession. This will only happen
+    # for repeat expansion variants, since the main pipeline uses CHROM:POS:REF:ALT identifiers.
+    #
+    # The reason we don't use RCV accessions more often is because they are, in general, not variant-specific: the same
+    # RCV may link to multiple variants with different functional consequences. However, for repeat expansion variants
+    # RCV accessions *are* specific and contain only one variant.
+    #
+    # The reason we pair first by RCV accession and *then* by CHROM:POS:REF:ALT identifiers is that some repeat
+    # expansion variants actually *do* appear in the ClinVar VCF dump, will be fed to VEP, and will receive incorrect
+    # consequence annotations. By using RCV pairing first, we prioritise results of the variant expansion pipeline over
+    # the general VEP pipeline.
     if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
         return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
 
