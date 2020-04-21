@@ -12,6 +12,7 @@
       <w>clinvar</w>
       <w>cython</w>
       <w>dataframe</w>
+      <w>debian</w>
       <w>ensembl</w>
       <w>ensg</w>
       <w>exon</w>
@@ -19,6 +20,7 @@
       <w>hgnc</w>
       <w>hgvs</w>
       <w>hsapiens</w>
+      <w>htslib</w>
       <w>intron</w>
       <w>introns</w>
       <w>libbz</w>
@@ -31,6 +33,7 @@
       <w>preprocessing</w>
       <w>pyhgvs</w>
       <w>refseq</w>
+      <w>samtools</w>
       <w>trinucleotide</w>
       <w>unhashable</w>
       <w>vaccession</w>

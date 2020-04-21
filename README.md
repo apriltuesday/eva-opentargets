@@ -10,11 +10,11 @@ Please see the corresponding module README file for more information.
 
 ## Installing requirements
 
-The commands below has been tested for Ubuntu 19.10. You might have to adjust commands and package names if you're using
-a different distribution. Note in particular that some older Debian and Ubuntu distrubutions include ancient htslib/
-samtools/bcftools versions.
+The commands below has been tested for Ubuntu 18.04 and newer. You might have to adjust commands and package names if
+you're using a different distribution. Note in particular that some older Debian and Ubuntu distributions include
+ancient htslib/samtools/bcftools versions, which will not work.
 
 ```bash
 sudo apt -y install samtools bcftools parallel libbz2-dev liblzma-dev
-sudo pip3 -q install -r requirements.txt
+sudo python3 -m pip -q install -r requirements.txt
 ```

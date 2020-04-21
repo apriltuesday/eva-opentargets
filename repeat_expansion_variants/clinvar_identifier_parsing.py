@@ -4,9 +4,14 @@ The pyhgvs module cannot be applied here because not all expression used by Clin
 module imposes strict validation. Hence, custom regular expressions are necessary.
 """
 
+import logging
 import re
 
 from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 # Common part for all HGVS-like transcript definitions, e.g. 'NM_001256054.2(C9orf72):'
@@ -74,7 +79,7 @@ re_description = re.compile(
     r'\('
     r'(?P<sequence>[{}]+)'.format(IUPACAmbiguousDNA.letters) +
     r'\)n'
-    r' REPEAT EXPANSION'
+    r'(?: REPEAT)? EXPANSION'
 )
 
 
@@ -114,4 +119,7 @@ def parse_variant_identifier(variant_name):
     match = re_description.search(variant_name)
     if match:
         repeat_unit_length = len(match.group('sequence'))
+        return transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs
+
+    logger.warning('ClinVar identifier did not match any of the regular expressions: {}'.format(variant_name))
     return transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs
