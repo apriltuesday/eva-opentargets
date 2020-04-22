@@ -41,6 +41,7 @@ Approximately one month before the submission deadline, OpenTargets will contact
 * [How to submit an OpenTargets batch](docs/submit-opentargets-batch.md)
   + [Trait mapping pipeline](docs/trait-mapping-pipeline.md)
   + [Manual curation of traits](docs/manual-curation.md)
+* [Comparing the evidence strings](compare-evidence-strings/)
 
 # Workflow diagram
 
