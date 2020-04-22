@@ -310,9 +310,38 @@ def skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele
 
 
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
-    """Return the list of functional consequences for a given ClinVar record measure."""
+    """
+    Return the list of functional consequences for a given ClinVar record measure.
 
-    # First, we attempt to pair by coordinates (only if they are present in the record measure)
+    This is the place where ClinVar records are paired with the information about gene and functional consequences.
+    This information is produced by two pipelines in the `vep-mapping-pipeline` repository:
+    1. The main one, `vep_mapping_pipeline`, runs all records in the ClinVar VCF dump through Variant Effect Predictor
+       and outputs the results using a VCF-compatible "CHROM:POS:REF:ALT" identifier.
+    2. The auxiliary one, `repeat_expansion_variants`, uses a different approach to extract information about repeat
+       expansion variants from the ClinVar TSV dump. The repeat expansion variants have several important features:
+       a. Most (but not all) of them are not present in ClinVar VCF dump, only in the TSV dump.
+       b. Even the variants which have the coordinates cannot be adequately processed by VEP: it will output the wrong
+          functional consequence type.
+       c. The "CHROM:POS:REF:ALT" notation is not useful for these variants, because some of them have an indeterminate
+          number of repeats, hence there is no single ALT allele.
+       This second pipeline outputs the results using the RCV identifier from ClinVar.
+    """
+
+    # As the first option, try to link a variant and its functional consequence by RCV accession. This will only happen
+    # for repeat expansion variants, since the main pipeline uses CHROM:POS:REF:ALT identifiers.
+    #
+    # The reason we don't use RCV accessions more often is because they are, in general, not variant-specific: the same
+    # RCV may link to multiple variants with different functional consequences. However, for repeat expansion variants
+    # RCV accessions *are* specific and contain only one variant.
+    #
+    # The reason we pair first by RCV accession and *then* by CHROM:POS:REF:ALT identifiers is that some repeat
+    # expansion variants actually *do* appear in the ClinVar VCF dump, will be fed to VEP, and will receive incorrect
+    # consequence annotations. By using RCV pairing first, we prioritise results of the variant expansion pipeline over
+    # the general VEP pipeline.
+    if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
+        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
+
+    # If RCV is not present in the consequences file, pair using full variant description (CHROM:POS:REF:ALT)
     if clinvar_record_measure.has_complete_coordinates:
         # This VCF-flavoured identifier is used to pair ClinVar records with functional consequence predictions.
         # Example of such an identifier: 14:23423715:G:A
@@ -320,13 +349,6 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
-
-    # If no luck, try to pair by ClinVar record accession. This is not a good option because ClinVar accessions do not
-    # necessarily correspond to single variants. This pairing is only retained for compatibility purposes to handle
-    # trinucleotide repeat expansion variants records, which are added manually using RCV identifiers. This will be
-    # removed as soon as correct handling of NT repeat variants is implemented.
-    if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
-        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.

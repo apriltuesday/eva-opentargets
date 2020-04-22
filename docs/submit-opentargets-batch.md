@@ -2,9 +2,9 @@
 This protocol describes how to process and submit data for an Open Targets batch. Additional diagrams and background explanations can be found in [this presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM).
 
 Batch submission process consists of three major parts. For each step, create a single JIRA ticket. This can be done by cloning a corresponding ticket from one of the previous batches and adjusting its fields. List of suitable ticket templates for each of the steps:
-1. https://www.ebi.ac.uk/panda/jira/browse/EVA-1910
-2. https://www.ebi.ac.uk/panda/jira/browse/EVA-1911
-3. https://www.ebi.ac.uk/panda/jira/browse/EVA-1912
+1. Process ClinVar data: https://www.ebi.ac.uk/panda/jira/browse/EVA-1910
+2. Perform manual curation: https://www.ebi.ac.uk/panda/jira/browse/EVA-1911
+3. Generate & submit evidence strings: https://www.ebi.ac.uk/panda/jira/browse/EVA-1912
 
 At the end of each step there is a list of checks do be done during review of the ticket.
 
@@ -70,11 +70,24 @@ export CLINVAR_RELEASE=${CLINVAR_RELEASE_YEAR}-${CLINVAR_RELEASE_MONTH}
 
 Before proceeding with executing the commands, update code on the cluster and create the necessary directories:
 ```bash
+# By modifying those four variables, you can run arbitrary versions of both the main and the VEP pipeline
+export MAIN_REMOTE=origin
+export MAIN_BRANCH=master
+export VEP_REMOTE=origin
+export VEP_BRANCH=master
+
 cd $CODE_ROOT
-git fetch
-git checkout master
-git reset --hard origin/master
+git fetch ${MAIN_REMOTE}
+git checkout ${MAIN_BRANCH}
+git reset --hard ${MAIN_REMOTE}/${MAIN_BRANCH}
+
 git submodule update --init --recursive
+cd vep-mapping-pipeline
+git fetch ${VEP_REMOTE}
+git checkout ${VEP_BRANCH}
+git reset --hard ${VEP_REMOTE}/${VEP_BRANCH}
+cd ..
+
 python3 setup.py install
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
@@ -85,13 +98,31 @@ Note that most of the commands below use `bsub` to submit jobs to LSF cluster ra
 
 ## Step 1. Process ClinVar data
 
-### 1.1 Download data: XML dump & VCF summary
+### 1.1 Download data
 
-Two files are required (full release XML and VCF variant summary) and are downloaded from the ClinVar FTP into the `clinvar` subfolder:
+ClinVar data is available in several formats. Different formats are convenient for different use cases, hence we download three of them: XML dump; VCF summary; and TSV summary.
 ```bash
+
+CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
+
+# ClinVar FTP paths are different depending on whether the current year is the same as the year of the ClinVar release
+# which we are trying to download.
+if [[ `date +"%Y"` = ${CLINVAR_RELEASE_YEAR} ]]
+then
+  # Same year
+  CLINVAR_XML="/xml/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="/tab_delimited/archive/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+else
+  # Different (past) year
+  CLINVAR_XML="/xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="/tab_delimited/archive/${CLINVAR_RELEASE_YEAR}/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+fi
+
+# Download three files
 wget --directory-prefix ${BATCH_ROOT}/clinvar/ \
-  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
-  ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+  "${CLINVAR_PATH_BASE}/${CLINVAR_XML}" \
+  "${CLINVAR_PATH_BASE}/${CLINVAR_TSV}" \
+  "${CLINVAR_PATH_BASE}/vcf_GRCh38/clinvar.vcf.gz"
 ```
 
 ### 1.2. Update ClinVar XML schema version (if necessary)
@@ -156,19 +187,32 @@ ${BSUB_CMDLINE} -K -M 4G \
 
 See additional information about the trait mapping pipeline [here](trait-mapping-pipeline.md).
 
-### 1.4. Perform gene & functional consequence mapping
+### 1.4. Map variants to genes and functional consequences
 This step can be done in parallel with the previous one (1.3), because their input and output files are independent.
 
-To generate the evidence strings, it is necessary to have the gene mapping and functional consequence annotation for each variant. This step was previously performed on the Open Targets side, but is now integrated into our workflow:
+Each evidence string must include the variant, the gene it affects, and the functional effect it has in that gene. We obtain this information separately for repeat expansion variants and for all other types. Detailed information can be found in the [repository where the pipelines are contained](https://github.com/EBIvariation/vep-mapping-pipeline).
+
+This step was previously performed on the Open Targets side, but is now integrated into our workflow.
 
 ```bash
 cd ${CODE_ROOT} && \
 ${BSUB_CMDLINE} -K \
-  -o ${BATCH_ROOT}/logs/consequence_mapping.out \
-  -e ${BATCH_ROOT}/logs/consequence_mapping.err \
-  bash ${CODE_ROOT}/vep-mapping-pipeline/vep_mapping_pipeline/run_consequence_mapping.sh \
+  -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
+  -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
+  python3 ${CODE_ROOT}/vep-mapping-pipeline/run_repeat_expansion_variants.py \
+  --clinvar-summary-tsv ${BATCH_ROOT}/clinvar/variant_summary_${CLINVAR_RELEASE}.txt.gz \
+  --output-consequences ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
+  --output-dataframe ${BATCH_ROOT}/gene_mapping/repeat_dataframe.tsv && \
+${BSUB_CMDLINE} -K \
+  -o ${BATCH_ROOT}/logs/consequence_vep.out \
+  -e ${BATCH_ROOT}/logs/consequence_vep.err \
+  bash ${CODE_ROOT}/vep-mapping-pipeline/run_consequence_mapping.sh \
   ${BATCH_ROOT}/clinvar/clinvar.vcf.gz \
-  ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv
+  ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv && \
+cat \
+  ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
+  ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv \
+  > ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv
 ```
 
 ### Review checklist
@@ -178,6 +222,9 @@ ${BSUB_CMDLINE} -K \
   + If the PR is submitted, check that there are no breaking changes in the schema version
   + If the PR is submitted, tests must be updated as well
 * There shouldn't be any warnings such as “Error on last attempt, skipping” in the logs. This might mean that one of the servers was down during processing, and potentially not all information has been gathered.
+* Functional consequences
+  + The final file with the genes & consequences contains both “normal variants”, and a few dozen repeat variants, including `short_tandem_repeat_expansion` and `trinucleotide_repeat_expansion` ones.
+  + The `${BATCH_ROOT}/logs/consequence_repeat_expansion.err` log will record all repeat expansion variants which could not be parsed using any of the regular expressions. Verify that there are no new such variants compared to the previous batch.
 
 ## Step 2. Manual curation
 See separate protocol, [Manual curation](manual-curation.md).
@@ -224,7 +271,11 @@ Terms which don't have a suitable mapping cannot be added to the “Add EFO dise
 ## Step 3. Generate evidence strings
 Here, we integrate all of the information produced to generate the evidence strings. 
 
-### 3.1. Fetch Open Targets JSON schema
+### 3.1. Check and correct known problematic mappings
+
+There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv`.
+
+### 3.2. Fetch Open Targets JSON schema
 Open Targets have a [JSON schema](https://github.com/opentargets/json_schema) used to validate submitted data. Validation of generated evidence strings is carried out during generation. To fetch schema, use the following command. `$VERSION` needs to be filled with the version number recommended by the Open Targets in their announcement e-mail.
 
 ```bash
@@ -235,7 +286,7 @@ wget \
 
 When Open Targets schema version changes, test files in `tests/evidence_string_generation/resources` also need to be updated, as well as all mentions of old schema version throughout the code (use global search for that). 
 
-### 3.2. Generate evidence strings
+### 3.3. Generate evidence strings
 In order to generate the evidence strings, run the following command:
 
 ```bash
@@ -245,7 +296,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
   python3 bin/evidence_string_generation.py \
   -e ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv \
-  -g ${BATCH_ROOT}/gene_mapping/consequence_mapping_result.tsv \
+  -g ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   --ot-schema ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   --out ${BATCH_ROOT}/evidence_strings/
@@ -263,20 +314,20 @@ python3 -m opentargets_validator.cli \
   < ${BATCH_ROOT}/evidence_strings/evidence_strings.json
 ```
 
-### 3.3. Update summary metrics
+### 3.4. Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
 
-### 3.4. Submit evidence strings
+### 3.5. Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [Open Targets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[dd]-[mm]-[yyyy].json.gz` (e.g. `cttv012-12-06-2017.json.gz`).
 
 More details can be found on [Open Targets Github wiki](https://github.com/opentargets/data_release/wiki/OT006-Data-Submission#ot009-evidence-string-generation-json-schema-validation--submission).
 
-### 3.5. Submit feedback to ZOOMA
+### 3.6. Submit feedback to ZOOMA
 The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use it, but also provide feedback to help improve it. The evidence string generation pipeline generates two files with such a feedback:
 1. **clinvar_xrefs.** ClinVar data already includes some cross-links from trait names to disease ontologies. Unfortunately, it almost exclusively uses MedGen and OMIM, which are not acceptable for Open Targets (since they're using EFO). However, mappings from trait names to MedGen and OMIM might still be useful to other users. Hence, we extract and submit them to ZOOMA under the evidence handle “ClinVar_xRefs”.
 1. **eva_clinvar.** This contains the trait mappings (to EFO) created during the evidence string generation, including automated and manual mappings.
 
-#### 3.5.1. Prepare ClinVar xRefs file
+#### 3.6.1. Prepare ClinVar xRefs file
 The mappings are parsed from the ClinVar JSON file into a TSV suitable for submitting to ZOOMA, excluding any traits which already have mappings in ZOOMA from trusted data sources (EVA, Open Targets, GWAS, Uniprot). In order to do so, execute the following command:
 
 ```bash
@@ -289,7 +340,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-### 3.5.2. Upload ClinVar xRefs and trait mappings to the FTP
+### 3.6.2. Upload ClinVar xRefs and trait mappings to the FTP
 You need to upload two files to the FTP as feedback to ZOOMA: `clinvar_xrefs` (prepared during the previous step) and `eva_clinvar`.
 
 To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then run `become <FTP administrative user> /bin/bash`. (Please see [this document](https://www.ebi.ac.uk/seqdb/confluence/display/VAR/Simplified+EVA+FTP+SOP) for details on the FTP administrative user.) After you do this, the environment will be wiped clean, so you will need to set the `BATCH_ROOT` variable again.
@@ -332,6 +383,7 @@ If everything has been done correctly, hash sums will be the same. Note that the
 ### Review checklist
 * (See general review checklist at the bottom of the page)
 * Version of JSON schema is the same as specified in the Open Targets e-mail
+* All traits mentioned in the [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) are mapped to the correct ontology terms in `${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv`.
 * The summary metrics
   + Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
   + Are calculated correctly (re-calculate using the commands in the spreadsheet as required)
