@@ -98,13 +98,15 @@ paste 02.fields.old 01.keys-sorted.old.json | sort -u > 03.fields-and-strings.ol
 #$(sed 's|^|  |' 3_common_changed)
 
 echo "Compute difference"
+DIFF_FILE="diff.$(date +'%Y%m%d%H%M%S')"
+export DIFF_FILE
 git diff \
   --minimal \
   -U0 \
   --color=always \
   --word-diff=color \
   03.fields-and-strings.old \
-  03.fields-and-strings.new &> "diff"
+  03.fields-and-strings.new &> "${DIFF_FILE}"
 
 echo "Producing the report"
 cat << EOF > report
@@ -120,7 +122,7 @@ Total unique records: $(wc -l <03.fields-and-strings.new)
 
 The full diff between two files follows.
 
-$(tail -n+5 diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}')
+$(tail -n+5 "${DIFF_FILE}" | awk '{if ($0 !~ /@@/) {print $0 "\n"}}')
 EOF
 
 ./aha --word-wrap < report > report.html

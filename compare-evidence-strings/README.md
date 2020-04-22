@@ -12,6 +12,11 @@ bash compare.sh \
 The script should take a few minutes to run and will create the `comparison/` subdirectory in the current working directory. It will contain several files, the most important of which is `report.html`, which can be viewed in a browser.
 
 ## Future improvements
+
+### Alternative library for producing diffs
+The [diff2html-cli](https://github.com/rtfpessoa/diff2html-cli) is a more advanced library which can be used to replace `aha` in the future.
+
+### json-diff
 There is a [json-diff](https://pypi.org/project/json-diff/) module which allows detailed comparison of JSON objects. If this protocol is going to be updated in the future, this module might be helpful. It provides structured overview of differences; however, it has a few limitations:
  * It can only compare individual evidence strings (so they must be sorted and matched beforehand)
  * When a field's value is updated, `json-diff` only reports the new value of the field, but not the old one, for example:
