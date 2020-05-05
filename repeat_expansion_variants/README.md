@@ -93,7 +93,7 @@ There are two repeat types detected by this pipeline:
   + `NM_001081563.1:c.*224_*226[(50-?)]` — repeat unit spans 3 nucleotides based on coordinates
   + `NM_001081560.2(DMPK):c.*224_*226CTG(51_?)` — spans 3 nucleotides based on coordinates, and the sequence length is also 3
   + `NM_000100.3(CSTB):c.-210CCCCGCCCCGCG(2_3)` — sequence length is 12, a multiple of 3
-* `short_tandem_repeat_expansion`, corresponding to SO term http://sequenceontology.org/browser/current_release/term/SO:0002161. This is chosen in the cases when the repeat length can be _determined_ by at least one method, but its unit length is not a multiple of 3.
+* `short_tandem_repeat_expansion`, corresponding to SO term http://sequenceontology.org/browser/current_release/term/SO:0002162. This is chosen in the cases when the repeat length can be _determined_ by at least one method, but its unit length is not a multiple of 3.
 
 Similarly to the previous step, repeat type can be determined using several fields. The determination algorithm is as follows:
 
