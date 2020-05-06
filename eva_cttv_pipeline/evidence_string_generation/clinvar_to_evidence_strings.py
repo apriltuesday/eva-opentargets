@@ -212,16 +212,18 @@ def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file, sn
                                      if allowed_clinical_significance
                                      else get_default_allowed_clinical_significance())
     mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
-    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema)
+    report = clinvar_to_evidence_strings(
+        allowed_clinical_significance, mappings, json_file, ot_schema,
+        output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'wt')
     report.write_output(dir_out)
     print(report)
 
 
-def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema):
+def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema, output_evidence_strings):
     report = Report(trait_mappings=mappings.trait_2_efo)
     cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
     ot_schema_contents = json.loads(open(ot_schema).read())
-    output_evidence_strings = utilities.open_file(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'wt')
+    output_evidence_strings_file = utilities.open(output_evidence_strings)
     for cellbase_record in cell_recs:
         report.counters["record_counter"] += 1
         if report.counters["record_counter"] % 1000 == 0:
@@ -258,7 +260,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                 # Validate and immediately output the evidence string (not keeping everything in memory)
                 validate_evidence_string(evidence_string, clinvar_record, trait,
                                          consequence_type.ensembl_gene_id, ot_schema_contents)
-                output_evidence_strings.write(json.dumps(evidence_string) + '\n')
+                output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
 
                 report.evidence_list.append([clinvar_record.accession,
                                              clinvar_record_measure.rs_id,
@@ -277,7 +279,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                 if n_ev_strings_per_record > 1:
                     report.counters["n_multiple_evidence_strings"] += 1
 
-    output_evidence_strings.close()
+    output_evidence_strings_file.close()
     return report
 
 
