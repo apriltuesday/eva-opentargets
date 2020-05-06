@@ -214,7 +214,7 @@ def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file, sn
     mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
     report = clinvar_to_evidence_strings(
         allowed_clinical_significance, mappings, json_file, ot_schema,
-        output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'wt')
+        output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME)
     report.write_output(dir_out)
     print(report)
 
@@ -223,7 +223,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
     report = Report(trait_mappings=mappings.trait_2_efo)
     cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
     ot_schema_contents = json.loads(open(ot_schema).read())
-    output_evidence_strings_file = utilities.open(output_evidence_strings)
+    output_evidence_strings_file = utilities.open(output_evidence_strings, 'wt')
     for cellbase_record in cell_recs:
         report.counters["record_counter"] += 1
         if report.counters["record_counter"] % 1000 == 0:
