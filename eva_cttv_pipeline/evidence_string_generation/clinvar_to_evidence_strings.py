@@ -192,7 +192,6 @@ class Report:
 def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, ot_schema_contents):
     try:
         ev_string.validate(ot_schema_contents)
-        self.evidence_string_list.append(ev_string)
     except jsonschema.exceptions.ValidationError as err:
         print('Error: evidence_string does not validate against schema.')
         print(err)
