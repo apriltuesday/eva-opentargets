@@ -107,24 +107,6 @@ class Report:
 
         return '\n'.join(report_strings)
 
-    def add_evidence_string(self, ev_string, clinvar_record, trait, ensembl_gene_id,
-                            ot_schema_contents):
-        try:
-            ev_string.validate(ot_schema_contents)
-            self.evidence_string_list.append(ev_string)
-        except jsonschema.exceptions.ValidationError as err:
-            print('Error: evidence_string does not validate against schema.')
-            # print('ClinVar accession: ' + record.clinvarRecord.accession)
-            print(err)
-            print(json.dumps(ev_string))
-            print("clinvar record:\n%s" % clinvar_record)
-            print("trait:\n%s" % trait)
-            print("ensembl gene id: %s" % ensembl_gene_id)
-            sys.exit(1)
-        except jsonschema.exceptions.SchemaError as err:
-            print('Error: OpenTargets schema file is invalid')
-            sys.exit(1)
-
     def write_output(self, dir_out):
         write_string_list_to_file(self.nsv_list, dir_out + '/' + config.NSV_LIST_FILE)
 
@@ -134,10 +116,6 @@ class Report:
             for trait_list in self.unmapped_traits:
                 fdw.write(str(trait_list) + '\t' +
                           str(self.unmapped_traits[trait_list]) + '\n')
-
-        with utilities.open_file(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'wt') as fdw:
-            for evidence_string in self.evidence_string_list:
-                fdw.write(json.dumps(evidence_string) + '\n')
 
         self.write_zooma_file(dir_out)
 
@@ -211,25 +189,40 @@ class Report:
                 "n_total_clinvar_records": 0}
 
 
+def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, ot_schema_contents):
+    try:
+        ev_string.validate(ot_schema_contents)
+    except jsonschema.exceptions.ValidationError as err:
+        print('Error: evidence_string does not validate against schema.')
+        print(err)
+        print(json.dumps(ev_string))
+        print('clinvar record:\n%s' % clinvar_record)
+        print('trait:\n%s' % trait)
+        print('ensembl gene id: %s' % ensembl_gene_id)
+        sys.exit(1)
+    except jsonschema.exceptions.SchemaError:
+        print('Error: OpenTargets schema file is invalid')
+        sys.exit(1)
+
+
 def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file, snp_2_gene_file, json_file, ot_schema):
 
     allowed_clinical_significance = (allowed_clinical_significance.split(',')
                                      if allowed_clinical_significance
                                      else get_default_allowed_clinical_significance())
     mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
-    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema)
-    output(report, dir_out)
-
-
-def output(report, dir_out):
+    report = clinvar_to_evidence_strings(
+        allowed_clinical_significance, mappings, json_file, ot_schema,
+        output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME)
     report.write_output(dir_out)
     print(report)
 
 
-def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema):
+def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema, output_evidence_strings):
     report = Report(trait_mappings=mappings.trait_2_efo)
     cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
     ot_schema_contents = json.loads(open(ot_schema).read())
+    output_evidence_strings_file = utilities.open_file(output_evidence_strings, 'wt')
     for cellbase_record in cell_recs:
         report.counters["record_counter"] += 1
         if report.counters["record_counter"] % 1000 == 0:
@@ -262,8 +255,12 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                         clinvar_record, clinvar_record_measure, report, trait, consequence_type)
                 else:
                     raise AssertionError('Unknown allele_origin present in the data: {}'.format(allele_origin))
-                report.add_evidence_string(evidence_string, clinvar_record, trait,
-                                           consequence_type.ensembl_gene_id, ot_schema_contents)
+
+                # Validate and immediately output the evidence string (not keeping everything in memory)
+                validate_evidence_string(evidence_string, clinvar_record, trait,
+                                         consequence_type.ensembl_gene_id, ot_schema_contents)
+                output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
+
                 report.evidence_list.append([clinvar_record.accession,
                                              clinvar_record_measure.rs_id,
                                              trait.clinvar_name,
@@ -281,6 +278,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                 if n_ev_strings_per_record > 1:
                     report.counters["n_multiple_evidence_strings"] += 1
 
+    output_evidence_strings_file.close()
     return report
 
 
