@@ -36,15 +36,21 @@ ClinVar data is highly valuable, but in its original form is not suitable for su
 
 Approximately one month before the submission deadline, OpenTargets will contact their submitters and specify the requirements for the next release. At this point the EVA can start executing the main submission protocol (see below). Once the data is ready, it is submitted to OpenTargets, and then the same will happen with the next release. Most of the actions in the pipeline are automated.
 
-# Documentation
-* [Build instructions](docs/build.md)
-* [How to submit an OpenTargets batch](docs/submit-opentargets-batch.md)
-  + [Trait mapping pipeline](docs/trait-mapping-pipeline.md)
-  + [Manual curation of traits](docs/manual-curation.md)
-* [Comparing the evidence strings](compare-evidence-strings/)
+# How to submit an Open Targets batch
+Batch submission process consists of two major tasks, which are performed asynchronously.
+
+First task is the [**manual curation**](docs/manual-curation.md) of trait names. This should be performed periodically (approximately once every two months) as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
+
+Second task is the [**evidence string generation**](docs/generate-evidence-strings.md). This part is automated and should be run for every Open Targets batch submission. 
+
+To execute either of the two protocols, you will first need to follow [**build instructions**](docs/build.md).
+
+When any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then [comparing the evidence strings](compare-evidence-strings/) to see if the introduced changes are correct.
 
 # Workflow diagram
 
 ![](docs/workflow.png)
 
 Vector version available [here](https://docs.google.com/presentation/d/1cv-_S1A6j6O3PWbQkVhi4IY7cgLH3o0os5hEN9HVmJA/edit?usp=sharing) (for EBI employees only)
+
+There is also a [presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM) describing the workflow in more detail. However, it was last updated 1.5 years ago and part of it can be seriously obsolete.
