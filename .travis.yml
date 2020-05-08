@@ -7,7 +7,7 @@ python:
 install:
   - sudo apt update
   - sudo apt -y install samtools bcftools parallel libbz2-dev liblzma-dev
-  - pip -q install -r requirements.txt
+  - pip3 -q install -r requirements.txt
 
 # For the actual test, we're running a set of 2,000 ClinVar variants through VEP and comparing the result with the
 # expected one (diff will exit with return code 0 if the files are identical, and with 1 otherwise). Of course, this
@@ -19,5 +19,5 @@ script:
   - diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
 
   - echo 'Test 2. Repeat expansion pipeline'
-  - pip install --editable .
+  - pip3 install --editable .
   - pytest
