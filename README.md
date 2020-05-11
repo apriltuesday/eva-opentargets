@@ -41,7 +41,7 @@ Batch submission process consists of two major tasks, which are performed asynch
 
 First task is the [**manual curation**](docs/manual-curation/README.md) of trait names. This should be performed periodically (approximately once every two months) as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
 
-Second task is the [**evidence string generation**](docs/generate-evidence-strings.md). This part is automated and should be run for every Open Targets batch submission. 
+Second task is the [**evidence string generation**](docs/generate-evidence-strings.md). This part is automated and should be run for every Open Targets batch submission.
 
 To execute either of the two protocols, you will first need to follow [**build instructions**](docs/build.md).
 

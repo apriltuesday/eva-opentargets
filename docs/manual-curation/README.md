@@ -15,7 +15,7 @@ The protocol consists of four parts which are done in sequence by different peop
 1. [**Fetch data**](step1-fetch-clinvar-data.md) (technical). The latest ClinVar data is downloaded and the trait names are extracted. They are attempted to be automatically mapped to ontology terms using ZOOMA. The traits which cannot be mapped automatically are output as a separate file, which is loaded into a Google spreadsheet.
 1. [**Curate**](step2-manual-curation.md) (biological). The curator goes through the spreadsheet and fills it in, performing manual curation. Other people review the results and comment on them.
 1. [**Extract results**](step3-export-results.md) (technical). Curation results are extracted from the spreadsheet into a TSV file. Some accompanying data is prepared for providing feedback to EFO.
-1. [**Provide feedback**](step4-submit-efo-feedback.md) (biological). The curator, using the data generated on the previous steps, submits feedback to EFO and follows up on this. 
+1. [**Provide feedback**](step4-submit-efo-feedback.md) (biological). The curator, using the data generated on the previous steps, submits feedback to EFO and follows up on this.
 
 ## Setting up environment
 To follow the technical steps of the protocol, you will need to set up the environment.
@@ -25,7 +25,7 @@ First, set up the common environment as explained in the [build instructions](..
 Next, set up the protocol-specific environment, **filling in `${CURATION_RELEASE}`:**
 ```bash
 # Identifier of the current manual curation iteration, which is just the current date.
-# Be sure to write this down and to set it to the same value in later parts of this protocol. 
+# Be sure to write this down and to set it to the same value in later parts of this protocol.
 export CURATION_RELEASE=YYYY-MM-DD
 export CURATION_RELEASE_ROOT=${BATCH_ROOT_BASE}/manual_curation/${CURATION_RELEASE}
 ```

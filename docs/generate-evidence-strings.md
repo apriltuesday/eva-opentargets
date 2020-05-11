@@ -1,7 +1,7 @@
 # Evidence string generation protocol
 _Issue template: https://www.ebi.ac.uk/panda/jira/browse/EVA-1912_
 
-## Setting up environment
+## 1. Set up the environment
 First, set up the common environment as explained in the [build instructions](build.md).
 
 Next, set up the protocol-specific environment. The variables in it are specific to each Open Targets release. They are either announced the e-mail which they send a few weeks before the data submission deadline, or can be derived from the information in it:
@@ -30,7 +30,7 @@ export BATCH_ROOT=${BATCH_ROOT_BASE}/batch-${OT_RELEASE}
 export CLINVAR_RELEASE=${CLINVAR_RELEASE_YEAR}-${CLINVAR_RELEASE_MONTH}
 ```
 
-## Set up directories and download the data
+## 2. Set up directories and download the data
 ```bash
 # Create the necessary directories
 mkdir -p ${BATCH_ROOT}
@@ -64,7 +64,7 @@ wget \
   https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json
 ```
 
-## Manual steps & checks before running the pipeline
+## 3. Manual steps & checks before running the pipeline
 
 ### Update ClinVar XML schema version
 Schema of ClinVar XML files changes from time to time. The schema version can be obtained by inspecting the XML file header:
@@ -107,7 +107,7 @@ When Open Targets schema version changes, test files in `tests/evidence_string_g
 ### Check and correct known problematic mappings
 There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/trait_mapping/latest_mappings.tsv`.
 
-## Process data
+## 4. Process data
 Here, we run several steps in sequence:
 * **Transform and filter ClinVar data**
   + Transform ClinVar's XML file into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step. Result is `clinvar.json.gz`.
@@ -120,7 +120,7 @@ Here, we run several steps in sequence:
   + `evidence_strings.json` — evidence strings for submitting to Open Targets
   + `eva_clinvar.txt` — ZOOMA feedback with trait names
 * Prepare ClinVar xRefs ZOOMA feedback (see more on that below)
-  
+
 ```bash
 cd ${CODE_ROOT} && \
 ${BSUB_CMDLINE} -K -n 8 -M 16G \
@@ -135,7 +135,7 @@ ${BSUB_CMDLINE} -K \
   python3 bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz && \
-{BSUB_CMDLINE} -K \
+${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
   -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
   python3 ${CODE_ROOT}/vep-mapping-pipeline/run_repeat_expansion_variants.py \
@@ -162,7 +162,7 @@ ${BSUB_CMDLINE} -K \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   --ot-schema ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   --out ${BATCH_ROOT}/evidence_strings/ && \
-${BSUB_CMDLINE} \
+${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
   python3 bin/clinvar_jsons/traits_to_zooma_format.py \
@@ -170,7 +170,7 @@ ${BSUB_CMDLINE} \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-## Manual follow-up actions
+## 5. Manual follow-up actions
 
 ### Validate the evidence strings
 Generated evidence strings must be additionally validated using tool provided by Open Targets:
@@ -234,41 +234,38 @@ wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt
 
 If everything has been done correctly, hash sums will be the same. Note that the FTP may take a few minutes to update after you make changes on the cluster.
 
-## Review checklists
-
-### Review checklist
-* (See general review checklist at the bottom of the page)
-* Working directory exists and its structure is as described in step 1.1 
-* ClinVar schema version is either unchanged, *or* schema is changed and the PR for the changes has been submitted
-  + If the PR is submitted, check that there are no breaking changes in the schema version
-  + If the PR is submitted, tests must be updated as well
-* There shouldn't be any warnings such as “Error on last attempt, skipping” in the logs. This might mean that one of the servers was down during processing, and potentially not all information has been gathered.
-* Functional consequences
-  + The final file with the genes & consequences contains both “normal variants”, and a few dozen repeat variants, including `short_tandem_repeat_expansion` and `trinucleotide_repeat_expansion` ones.
-  + The `${BATCH_ROOT}/logs/consequence_repeat_expansion.err` log will record all repeat expansion variants which could not be parsed using any of the regular expressions. Verify that there are no new such variants compared to the previous batch.
-
-### Review checklist
-* (See general review checklist at the bottom of the page)
-* Version of JSON schema is the same as specified in the Open Targets e-mail
-* All traits mentioned in the [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) are mapped to the correct ontology terms in `${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv`.
-* The summary metrics
-  + Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
-  + Are calculated correctly (re-calculate using the commands in the spreadsheet as required)
-  + Are not worse than for the previous release
-* Generated evidence strings validate against the schema
-  + Have actually been submitted to the Open Targets cloud storage
-  + The file is the same as on the cluster (check md5)
-  + (After review) E-mail has been sent to Open Targets, with eva-dev in copy
-* ZOOMA feedback
-  + The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
-    - The FTP path is http://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest
-    - To see where files are located on the cluster, see variable `BATCH_ROOT_BASE` on [this page](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md)
-  + The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
-
-### General review checklist for all steps
-* All relevant logs are present and contain no unexpected warnings or errors
-* All intermediate and output files
-  + Are present
-  + In the correct format without obvious errors (compare with the previous OT batch)
-  + Line/record count is the same or more compared to the previous OT batch
-  + Files are terminated correctly (not ending abruptly after an incomplete record)
+## Review checklist
+* General
+  + All relevant logs are present and contain no unexpected warnings or errors
+  + All intermediate and output files
+    - Are present
+    - In the correct format without obvious errors (compare with the previous OT batch)
+    - Line/record count is the same or more compared to the previous OT batch
+    - Files are terminated correctly (not ending abruptly after an incomplete record)
+* Step 2 “Set up directories and download the data”
+  + Working directory exists and its structure is as described in the instructions for the step
+* Step 3 “Manual steps & checks before running the pipeline”
+  + ClinVar schema version is either unchanged, *or* schema is changed and the PR for the changes has been submitted
+    - If the PR is submitted, check that there are no breaking changes in the schema version
+    - If the PR is submitted, tests must be updated as well
+  + References to the Open Targets schema version are updated throughout the code and in the test files
+* Step 4 “Process data”
+  + Functional consequences
+    - There shouldn't be any warnings such as “Error on last attempt, skipping” in the logs. This might mean that one of the servers was down during processing, and potentially not all information has been gathered.
+    - The final file with the genes & consequences contains both “normal variants”, and a few dozen repeat variants, including `short_tandem_repeat_expansion` and `trinucleotide_repeat_expansion` ones.
+    - The `${BATCH_ROOT}/logs/consequence_repeat_expansion.err` log will record all repeat expansion variants which could not be parsed using any of the regular expressions. Verify that there are no new such variants compared to the previous batch.
+  + Evidence stringts
+    - Version of JSON schema is the same as specified in the Open Targets e-mail
+    - All traits mentioned in the [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
+* Step 5 “Manual follow-up actions”
+  + The summary metrics
+    - Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
+    - Are calculated correctly (re-calculate using the commands in the spreadsheet as required)
+    - Are not worse than for the previous release
+  + Generated evidence strings validate against the schema
+    - Have actually been submitted to the Open Targets cloud storage
+    - The file is the same as on the cluster (check md5)
+    - (After review) E-mail has been sent to Open Targets, with eva-dev in copy
+  + ZOOMA feedback (the FTP path is http://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest; to see where files are located on the cluster, see variable `BATCH_ROOT_BASE` on [this page](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md))
+    - The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
+    - The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)

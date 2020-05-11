@@ -1,4 +1,4 @@
-# Setting up the common environment 
+# Setting up the common environment
 
 Log in to the LSF cluster, where all data processing must take place. Switch to a common EVA production user instead of your personal account. Then adjust and execute the commands below. They will set up the environment, fetch and build the code.
 
