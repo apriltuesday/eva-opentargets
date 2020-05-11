@@ -54,8 +54,8 @@ Approximately one month before the submission deadline, OpenTargets will contact
 
 ## Workflow diagram
 
-![](docs/workflow.png)
+![](docs/workflow-diagram/workflow.png)
 
-Vector version available [here](https://docs.google.com/presentation/d/1cv-_S1A6j6O3PWbQkVhi4IY7cgLH3o0os5hEN9HVmJA/edit?usp=sharing) (for EBI employees only)
+See details [here](docs/workflow-diagram) about how to regenerate this diagram from source.
 
 There is also a [presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM) describing the workflow in more detail. However, it was last updated 1.5 years ago and part of it can be seriously obsolete.

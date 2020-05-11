@@ -132,7 +132,7 @@ ${BSUB_CMDLINE} -K -n 8 -M 16G \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/filter_clinvar_json.out \
   -e ${BATCH_ROOT}/logs/filter_clinvar_json.err \
-  python3 bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
+  python3 ${CODE_ROOT}/bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz && \
 ${BSUB_CMDLINE} -K \
@@ -156,7 +156,7 @@ ${BSUB_CMDLINE} -K \
   -M 10G \
   -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
   -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
-  python3 bin/evidence_string_generation.py \
+  python3 ${CODE_ROOT}/bin/evidence_string_generation.py \
   -e ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
   -g ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv \
   -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
@@ -165,7 +165,7 @@ ${BSUB_CMDLINE} -K \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
-  python3 bin/clinvar_jsons/traits_to_zooma_format.py \
+  python3 ${CODE_ROOT}/bin/clinvar_jsons/traits_to_zooma_format.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
