@@ -1,5 +1,8 @@
-# Part III, technical: export curation results
-_Before running, set up environment as described above._
+# Manual curation, part III, technical: export curation results
+
+Before running, set up the environment:
+* [Common environment](../build.md#setting-up-the-common-environment)
+* [Protocol-specific environment](README.md#setting-up-environment)
 
 ## Extract curation results from the spreadsheet
 

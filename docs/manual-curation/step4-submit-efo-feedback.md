@@ -1,4 +1,4 @@
-# Part IV, biological: submit feedback to EFO
+# Manual curation, part IV, biological: submit feedback to EFO
 
 ## IMPORT terms
 The partially ready table for EFO import is available in the "Add EFO disease" sheet in the curation spreadsheet. The table needs to be amended manually:

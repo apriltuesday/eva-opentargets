@@ -20,10 +20,21 @@ def parse_trait_names(filepath: str) -> list:
     with gzip.open(filepath, "rt") as clinvar_summary:
         header = clinvar_summary.readline().rstrip().split('\t')
         for line in clinvar_summary:
-            line = line.rstrip().split('\t')
-            data = dict(header, values)
+            values = line.rstrip().split('\t')
+            data = dict(zip(header, values))
+
+            # Check if the record should be processed given its level of clinical significance
+            acceptable_clinical_significance_present = False
+            for clinical_significance in data['ClinicalSignificance'].split(','):
+                # TODO: unify the acceptable clinical significance levels project-wide
+                if clinical_significance.lower() in ['pathogenic', 'likely pathogenic', 'protective', 'association',
+                                                     'risk_factor', 'affects', 'drug response']:
+                    acceptable_clinical_significance_present = True
+            if not acceptable_clinical_significance_present:
+                continue
+
             # Extract allele ID and list of phenotypes
-            allele_id = data['#Allele']
+            allele_id = data['#AlleleID']
             traits = set(data['PhenotypeList'].split(';'))
             trait_names_by_allele_id.setdefault(allele_id, set())
             trait_names_by_allele_id[allele_id] |= traits

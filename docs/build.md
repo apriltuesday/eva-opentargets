@@ -1,11 +1,11 @@
 # Setting up the common environment 
 
-This is necessary to run any of the protocols in this repository.
+Log in to the LSF cluster, where all data processing must take place. Switch to a common EVA production user instead of your personal account. Then adjust and execute the commands below. They will set up the environment, fetch and build the code.
 
-Log in to the LSF cluster, where all data processing must take place. You must use a common EVA production user instead of your personal account. 
+Notes:
+* The first five variables are installation-specific and are blanked in this repository. You can get the values for the EVA use case from the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md).
+* By modifying the `*REMOTE` and `*BRANCH` variables, you can run arbitrary versions of both the main and the VEP pipeline. This is highly useful for development and debugging. By default it fetches master branches of both repositories.
 
-## Installation-specific variables 
-For the EVA use case, they are available in the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md):
 ```bash
 # This variable should point to the directory where the clone of this repository is located on the cluster
 export CODE_ROOT=
@@ -21,10 +21,7 @@ export BATCH_ROOT_BASE=
 
 # Base path of FTP directory on the cluster
 export FTP_PATH_BASE=
-```
 
-## Constant/derivative variables 
-```bash
 # Base bsub command line for all commands.
 export BSUB_CMDLINE="bsub"
 
@@ -34,12 +31,7 @@ export PYTHONPATH=${PYTHON_INSTALL_PATH}
 
 # External service paths
 CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
-``` 
 
-## Fetch and build the code
-By modifying the first four variables, you can run arbitrary versions of both the main and the VEP pipeline. This is highly useful for development and debugging. By default it fetches master branches of both repositories.
-
-```bash
 export MAIN_REMOTE=origin
 export MAIN_BRANCH=master
 export VEP_REMOTE=origin
