@@ -13,6 +13,7 @@ class TestGetTraitNames(unittest.TestCase):
         traits = trait_names_parsing.parse_trait_names(test_filename)
         self.assertEqual(
             sorted(traits),
-            sorted(['breast-ovarian cancer, familial 1', 'hereditary breast and ovarian cancer syndrome',
-             'hereditary cancer-predisposing syndrome', 'not provided'])
+            sorted([
+                'breast-ovarian cancer, familial 1', 'hereditary breast and ovarian cancer syndrome',
+                'hereditary cancer-predisposing syndrome', 'not provided'])
         )
