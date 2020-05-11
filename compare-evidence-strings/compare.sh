@@ -100,11 +100,14 @@ paste 02.fields.old 01.keys-sorted.old.json | sort -u > 03.fields-and-strings.ol
 echo "Compute difference"
 DIFF_FILE="diff.$(date +'%Y%m%d%H%M%S')"
 export DIFF_FILE
+# The --no-index option is important, because otherwise git will refuse to compare the files if you're running this
+# script from right inside the repository (because the files are untracked).
 git diff \
   --minimal \
   -U0 \
   --color=always \
   --word-diff=color \
+  --no-index \
   03.fields-and-strings.old \
   03.fields-and-strings.new &> "${DIFF_FILE}"
 
