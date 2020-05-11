@@ -1,7 +1,21 @@
 [![Build Status](https://travis-ci.com/EBIvariation/eva-cttv-pipeline.svg?branch=master)](https://travis-ci.com/EBIvariation/eva-cttv-pipeline)
 [![Coverage Status](https://coveralls.io/repos/github/EBIvariation/eva-cttv-pipeline/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/eva-cttv-pipeline?branch=master)
 
-# Introduction
+
+
+# How to submit an Open Targets batch
+Batch submission process consists of two major tasks, which are performed asynchronously:
+1. [**Manual curation**](docs/manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
+2. [**Evidence string generation**](docs/generate-evidence-strings.md) is mostly automated and should be run for every Open Targets batch submission.
+
+Additional documentation:
+* [Setting up the common environment](docs/environment.md) which is required by both protocols to be able to run
+* [Advanced build instructions](docs/build.md), which are not required for batch processing under normal circumstances
+* [Evidence string comparison protocol](compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
+
+
+
+# Background information
 
 ## ClinVar
 [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) is a curated database of clinically relevant genetic variation in humans, maintaned by the National Center for Biotechnology Information in the USA. For each variant, it stores a handful of information:
@@ -36,16 +50,7 @@ ClinVar data is highly valuable, but in its original form is not suitable for su
 
 Approximately one month before the submission deadline, OpenTargets will contact their submitters and specify the requirements for the next release. At this point the EVA can start executing the main submission protocol (see below). Once the data is ready, it is submitted to OpenTargets, and then the same will happen with the next release. Most of the actions in the pipeline are automated.
 
-# How to submit an Open Targets batch
-Batch submission process consists of two major tasks, which are performed asynchronously.
 
-First task is the [**manual curation**](docs/manual-curation/README.md) of trait names. This should be performed periodically (approximately once every two months) as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
-
-Second task is the [**evidence string generation**](docs/generate-evidence-strings.md). This part is automated and should be run for every Open Targets batch submission.
-
-To execute either of the two protocols, you will first need to follow [**build instructions**](docs/build.md).
-
-When any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then [**comparing the evidence strings**](compare-evidence-strings/) to see if the introduced changes are correct.
 
 ## Workflow diagram
 
