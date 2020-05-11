@@ -39,15 +39,15 @@ Approximately one month before the submission deadline, OpenTargets will contact
 # How to submit an Open Targets batch
 Batch submission process consists of two major tasks, which are performed asynchronously.
 
-First task is the [**manual curation**](docs/manual-curation.md) of trait names. This should be performed periodically (approximately once every two months) as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
+First task is the [**manual curation**](docs/manual-curation/README.md) of trait names. This should be performed periodically (approximately once every two months) as new ClinVar versions come out, containing new trait names. The output of this step is used by the main evidence string generation pipeline.
 
 Second task is the [**evidence string generation**](docs/generate-evidence-strings.md). This part is automated and should be run for every Open Targets batch submission. 
 
 To execute either of the two protocols, you will first need to follow [**build instructions**](docs/build.md).
 
-When any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then [comparing the evidence strings](compare-evidence-strings/) to see if the introduced changes are correct.
+When any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then [**comparing the evidence strings**](compare-evidence-strings/) to see if the introduced changes are correct.
 
-# Workflow diagram
+## Workflow diagram
 
 ![](docs/workflow.png)
 
