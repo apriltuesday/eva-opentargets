@@ -20,7 +20,7 @@ The protocol consists of four parts which are done in sequence by different peop
 ## Setting up environment
 To follow the technical steps of the protocol, you will need to set up the environment.
 
-First, set up the common environment as explained in the [build instructions](../build.md#setting-up-the-common-environment).
+First, set up the common environment as explained in the [build instructions](../environment.md).
 
 Next, set up the protocol-specific environment, **filling in `${CURATION_RELEASE}`:**
 ```bash

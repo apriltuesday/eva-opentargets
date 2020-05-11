@@ -2,7 +2,7 @@
 _Issue template: https://www.ebi.ac.uk/panda/jira/browse/EVA-1912_
 
 ## 1. Set up the environment
-First, set up the common environment as explained in the [build instructions](build.md).
+First, [set up the common environment.](environment.md)
 
 Next, set up the protocol-specific environment. The variables in it are specific to each Open Targets release. They are either announced the e-mail which they send a few weeks before the data submission deadline, or can be derived from the information in it:
 * Year and month of the upcoming Open Targets release (`OT_RELEASE`). For example, if you're processing data for “20.02” release, this variable will be set to `2020-02`.

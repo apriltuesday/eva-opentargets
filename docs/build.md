@@ -1,67 +1,15 @@
-# Setting up the common environment
+# Advanced build instructions
 
-Log in to the LSF cluster, where all data processing must take place. Switch to a common EVA production user instead of your personal account. Then adjust and execute the commands below. They will set up the environment, fetch and build the code.
+If you are running the pipeline on the EBI LSF cluster, it already includes a local installation of the pipeline and its dependencies, so these instructions do not to be run again in this case. Refer to [instructions on setting up the common environment](environment.md).
 
-Notes:
-* The first five variables are installation-specific and are blanked in this repository. You can get the values for the EVA use case from the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md).
-* By modifying the `*REMOTE` and `*BRANCH` variables, you can run arbitrary versions of both the main and the VEP pipeline. This is highly useful for development and debugging. By default it fetches master branches of both repositories.
-
-```bash
-# This variable should point to the directory where the clone of this repository is located on the cluster
-export CODE_ROOT=
-
-# Location of Python installation which you configured using build instructions
-export PYTHON_INSTALL_PATH=
-
-# Location of bcftools installation path
-export BCFTOOLS_INSTALL_PATH=
-
-# The directory where subdirectories for each batch will be created
-export BATCH_ROOT_BASE=
-
-# Base path of FTP directory on the cluster
-export FTP_PATH_BASE=
-
-# Base bsub command line for all commands.
-export BSUB_CMDLINE="bsub"
-
-# Setting up Python paths
-export PATH=${PYTHON_INSTALL_PATH}:${PYTHON_INSTALL_PATH}/bin:${BCFTOOLS_INSTALL_PATH}:$PATH
-export PYTHONPATH=${PYTHON_INSTALL_PATH}
-
-# External service paths
-CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
-
-export MAIN_REMOTE=origin
-export MAIN_BRANCH=master
-export VEP_REMOTE=origin
-export VEP_BRANCH=master
-
-cd ${CODE_ROOT}
-git fetch ${MAIN_REMOTE}
-git checkout ${MAIN_BRANCH}
-git reset --hard ${MAIN_REMOTE}/${MAIN_BRANCH}
-
-git submodule update --init --recursive
-cd vep-mapping-pipeline
-git fetch ${VEP_REMOTE}
-git checkout ${VEP_BRANCH}
-git reset --hard ${VEP_REMOTE}/${VEP_BRANCH}
-cd ..
-
-python3 setup.py install
-```
-
-# Additional instructions for special cases (doesn't need to be run every time)
-
-The pipeline requires Python version 3.8.
-
-## Python 3.8 installation (optional)
-The instructions in this section will be useful:
+## Python 3.8 installation
+The pipeline requires Python 3.8 to run. The instructions in this section will be useful:
 * If you have a different version of Python and want to install Python 3.8 without replacing your default `python` / `python3` executables;
 * If you are running the pipeline on the `ebi-cli` cluster, which currently only supports Python 3.4.
 
-Adjust `VERSION` and `INSTALL_PATH` if needed.
+### Common commands
+
+Run the commands below and adjust `VERSION` and `INSTALL_PATH` if needed:
 
 ```bash
 VERSION=3.8.1
@@ -129,16 +77,19 @@ To use the local deployment, uncomment the configuration section at the top of `
 
 Please contact the semantic data integration team at [SPOT](https://www.ebi.ac.uk/about/spot-team) if you have questions about local OLS installation.
 
-## Building the pipeline and (optionally) setting up virtual environment
-1. `git clone --recursive git@github.com:EBIvariation/eva-cttv-pipeline.git`
-2. `cd eva-cttv-pipeline`
-3. [OPTIONAL] `virtualenv -p python3.8 venv`
-4. [OPTIONAL] `source venv/bin/activate` (`venv/bin/deactivate` to deactivate virtualenv)
-5. `pip install -r requirements.txt`
-6. And then one of:
-   * To install: `python3 setup.py install`
-   * To install to develop: `python3 setup.py develop`
-   * To build a source distribution: `python3 setup.py sdist`
+## Full commands to install the pipeline
+```bash
+git clone --recursive git@github.com:EBIvariation/eva-cttv-pipeline.git
+cd eva-cttv-pipeline
+virtualenv -p python3.8 venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+And then one of:
+* To install: `python3 setup.py install`
+* To install to develop: `python3 setup.py develop`
+* To build a source distribution: `python3 setup.py sdist`
 
 ## Tests
 You can run all tests with: `python3 setup.py test`
