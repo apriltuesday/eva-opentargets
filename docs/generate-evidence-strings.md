@@ -44,19 +44,27 @@ mkdir -p clinvar gene_mapping trait_mapping evidence_strings logs
 if [[ `date +"%Y"` = ${CLINVAR_RELEASE_YEAR} ]]
 then
   # Same year
-  CLINVAR_XML="/xml/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
-  CLINVAR_TSV="/tab_delimited/archive/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+  CLINVAR_XML="xml/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="tab_delimited/archive/variant_summary_${CLINVAR_RELEASE}.txt.gz"
 else
   # Different (past) year
-  CLINVAR_XML="/xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
-  CLINVAR_TSV="/tab_delimited/archive/${CLINVAR_RELEASE_YEAR}/variant_summary_${CLINVAR_RELEASE}.txt.gz"
+  CLINVAR_XML="xml/archive/${CLINVAR_RELEASE_YEAR}/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz"
+  CLINVAR_TSV="tab_delimited/archive/${CLINVAR_RELEASE_YEAR}/variant_summary_${CLINVAR_RELEASE}.txt.gz"
 fi
 
-# Download three ClinVar files
+# ClinVar VCF uses a different path pattern
+CLINVAR_VCF_NAME=$(
+  curl -sS -l "${CLINVAR_PATH_BASE}/vcf_GRCh38/weekly/" \
+  | grep "^clinvar_${CLINVAR_RELEASE_YEAR}${CLINVAR_RELEASE_MONTH}..\.vcf\.gz$" \
+  | head -n1
+)
+CLINVAR_VCF="vcf_GRCh38/weekly/${CLINVAR_VCF_NAME}"
+
+# Download ClinVar XML + TSV + VCF
 wget --directory-prefix ${BATCH_ROOT}/clinvar/ \
   "${CLINVAR_PATH_BASE}/${CLINVAR_XML}" \
   "${CLINVAR_PATH_BASE}/${CLINVAR_TSV}" \
-  "${CLINVAR_PATH_BASE}/vcf_GRCh38/clinvar.vcf.gz"
+  "${CLINVAR_PATH_BASE}/${CLINVAR_VCF}"
 
 # Download the Open Targets JSON schema
 wget \
