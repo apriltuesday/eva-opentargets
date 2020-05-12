@@ -154,7 +154,7 @@ ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/consequence_vep.out \
   -e ${BATCH_ROOT}/logs/consequence_vep.err \
   bash ${CODE_ROOT}/vep-mapping-pipeline/run_consequence_mapping.sh \
-  ${BATCH_ROOT}/clinvar/clinvar.vcf.gz \
+  ${BATCH_ROOT}/clinvar/clinvar_${CLINVAR_RELEASE_YEAR}${CLINVAR_RELEASE_MONTH}??.vcf.gz \
   ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv && \
 cat \
   ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
