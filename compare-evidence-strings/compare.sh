@@ -1,7 +1,7 @@
 #!/bin/bash
 # A script to compare evidence strings. Please see README.md for details on using it.
 
-# A function to sort key in evidence strings. This makes them more readable and helps comparison through word diff.
+# A function to sort keys in the evidence strings. This makes them more readable and helps comparison through word diff.
 # Also removes the "validated_aginst_schema_version" field entirely, because it frequently changes between the
 # versions, and this change is not important.
 # The two arguments are input and output JSON files.
@@ -14,29 +14,25 @@ sort_keys () {
   > "$2"
 }
 
-# A function to extract some fields from the evidence strings. The fields being extracted are:
+# A function to extract all unique identifying fields from the evidence strings. The fields being extracted are:
 # * ClinVar RCV accession
+# * Phenotype
+# * Allele origin
 # * Variant ID (rsID or, if absent, RCV accession)
 # * Ensembl gene ID
-# * Functional consequence SO code
 extract_fields () {
   ./jq '
     .unique_association_fields.clinvarAccession + "|" +
+    .unique_association_fields.phenotype + "|" +
+    .unique_association_fields.alleleOrigin + "|" +
     .unique_association_fields.variant_id + "|" +
-    .unique_association_fields.gene + "|" +
-    .evidence.gene2variant.functional_consequence
-  ' < "$1" \
-  | tr -d '"' | tr '|' '\t' \
-  | sed -e 's|http://purl.obolibrary.org/obo/||g' \
-        -e 's|http://identifiers.org/clinvar.record/||g' \
-        -e 's|http://identifiers.org/dbsnp/||g' \
-        -e 's|http://www.ncbi.nlm.nih.gov/clinvar/||g' \
-  > "$2"
+    .unique_association_fields.gene
+  ' < "$1" | tr -d '"' > "$2"
 }
 
 echo "Set up environment & parse parameters"
 export -f sort_keys extract_fields
-# To ensure that the sort results are consistent, set the sort order locale directly
+# To ensure that the sort results are consistent, set the sort order locale explicitly
 export LC_COLLATE=C
 # The realpath is required to make the paths work after the working directory change
 OLD_EVIDENCE_STRINGS=$(realpath "$1")
@@ -49,21 +45,45 @@ chmod a+x jq
 
 echo "Install aha — HTML report generator"
 wget -q https://github.com/theZiz/aha/archive/0.5.zip
-unzip -q 0.5.zip && cd aha-0.5 && make && mv aha ../ && cd .. && rm -rf aha-0.5 0.5.zip
+unzip -q 0.5.zip && cd aha-0.5 && make &>/dev/null && mv aha ../ && cd .. && rm -rf aha-0.5 0.5.zip
 
 echo "Sort keys and remove schema version from the evidence strings"
 sort_keys "${OLD_EVIDENCE_STRINGS}" 01.keys-sorted.old.json \
   & sort_keys "${NEW_EVIDENCE_STRINGS}" 01.keys-sorted.new.json \
   & wait
 
-echo "Extract some fields to pair old and new evidence strings together"
+echo "Extract the unique identifying fields to pair old and new evidence strings together"
 extract_fields 01.keys-sorted.old.json 02.fields.old \
   & extract_fields 01.keys-sorted.new.json 02.fields.new \
   & wait
 
-echo "Paste fields & original strings into the same table and sort"
-paste 02.fields.old 01.keys-sorted.old.json | sort -u > 03.fields-and-strings.old \
-  & paste 02.fields.new 01.keys-sorted.new.json | sort -u > 03.fields-and-strings.new \
+echo "Paste the unique identifying fields & original strings into the same table and sort"
+paste 02.fields.old 01.keys-sorted.old.json | sort -k1,1 > 03.fields-and-strings.old \
+  & paste 02.fields.new 01.keys-sorted.new.json | sort -k1,1 > 03.fields-and-strings.new \
+  & wait
+
+echo "Compute sets of all non-unique identifying fields in each evidence string set"
+cut -f1 03.fields-and-strings.old | uniq -c | awk '$1>1 {print $2}' > 04.non-unique-fields.old \
+  & cut -f1 03.fields-and-strings.new | uniq -c | awk '$1>1 {print $2}' > 04.non-unique-fields.new \
+  & wait
+cat 04.non-unique-fields.old 04.non-unique-fields.new | sort -u > 05.all-non-unique-fields
+
+echo "Extract evidence strings with *non-unique* identifying fields into a separate group"
+join -j 1 05.all-non-unique-fields 03.fields-and-strings.old > 06.non-unique.old \
+  & join -j 1 05.all-non-unique-fields 03.fields-and-strings.new > 06.non-unique.new \
+  & wait
+
+echo "Extract evidence strings with *unique* identifying fields into a separate group"
+# -v 2 means "print only records from file #2 which cannot be paired"
+# If records cannot be paired, it means their identifying fields are *not* in the list of duplicates
+join -j 1 -v 2 05.all-non-unique-fields 03.fields-and-strings.old > 07.unique.old \
+  & join -j 1 -v 2 05.all-non-unique-fields 03.fields-and-strings.new > 07.unique.new \
+  & wait
+
+echo "Separate unique evidence strings into (deleted, common, new)"
+join -j 1 07.unique.old 07.unique.new > 08.common \
+  & join -j 1 -v 1 07.unique.old 07.unique.new > 08.deleted \
+  & join -j 1 -v 2 07.unique.old 07.unique.new > 08.added \
   & wait
 
 # Comparing functional consequences *correctly* will require investigating the nature of relationships (one-to-one,
