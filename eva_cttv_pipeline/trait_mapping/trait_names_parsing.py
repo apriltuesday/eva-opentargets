@@ -2,6 +2,11 @@ import gzip
 import json
 
 
+# TODO: unify the acceptable clinical significance levels project-wide
+ACCEPTABLE_CLINICAL_SIGNIFICANCE = ['pathogenic', 'likely pathogenic', 'protective', 'association', 'risk_factor',
+                                    'affects', 'drug response']
+
+
 def parse_trait_names(filepath: str) -> list:
     """
     For a file containing ClinVar records in the TSV format, return a list of the trait names for the records in the
@@ -26,9 +31,7 @@ def parse_trait_names(filepath: str) -> list:
             # Check if the record should be processed given its level of clinical significance
             acceptable_clinical_significance_present = False
             for clinical_significance in data['ClinicalSignificance'].split(','):
-                # TODO: unify the acceptable clinical significance levels project-wide
-                if clinical_significance.strip().lower() in ['pathogenic', 'likely pathogenic', 'protective', 'association',
-                                                     'risk_factor', 'affects', 'drug response']:
+                if clinical_significance.strip().lower() in ACCEPTABLE_CLINICAL_SIGNIFICANCE:
                     acceptable_clinical_significance_present = True
             if not acceptable_clinical_significance_present:
                 continue
