@@ -18,6 +18,7 @@ The script will take a few minutes to run and will create a `comparison/` subdir
 
 ## Understanding the results
 Copy the `report.zip` to your local machine, unzip, and open `report.html` in any web browser. It contains an index page outlining the major statistics of differences between the evidence strings:
+
 ![](report-example/01.index.png)
 
 ### Association fields
@@ -43,9 +44,11 @@ Similarly, evidence strings which occur only in the second file are marked as â€
 Evidence strings which are present in both files (judging by the association fields) are also counted and have two progressively more restrictive categories.
 
 Evidence strings which have changed some of their fields (but not the association fields) between files 1 and 2 are part of the previous category. They are counted and the diff is available over a link, for example:
+
 ![](report-example/02.changed.png)
 
 Evidence strings for which the **functional consequence** specifically has changed are part of the _previous_ category. By clicking on their total count, you will see the frequency of transitions between different functional consequence types (from file 1 to file 2) to see if there are any patterns:
+
 ![](report-example/03.consequences.png)
 
 ## Future improvements
