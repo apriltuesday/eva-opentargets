@@ -10,7 +10,10 @@ Batch submission process consists of two major tasks, which are performed asynch
 
 Additional documentation:
 * [Setting up the common environment](docs/environment.md) which is required by both protocols to be able to run
-* [Advanced build instructions](docs/build.md), which are not required for batch processing under normal circumstances
+* [Advanced build instructions](docs/build.md), which are not required for batch processing under normal circumstances, because there is already an existing installation of the pipeline on the cluster. These instructions are necessary for the following cases:
+  + Installing a newer Python version
+  + Clean copying the repository and setting up the package installation from scratch
+  + Running the pipeline in non-standard situations, for example when we need to use a version of OLS which has not yet been released
 * [Evidence string comparison protocol](compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
 
 
