@@ -170,29 +170,29 @@ cat << EOF > report.html
 <style type="text/css">
   code { white-space: pre; }
 </style>
-<code>Compared:
+<code><b><big>Evidence string comparison report</big></b>
 
-<b>File 1 - ${OLD_EVIDENCE_STRINGS}</b>
-Total evidence strings: $(wc -l <03.fields-and-strings.old)
-  With non-unique association fields: $(wc -l <06.non-unique.old)
-  With unique association fields: $(wc -l <07.unique.old)
+<b>File 1</b> - ${OLD_EVIDENCE_STRINGS}
+Total evidence strings: <b>$(wc -l <03.fields-and-strings.old)</b>
+  Of them, with non-unique association fields: <b>$(wc -l <06.non-unique.old)</b>
+  Of them, with unique association fields: <b>$(wc -l <07.unique.old)</b>
 
-<b>File 2 - ${NEW_EVIDENCE_STRINGS}</b>
-Total evidence strings: $(wc -l <03.fields-and-strings.new)
-  With non-unique association fields: $(wc -l <06.non-unique.new)
-  With unique association fields: $(wc -l <07.unique.new)
+<b>File 2</b> - ${NEW_EVIDENCE_STRINGS}
+Total evidence strings: <b>$(wc -l <03.fields-and-strings.new)</b>
+  Of them, with non-unique association fields: <b>$(wc -l <06.non-unique.new)</b>
+  Of them, with unique association fields: <b>$(wc -l <07.unique.new)</b>
 
 <b>Evidence strings with non-unique association fields</b>
 It is not easily possible to establish one-to-one relationships for these strings.
-Hence, detailed analysis of changes is impossible.
+Hence, detailed analysis of changes for them is impossible.
 However, you can see <a href="non-unique.html">the full diff only for those evidence strings</a>.
 
 <b>Statistics for evidence strings with unique association fields</b>
-  Deleted: $(wc -l <08.deleted) — <a href="deleted.html">see diff</a>
-  Added: $(wc -l <08.added) — <a href="added.html">see diff</a>
-  Present in both files: $(wc -l <08.common)
-    Of them, changed: $(awk -F$'\t' '$2 != $3' 08.common | wc -l) — <a href="changed.html">see diff</a>
-      Of them, have a different consequence type: $(wc -l <12.consequences-transitions) — <a href="consequences-transition-frequency.html">see full list of transitions</a>
+Deleted: <b><a href="deleted.html">$(wc -l <08.deleted)</a></b>
+Added: <b><a href="added.html">$(wc -l <08.added)</a></b>
+Present in both files: <b>$(wc -l <08.common)</b>
+  Of them, changed: <b><a href="changed.html">$(awk -F$'\t' '$2 != $3' 08.common | wc -l)</a></b>
+    Of them, have a different consequence: <b><a href="consequences-transition-frequency.html">$(wc -l <12.consequences-transitions)</a></b>
 </code></html>
 EOF
 
