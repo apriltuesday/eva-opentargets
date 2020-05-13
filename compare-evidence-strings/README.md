@@ -3,18 +3,18 @@
 ## Overview
 Comparing two sets of evidence strings is an important measure of control in several situations:
 * Running the same code on different inputs to see if the data changes make sense;
-* Running different versions of code on the same input to see if code changes do not cause regressions in the final output;
-* In case of Ensembl/VEP version changes: running the _same_ code on the _same_ inputs, but using different VEP releases, to see if it causes any breaking changes in the final output.
+* Running different versions of code on the same input to see if code changes do not cause regressions;
+* In case of Ensembl/VEP version changes: running the _same_ code on the _same_ inputs, but using different VEP releases, to see if it causes any breaking changes.
  
 ## Running the comparison
- This protocol contains a script which automates evidence string comparison. It can be run with the following command:
+Two sets of evidence strings can be compared by running the command:
 ```bash
 bash compare.sh \
   old_evidence_strings.json \
   new_evidence_strings.json
 ```
 
-The script will take a few minutes to run and will create a `comparison/` subdirectory in the current working directory. It will contain several intermediate files, and a single final file under the name of `report.zip`. (You can download an example of [here](report-example/report.zip).)
+The script will take a few minutes to run and will create a `comparison/` subdirectory in the current working directory. It will contain several intermediate files, and a single final file under the name of **`report.zip`**. (You can download an example of this final file [here](report-example/report.zip).)
 
 ## Understanding the results
 Copy the `report.zip` to your local machine, unzip, and open `report.html` in any web browser. It contains an index page outlining the major statistics of differences between the evidence strings:
@@ -32,10 +32,10 @@ For the EVA/ClinVar use case, the association fields are:
 1. Ensembl gene ID
 
 ### Diff for evidence strings with non-unique association fields
-If a certain set of association fields occurs more than once for at least one of the input files, the evidence strings falls in the “non-unique” category. They cannot be easily paired out, so for them only a bulk diff between the two files is produced, which is available through a diff link.
+If a certain set of association fields occurs more than once for at least one of the input files, the evidence strings falls in the “non-unique” category. They cannot be easily paired between files 1 and 2, so for them only a bulk diff between the two files is produced, which is available through a diff link.
 
 ### Diffs and statistics for evidence strings with unique association fields
-If a certain set of association fields occurs at most once per each of the files, its evidence strings will be in the “unique category”. For them, it is easy to pair old and new evidence strings together, and to carry out more detailed analysis.
+If a certain set of association fields occurs at most once per each of the files, its evidence strings will be in the “unique” category. For them, it is easy to pair old and new evidence strings together, and to carry out more detailed analysis.
 
 Evidence strings which occur only in the first file are marked as “deleted”, and their list is available by clicking on the total number.
 
