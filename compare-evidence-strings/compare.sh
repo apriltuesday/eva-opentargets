@@ -2,8 +2,9 @@
 # A script to compare evidence strings. Please see README.md for details on using it.
 
 # A function to sort keys in the evidence strings. This makes them more readable and helps comparison through word diff.
-# Also removes the "validated_aginst_schema_version" field entirely, because it frequently changes between the
-# versions, and this change is not important.
+# Also removes several version- and date-related fields which are changed frequently, but do not reflect actual change:
+# * validated_aginst_schema_version
+# * date_asserted
 # The two arguments are input and output JSON files.
 sort_keys () {
   ./jq -S "." --tab <"$1" \
@@ -11,6 +12,7 @@ sort_keys () {
     | sed -e 's|}{|}~{|g' \
     | tr '~' '\n' \
     | sed -e 's|,"validated_against_schema_version": "[0-9.]*"||g' \
+    | sed -e 's|"date_asserted": ".\{19\}"||g' \
   > "$2"
 }
 
