@@ -42,7 +42,7 @@ class Report:
         self.n_unrecognised_allele_origin = defaultdict(int)
         self.nsv_list = []
         self.unmapped_traits = defaultdict(int)
-        self.evidence_string_list = []
+        self.evidence_string_count = 0
         self.evidence_list = []  # To store Helen Parkinson records of the form
         self.counters = self.__get_counters()
 
@@ -50,7 +50,7 @@ class Report:
 
         report_strings = [
             str(self.counters["record_counter"]) + ' ClinVar records in total',
-            str(len(self.evidence_string_list)) + ' evidence string jsons generated',
+            str(self.evidence_string_count) + ' evidence string jsons generated',
             str(self.counters["n_processed_clinvar_records"]) +
             ' ClinVar records generated at least one evidence string',
             str(len(self.unrecognised_clin_sigs)) +
@@ -260,6 +260,7 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                 validate_evidence_string(evidence_string, clinvar_record, trait,
                                          consequence_type.ensembl_gene_id, ot_schema_contents)
                 output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
+                self.evidence_string_count += 1
 
                 report.evidence_list.append([clinvar_record.accession,
                                              clinvar_record_measure.rs_id,
