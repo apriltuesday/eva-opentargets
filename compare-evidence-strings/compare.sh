@@ -101,68 +101,59 @@ join -j 1 07.unique.old 07.unique.new > 08.common \
   & join -j 1 -v 2 07.unique.old 07.unique.new > 08.added \
   & wait
 
-# Comparing functional consequences *correctly* will require investigating the nature of relationships (one-to-one,
-# one-to-many etc.) for all ClinVar objects. This will be done in subsequent tickets. Until then, functional consequence
-# calculations are disabled so as not to be misleading.
+echo "Compute diff for evidence strings with non-unique association fields"
+compute_git_diff 06.non-unique.old 06.non-unique.new > 09.non-unique-diff
 
-#echo "Extract all unique variants"
-#cut -f1-2 03.fields-and-strings.old | sort -u > 04.all-variants.old \
-#  & cut -f1-2 03.fields-and-strings.new | sort -u > 04.all-variants.new \
-#  & wait
-#
-#echo "Group variants into deleted, new and common"
-#comm -23 04.all-variants.old 04.all-variants.new > 05.variants.deleted \
-#  & comm -13 04.all-variants.old 04.all-variants.new > 05.variants.added \
-#  & comm -12 04.all-variants.old 04.all-variants.new > 05.variants.common \
-#  & wait
-#
-#echo "Find variants which appear in both files but where functional mappings have changed"
-#cut -f1-3 03.fields-and-strings.old | sort -u > 06.consequences.old \
-#  & cut -f1-3 03.fields-and-strings.new | sort -u > 06.consequences.new \
-#  & wait
-#join 3_common old.consequences -j 1 | join /dev/stdin new.consequences -j1 | awk '$2 != $3' > 3_common_changed
-#
-#There are $(wc -l 1_deleted) records present only in the first file:
-#$(sed 's|^|  |' 1_deleted)
-#
-#There are $(wc -l 2_added) records present only in the second file:
-#$(sed 's|^|  |' 2_added)
-#
-#There are also $(wc -l 3_common) records present in both files.
-#Of them, $(wc -l 3_common_changed) records have different consequences between the first and the second files:
-#$(sed 's|^|  |' 3_common_changed)
+echo "Compute diff for evidence strings with unique association fields"
+compute_git_diff 07.unique.old 07.unique.new > 09.unique-diff
 
-echo "Compute difference"
-DIFF_FILE="diff.$(date +'%Y%m%d%H%M%S')"
-export DIFF_FILE
-# The --no-index option is important, because otherwise git will refuse to compare the files if you're running this
-# script from right inside the repository (because the files are untracked).
-git diff \
-  --minimal \
-  -U0 \
-  --color=always \
-  --word-diff=color \
-  --no-index \
-  03.fields-and-strings.old \
-  03.fields-and-strings.new &> "${DIFF_FILE}"
+# echo "Calculating the advanced statistics" - to be implemented during further iterations
+#NON_UNIQUE_EVS_PERCENTAGE_OLD=$(bc -l <<< "scale=2; ${NON_UNIQUE_EVS_OLD} * 100 / ${TOTAL_EVS_OLD}")
+#NON_UNIQUE_EVS_PERCENTAGE_NEW=$(bc -l <<< "scale=2; ${NON_UNIQUE_EVS_NEW} * 100 / ${TOTAL_EVS_NEW}")
+#export NON_UNIQUE_EVS_PERCENTAGE_OLD NON_UNIQUE_EVS_PERCENTAGE_NEW
 
 echo "Producing the report"
-cat << EOF > report
+
+COLOR_RED='\033[0;31m'
+COLOR_GREEN='\033[0;32m'
+COLOR_RESET='\033[0m' # No Color
+export COLOR_RED COLOR_RESET
+
+cat << EOF > report.html
+<html><code>
 Compared:
 
-File 1
-${OLD_EVIDENCE_STRINGS}
-Total unique records: $(wc -l <03.fields-and-strings.old)
+<b>File 1 - ${OLD_EVIDENCE_STRINGS}</b>
+Total evidence strings: $(wc -l <03.fields-and-strings.old)
+  With non-unique association fields: $(wc -l <06.non-unique.old)
+  With unique association fields: $(wc -l <07.unique.old)
 
-File 2
-${NEW_EVIDENCE_STRINGS}
-Total unique records: $(wc -l <03.fields-and-strings.new)
+<b>File 2 - ${NEW_EVIDENCE_STRINGS}</b>
+Total evidence strings: $(wc -l <03.fields-and-strings.new)
+  With non-unique association fields: $(wc -l <06.non-unique.new)
+  With unique association fields: $(wc -l <07.unique.new)
 
-The full diff between two files follows.
+<b>Statistics for evidence strings with unique association fields</b>
+  Deleted: $(wc -l <08.deleted)
+  Added: $(wc -l <08.added)
+  Present in both files: $(wc -l <08.common)
+    Changed: $(awk '$2 != $3' 08.common | wc -l)
 
-$(tail -n+5 "${DIFF_FILE}" | awk '{if ($0 !~ /@@/) {print $0 "\n"}}')
+See accompanying files for specific diffs:
+  <a href="non-unique.html">non-unique.html</a> - diff for evidence strings with non-unique association fields
+  <a href="deleted.html">deleted.html</a> - evidence strings which are deleted in file 2 compared to file 1
+  <a href="added.html">added.html</a> - evidence strings which are added in file 2 compared to file 1
+  <a href="changed.html">changed.html</a> - evidence strings which changed between file 1 and file 2
+</code></html>
 EOF
 
-./aha --word-wrap < report > report.html
+(tail -n+5 09.non-unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.non-unique
+(echo -e "${COLOR_RED}"; awk '{print $0 "\n"}' 08.deleted; echo -e "${COLOR_RESET}") > 99.deleted
+(echo -e "${COLOR_GREEN}"; awk '{print $0 "\n"}' 08.added; echo -e "${COLOR_RESET}") > 99.added
+(tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
+
+parallel './aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed
+rm -rf report.zip
+zip report.zip "*.html"
 
 cd ..
