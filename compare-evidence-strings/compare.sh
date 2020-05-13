@@ -153,7 +153,7 @@ paste 11.consequences.old 11.consequences.new \
   | sort > 12.consequences-transitions
 
 echo "  Compute frequencies of consequence type transitions"
-  uniq -c 12.consequences-transitions | sort -k1,1rn > 13.consequences-transition-frequency
+uniq -c 12.consequences-transitions | sort -k1,1rn > 99.consequences-transition-frequency
 
 
 
@@ -182,23 +182,18 @@ Total evidence strings: $(wc -l <03.fields-and-strings.new)
   With non-unique association fields: $(wc -l <06.non-unique.new)
   With unique association fields: $(wc -l <07.unique.new)
 
+<b>Evidence strings with non-unique association fields</b>
+It is not easily possible to establish one-to-one relationships for these strings.
+Hence, detailed analysis of changes is impossible.
+However, you can see <a href="non-unique.html">the full diff only for those evidence strings</a>.
+
 <b>Statistics for evidence strings with unique association fields</b>
-  Deleted: $(wc -l <08.deleted)
-  Added: $(wc -l <08.added)
+  Deleted: $(wc -l <08.deleted) — <a href="deleted.html">see diff</a>
+  Added: $(wc -l <08.added) — <a href="added.html">see diff</a>
   Present in both files: $(wc -l <08.common)
-    Changed: $(awk -F$'\t' '$2 != $3' 08.common | wc -l)
-
-See accompanying files for specific diffs:
-  <a href="non-unique.html">non-unique.html</a> - diff for evidence strings with non-unique association fields
-  <a href="deleted.html">deleted.html</a> - evidence strings which are deleted in file 2 compared to file 1
-  <a href="added.html">added.html</a> - evidence strings which are added in file 2 compared to file 1
-  <a href="changed.html">changed.html</a> - evidence strings which changed between file 1 and file 2
+    Of them, changed: $(awk -F$'\t' '$2 != $3' 08.common | wc -l) — <a href="changed.html">see diff</a>
+      Of them, have a different consequence type: $(wc -l <12.consequences-transitions) — <a href="consequences-transition-frequency.html">see full list of transitions</a>
 </code></html>
-
-<b>Frequency of transitions between functional consequence types</b>
-There are a total of $(wc -l 12.consequences-transitions) changes in functional consequence types. Full list:
-
-$(cat 13.consequences-transition-frequency)
 EOF
 
 (tail -n+5 09.non-unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.non-unique
@@ -206,7 +201,7 @@ EOF
 (echo -e "${COLOR_GREEN}"; awk '{print $0 "\n"}' 08.added; echo -e "${COLOR_RESET}") > 99.added
 (tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
 
-parallel './aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed
+parallel './aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency
 rm -rf report.zip
 zip report.zip ./*.html
 
