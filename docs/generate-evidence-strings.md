@@ -35,7 +35,7 @@ export CLINVAR_RELEASE=${CLINVAR_RELEASE_YEAR}-${CLINVAR_RELEASE_MONTH}
 # Create the necessary directories
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
-mkdir -p clinvar gene_mapping trait_mapping evidence_strings logs
+mkdir -p clinvar gene_mapping evidence_strings logs
 
 # Download ClinVar data. It is available in several formats. Different formats are convenient for different use cases,
 # hence we download three of them: XML dump; VCF summary; and TSV summary.

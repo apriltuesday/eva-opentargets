@@ -27,7 +27,7 @@ def parse_trait_names(filepath: str) -> list:
             acceptable_clinical_significance_present = False
             for clinical_significance in data['ClinicalSignificance'].split(','):
                 # TODO: unify the acceptable clinical significance levels project-wide
-                if clinical_significance.lower() in ['pathogenic', 'likely pathogenic', 'protective', 'association',
+                if clinical_significance.strip().lower() in ['pathogenic', 'likely pathogenic', 'protective', 'association',
                                                      'risk_factor', 'affects', 'drug response']:
                     acceptable_clinical_significance_present = True
             if not acceptable_clinical_significance_present:
