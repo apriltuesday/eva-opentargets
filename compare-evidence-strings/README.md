@@ -1,17 +1,57 @@
 # Comparison of evidence strings
 
-When major updates to the pipeline are implemented, an important measure of control is comparing evidence strings before and after the update for the same input data. This protocol contains commands which help do this.
-
-Compare the evidence strings with the script:
+## Overview
+Comparing two sets of evidence strings is an important measure of control in several situations:
+* Running the same code on different inputs to see if the data changes make sense;
+* Running different versions of code on the same input to see if code changes do not cause regressions in the final output;
+* In case of Ensembl/VEP version changes: running the _same_ code on the _same_ inputs, but using different VEP releases, to see if it causes any breaking changes in the final output.
+ 
+## Running the comparison
+ This protocol contains a script which automates evidence string comparison. It can be run with the following command:
 ```bash
 bash compare.sh \
   old_evidence_strings.json \
   new_evidence_strings.json
 ```
 
-The script should take a few minutes to run and will create the `comparison/` subdirectory in the current working directory. It will contain several files, the most important of which is `report.html`, which can be viewed in a browser.
+The script will take a few minutes to run and will create a `comparison/` subdirectory in the current working directory. It will contain several intermediate files, and a single final file under the name of `report.zip`. (You can download an example of [here](report-example/report.zip).)
+
+## Understanding the results
+Copy the `report.zip` to your local machine, unzip, and open `report.html` in any web browser. It contains an index page outlining the major statistics of differences between the evidence strings:
+![](report-example/01.index.png)
+
+### Association fields
+First two sections describe statistics per input file. The evidence strings are divided into two groups: those where the association fields are unique (the majority), and those where they are not.
+
+For the EVA/ClinVar use case, the association fields are:
+1. ClinVar RCV record accession
+1. Ontology term specifying which phenotype/trait is contained in the record
+1. Allele origin (germline or somatic)
+1. Variant ID (RS ID, if present, or the same RCV ID as in the first field)
+1. Ensembl gene ID
+
+### Diff for evidence strings with non-unique association fields
+If a certain set of association fields occurs more than once for at least one of the input files, the evidence strings falls in the “non-unique” category. They cannot be easily paired out, so for them only a bulk diff between the two files is produced, which is available through a diff link.
+
+### Diffs and statistics for evidence strings with unique association fields
+If a certain set of association fields occurs at most once per each of the files, its evidence strings will be in the “unique category”. For them, it is easy to pair old and new evidence strings together, and to carry out more detailed analysis.
+
+Evidence strings which occur only in the first file are marked as “deleted”, and their list is available by clicking on the total number.
+
+Similarly, evidence strings which occur only in the second file are marked as “added”, with the full list available over a link.
+
+Evidence strings which are present in both files (judging by the association fields) are also counted and have two progressively more restrictive categories.
+
+Evidence strings which have changed some of their fields (but not the association fields) between files 1 and 2 are part of the previous category. They are counted and the diff is available over a link, for example:
+![](report-example/02.changed.png)
+
+Evidence strings for which the **functional consequence** specifically has changed are part of the _previous_ category. By clicking on their total count, you will see the frequency of transitions between different functional consequence types (from file 1 to file 2) to see if there are any patterns:
+![](report-example/03.consequences.png)
 
 ## Future improvements
+
+### Support arbitrary association fields & fields to ignore
+Currently, the lists of fields are tailored to ClinVar/EVA use case and will not work for arbitrary evidence string sets. However, this can be easily rewritten as parameters.
 
 ### Alternative library for producing diffs
 The [diff2html-cli](https://github.com/rtfpessoa/diff2html-cli) is a more advanced library which can be used to replace `aha` in the future.
