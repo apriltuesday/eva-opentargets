@@ -50,7 +50,15 @@ compute_git_diff () {
   "$1" "$2"
 }
 
-export -f sort_keys extract_fields compute_git_diff
+# Extract only the functional consequence from the evidence string
+extract_functional_consequences () {
+  ./jq '.evidence.gene2variant.functional_consequence' \
+  | tr -d '"' \
+  | sed -e 's|http://purl.obolibrary.org/obo/||g' \
+        -e 's|http://targetvalidation.org/sequence/||g'
+}
+
+export -f sort_keys extract_fields compute_git_diff extract_functional_consequences
 
 
 
@@ -134,6 +142,19 @@ echo "  Diff for evidence strings with *unique* association fields"
 cut -f2 08.common > 10.common.old & cut -f3 08.common > 10.common.new & wait
 compute_git_diff 10.common.old 10.common.new > 09.unique-diff
 
+echo "  Extract functional consequences for all changed evidence strings"
+extract_functional_consequences < 10.common.old > 11.consequences.old \
+  & extract_functional_consequences < 10.common.new > 11.consequences.new \
+  & wait
+
+echo "  Identify consequence type transitions"
+paste 11.consequences.old 11.consequences.new \
+  | awk -F$'\t' '$1 != $2' \
+  | sort > 12.consequences-transitions
+
+echo "  Compute frequencies of consequence type transitions"
+  uniq -c 12.consequences-transitions | sort -k1,1rn > 13.consequences-transition-frequency
+
 
 
 ########################################################################################################################
@@ -173,6 +194,11 @@ See accompanying files for specific diffs:
   <a href="added.html">added.html</a> - evidence strings which are added in file 2 compared to file 1
   <a href="changed.html">changed.html</a> - evidence strings which changed between file 1 and file 2
 </code></html>
+
+<b>Frequency of transitions between functional consequence types</b>
+There are a total of $(wc -l 12.consequences-transitions) changes in functional consequence types. Full list:
+
+$(cat 13.consequences-transition-frequency)
 EOF
 
 (tail -n+5 09.non-unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.non-unique
