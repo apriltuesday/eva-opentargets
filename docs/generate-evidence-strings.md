@@ -66,10 +66,12 @@ wget --directory-prefix ${BATCH_ROOT}/clinvar/ \
   "${CLINVAR_PATH_BASE}/${CLINVAR_TSV}" \
   "${CLINVAR_PATH_BASE}/${CLINVAR_VCF}"
 
-# Download the Open Targets JSON schema
+# Download the Open Targets JSON schema and update the validator
 wget \
   -O ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json
+pip3 install --upgrade pip
+pip3 install --upgrade opentargets-validator==${OT_VALIDATOR_VERSION}
 ```
 
 ## 3. Manual steps & checks before running the pipeline
@@ -128,6 +130,7 @@ Here, we run several steps in sequence:
   + `evidence_strings.json` — evidence strings for submitting to Open Targets
   + `eva_clinvar.txt` — ZOOMA feedback with trait names
 * Prepare ClinVar xRefs ZOOMA feedback (see more on that below)
+* Additionally validate the evidence strings using `opentargets_validator` module
 
 ```bash
 cd ${CODE_ROOT} && \
@@ -175,20 +178,16 @@ ${BSUB_CMDLINE} -K \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
   python3 ${CODE_ROOT}/bin/clinvar_jsons/traits_to_zooma_format.py \
   -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
-  -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
+  -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt && \
+${BSUB_CMDLINE} -K -n 8 -M 16G \
+  -o ${BATCH_ROOT}/logs/opentargets_validator.out \
+  -e ${BATCH_ROOT}/logs/opentargets_validator.err \
+  python3 -m opentargets_validator.cli \
+  --schema ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
+  ${BATCH_ROOT}/evidence_strings/evidence_strings.json
 ```
 
 ## 5. Manual follow-up actions
-
-### Validate the evidence strings
-Generated evidence strings must be additionally validated using tool provided by Open Targets:
-```bash
-pip3 install --upgrade pip
-pip3 install --upgrade opentargets-validator==${OT_VALIDATOR_VERSION}
-python3 -m opentargets_validator.cli \
-  --schema https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json \
-  < ${BATCH_ROOT}/evidence_strings/evidence_strings.json
-```
 
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
