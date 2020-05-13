@@ -131,7 +131,8 @@ echo "  Diff for evidence strings with *non-unique* association fields"
 compute_git_diff 06.non-unique.old 06.non-unique.new > 09.non-unique-diff
 
 echo "  Diff for evidence strings with *unique* association fields"
-compute_git_diff 07.unique.old 07.unique.new > 09.unique-diff
+cut -f2 08.common > 10.common.old & cut -f3 08.common > 10.common.new & wait
+compute_git_diff 10.common.old 10.common.new > 09.unique-diff
 
 
 
@@ -144,8 +145,11 @@ COLOR_RESET='\033[0m' # No Color
 export COLOR_RED COLOR_RESET
 
 cat << EOF > report.html
-<html><code>
-Compared:
+<html>
+<style type="text/css">
+  code { white-space: pre; }
+</style>
+<code>Compared:
 
 <b>File 1 - ${OLD_EVIDENCE_STRINGS}</b>
 Total evidence strings: $(wc -l <03.fields-and-strings.old)
@@ -161,7 +165,7 @@ Total evidence strings: $(wc -l <03.fields-and-strings.new)
   Deleted: $(wc -l <08.deleted)
   Added: $(wc -l <08.added)
   Present in both files: $(wc -l <08.common)
-    Changed: $(awk '$2 != $3' 08.common | wc -l)
+    Changed: $(awk -F$'\t' '$2 != $3' 08.common | wc -l)
 
 See accompanying files for specific diffs:
   <a href="non-unique.html">non-unique.html</a> - diff for evidence strings with non-unique association fields
@@ -178,7 +182,7 @@ EOF
 
 parallel './aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed
 rm -rf report.zip
-zip report.zip "*.html"
+zip report.zip ./*.html
 
 cd ..
 
