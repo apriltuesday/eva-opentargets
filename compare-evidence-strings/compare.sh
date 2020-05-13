@@ -32,8 +32,21 @@ extract_fields () {
   ' < "$1" | tr -d '"' > "$2"
 }
 
+# Computes a word diff between two files using git diff
+compute_git_diff () {
+  # The --no-index option is important, because otherwise git will refuse to compare the files if you're running this
+  # script from right inside the repository (because the files are untracked).
+  git diff \
+  --minimal \
+  -U0 \
+  --color=always \
+  --word-diff=color \
+  --no-index \
+  "$1" "$2"
+}
+
 echo "Set up environment & parse parameters"
-export -f sort_keys extract_fields
+export -f sort_keys extract_fields compute_git_diff
 # To ensure that the sort results are consistent, set the sort order locale explicitly
 export LC_COLLATE=C
 # The realpath is required to make the paths work after the working directory change
