@@ -50,5 +50,7 @@ git checkout ${VEP_BRANCH}
 git reset --hard ${VEP_REMOTE}/${VEP_BRANCH}
 cd ..
 
+python3 -m pip -q install -r requirements.txt
+python3 -m pip -q install -r vep-mapping-pipeline/requirements.txt
 python3 setup.py install
 ```
