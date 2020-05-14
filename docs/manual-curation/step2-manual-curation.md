@@ -1,40 +1,10 @@
-# Manual trait curation
+# Manual curation, part II, biological: perform manual curation
 
-The goal is for traits with occurence ≥ 10 to have 100% coverage after the manual curation. For the rest of the traits, curate as many as possible.
+The final goal of manual curation is for traits with occurence ≥ 10 to have 100% coverage. For the rest of the traits, we curate as many as possible.
 
-Before executing the subsequent commands, make sure to set up environment (described in the “Set up environment” section of the main protocol.)
-
-## Extract information about previous mappings
-At this step, mappings produced by the pipeline on the previous iteration (including automated and manual) are downloaded to be used to aid the manual curation process.
-
-```bash
-# Download the latest eva_clinvar release from FTP
-wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
-  | cut -f4-5 | sort -u > ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv
-```
-
-## Create the final table for manual curation
-```bash
-cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py \
-  --traits-for-curation ${BATCH_ROOT}/trait_mapping/traits_requiring_curation.tsv \
-  --previous-mappings ${BATCH_ROOT}/trait_mapping/previous_mappings.tsv \
-  --output ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv
-```
-
-## Sort and export to Google Sheets
-Note that the number of columns in the output table is limited to 50, because only a few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful. However, having a very large table degrades the performance of Google Sheets substantially.
-
-```bash
-cut -f-50 ${BATCH_ROOT}/trait_mapping/table_for_manual_curation.tsv \
-  | sort -t$'\t' -k2,2rn > ${BATCH_ROOT}/trait_mapping/google_sheets_table.tsv
-```
-
-Create a Google Sheets table by duplicating a [template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing). Paste the contents of `google_sheets_table.tsv` file into it, starting with column H “ClinVar label”. Example of a table fully populated with data can be found [here](https://docs.google.com/spreadsheets/d/1HQ08UQTpS-0sE9MyzdUPO7EihMxDb2e8N14s1BknjVo/edit?usp=sharing)
-
-## Manual curation criteria
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/ORDO/MONDO terms will also be in EFO but some are not. These can be imported to EFO using the Webulous submission service.
 
-### Criteria to manually evaluate mapping quality
+## Criteria to manually evaluate mapping quality
 * Exact string for string matches are _good_
 * Slight modifications are _good_ e.g. IRAK4 DEFICIENCY → Immunodeficiency due to interleukin-1 receptor-associated kinase-4 deficiency
 * Subtype to parent are _good_ e.g ACHROMATOPSIA 3 → Achromatopsia
@@ -43,7 +13,7 @@ Good mappings must be eyeballed to ensure they are actually good. Alternative ma
 * Susceptibility on only one half is _bad_ e.g Alcohol dependence, susceptibility to → alcohol dependence
 * Early / late onset on only one half is _bad_ e.g. Alzheimer disease, early-onset → Alzheimer's disease
 
-### Unmapped trait names
+## Unmapped trait names
 Trait names that haven't been automatically mapped against any ontology term can also be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. If these are not already in EFO they should be imported to EFO using the Webulous submission service.
 
 ## Curation workflow
@@ -86,14 +56,3 @@ The “Status” column has the following acceptable values:
 
 ### Note on spaces and line breaks
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
-
-## Exporting curation results
-Once the manual curation is completed, apply a spreadsheet filter so that only traits with Status = DONE are visible. Copy data for all non-empty rows from three columns: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. **Do not include header lines.** Save the data to a file `${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv`.
-
-Concatenate automated and manual mappings into a single file:
-```bash
-cat \
-  ${BATCH_ROOT}/trait_mapping/automated_trait_mappings.tsv \
-  ${BATCH_ROOT}/trait_mapping/finished_mappings_curation.tsv \
-> ${BATCH_ROOT}/trait_mapping/trait_names_to_ontology_mappings.tsv
-```

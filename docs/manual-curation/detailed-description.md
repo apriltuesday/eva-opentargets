@@ -1,4 +1,4 @@
-# Overview of trait mapping pipeline
+# Addendum: in-depth description of the automated trait mapping pipeline
 
 When specifying which disease the variant is associated with, ClinVar uses a free-text description, such as “Alzheimer's disease”. However, it is required by OpenTargets that diseases (traits) are specified as EFO terms. EFO is an ontology (basically a controlled hierarchical dictionary) developed at EBI to standartise nomenclature of diseases and other terms.
 
