@@ -1,10 +1,29 @@
-# Comparison of evidence strings
+# Protocol for comparing evidence strings
 
 ## Overview
 Comparing two sets of evidence strings is an important measure of control in several situations:
 * Running the same code on different inputs to see if the data changes make sense;
 * Running different versions of code on the same input to see if code changes do not cause regressions;
 * In case of Ensembl/VEP version changes: running the _same_ code on the _same_ inputs, but using different VEP releases, to see if it causes any breaking changes.
+
+Since evidence strings are in JSON format, running a naive diff on them will be close to meaningless. This protocol attempts to provide an improvement on that by performing pre- and postprocessing and generating user-friendly output files and summary statistics. The functionality supported by the current version of the protocol:
+
+* Preprocess to make the diffs less noisy
+  - Ensure stable sort order
+  - Sort keys lexicographically in each evidence string
+  - Remove uninformative fields which change frequently and do not constitute a meaningful difference (currently it's "validated_against_schema_version" and "date_asserted")
+* Classify the evidence string into categories
+  - Using the association fields (currently it's association fields specific to our data), it splits the evidence strings into non-unique (in at least one comparison set) and unique.
+  - For unique evidence strings, a one-to-one mapping between old and new sets is established, and they are separated into "deleted", "common", and "new".
+* Calculate some derivative statistics
+  - Summary for counts in each category (non-unique, deleted, common, new)
+  - Frequency of transitions for values of a certain field (currently it's only functional consequences) as a separate table
+* Produce the diffs in easy-to-read format
+  - Separated by category
+  - Using the word diff mode, so that the changes inside an evidence string are highlighted
+  - Presented in HTML format which is much easier to read than the console output
+
+Currently the values of fields used for preprocessing, comparison and computing summary metrics are hardcoded for the EVA use case, but if there's interest, in the future iterations of refactoring these values can be made customizable.
 
 ## Running the comparison
 
