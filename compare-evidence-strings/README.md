@@ -5,8 +5,23 @@ Comparing two sets of evidence strings is an important measure of control in sev
 * Running the same code on different inputs to see if the data changes make sense;
 * Running different versions of code on the same input to see if code changes do not cause regressions;
 * In case of Ensembl/VEP version changes: running the _same_ code on the _same_ inputs, but using different VEP releases, to see if it causes any breaking changes.
- 
+
 ## Running the comparison
+
+### Install dependencies
+The protocol requires two tools to be present in PATH: [jq](https://stedolan.github.io/jq/) and [aha](https://github.com/theZiz/aha). They can be installed using the commands below:
+```bash
+# Install JQ — a command line JSON processor"
+wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+chmod a+x jq
+
+# Install aha — HTML report generator
+wget -q https://github.com/theZiz/aha/archive/0.5.zip
+unzip -q 0.5.zip && cd aha-0.5 && make &>/dev/null && mv aha ../ && cd .. && rm -rf aha-0.5 0.5.zip
+
+export PATH=$PATH:`pwd`
+```
+
 Two sets of evidence strings can be compared by running the command:
 ```bash
 bash compare.sh \

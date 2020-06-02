@@ -12,7 +12,7 @@ echo "Defining functions"
 # * date_asserted
 # The two arguments are input and output JSON files.
 sort_keys () {
-  ./jq -S "." --tab <"$1" \
+  jq -S "." --tab <"$1" \
     | tr -d '\t\n' \
     | sed -e 's|}{|}~{|g' \
     | tr '~' '\n' \
@@ -28,7 +28,7 @@ sort_keys () {
 # * Variant ID (rsID or, if absent, RCV accession)
 # * Ensembl gene ID
 extract_fields () {
-  ./jq '
+  jq '
     .unique_association_fields.clinvarAccession + "|" +
     .unique_association_fields.phenotype + "|" +
     .unique_association_fields.alleleOrigin + "|" +
@@ -52,7 +52,7 @@ compute_git_diff () {
 
 # Extract only the functional consequence from the evidence string
 extract_functional_consequences () {
-  ./jq '.evidence.gene2variant.functional_consequence' \
+  jq '.evidence.gene2variant.functional_consequence' \
   | tr -d '"' \
   | sed -e 's|http://purl.obolibrary.org/obo/||g' \
         -e 's|http://targetvalidation.org/sequence/||g'
@@ -72,14 +72,6 @@ export LC_COLLATE=C
 OLD_EVIDENCE_STRINGS=$(realpath "$1")
 NEW_EVIDENCE_STRINGS=$(realpath "$2")
 mkdir comparison && cd comparison || exit 1
-
-echo "  Install JQ — a command line JSON processor"
-wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-chmod a+x jq
-
-echo "  Install aha — HTML report generator"
-wget -q https://github.com/theZiz/aha/archive/0.5.zip
-unzip -q 0.5.zip && cd aha-0.5 && make &>/dev/null && mv aha ../ && cd .. && rm -rf aha-0.5 0.5.zip
 
 
 
@@ -201,7 +193,7 @@ EOF
 (echo -e "${COLOR_GREEN}"; awk '{print $0 "\n"}' 08.added; echo -e "${COLOR_RESET}") > 99.added
 (tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
 
-parallel './aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency
+parallel 'aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency
 rm -rf report.zip
 zip report.zip ./*.html
 
