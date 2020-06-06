@@ -57,7 +57,7 @@ def query_vep(variants, search_distance):
     ensembl_request_url = 'https://rest.ensembl.org/vep/human/region'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     result = requests.post(ensembl_request_url, headers=headers, data=json.dumps({
-        'variants': variants, 'distance': search_distance, 'shift_3prime': 1,
+        'variants': variants, 'distance': search_distance, 'shift_3prime': 0,
     }))
     # If there was an HTTP error, raise an exception. This will be caught by @retry
     result.raise_for_status()
