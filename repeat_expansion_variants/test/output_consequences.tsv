@@ -73,7 +73,6 @@ RCV000211306	1	ENSG00000241635	UGT1A1	short_tandem_repeat_expansion	0
 RCV000211397	1	ENSG00000241635	UGT1A1	short_tandem_repeat_expansion	0
 RCV000986111	1	ENSG00000177570	SAMD12	short_tandem_repeat_expansion	0
 RCV000003087	1	ENSG00000163635	ATXN7	trinucleotide_repeat_expansion	0
-RCV000003087	1	ENSG00000285258	ATXN7	trinucleotide_repeat_expansion	0
 RCV000003333	1	ENSG00000111676	ATN1	trinucleotide_repeat_expansion	0
 RCV000003729	1	ENSG00000066427	ATXN3	trinucleotide_repeat_expansion	0
 RCV000003730	1	ENSG00000066427	ATXN3	trinucleotide_repeat_expansion	0
@@ -142,6 +141,7 @@ RCV000754106	1	ENSG00000104936	DMPK	trinucleotide_repeat_expansion	0
 RCV000754107	1	ENSG00000104936	DMPK	trinucleotide_repeat_expansion	0
 RCV000754108	1	ENSG00000104936	DMPK	trinucleotide_repeat_expansion	0
 RCV000758144	1	ENSG00000103489	XYLT1	trinucleotide_repeat_expansion	0
+RCV000758144	1	ENSG00000285395	XYLT1	trinucleotide_repeat_expansion	0
 RCV000761550	1	ENSG00000102081	FMR1	trinucleotide_repeat_expansion	0
 RCV000761551	1	ENSG00000102081	FMR1	trinucleotide_repeat_expansion	0
 RCV000853078	1	ENSG00000286219	NOTCH2NLC	trinucleotide_repeat_expansion	0
