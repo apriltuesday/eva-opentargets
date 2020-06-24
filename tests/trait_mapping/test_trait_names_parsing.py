@@ -10,9 +10,9 @@ class TestGetTraitNames(unittest.TestCase):
         # Test file contains two records: one with a Pathogenic variant another with a Benign one. Only trait names
         # from the Pathogenic one should get into the
         test_filename = os.path.join(os.path.dirname(__file__), 'resources/variant_summary.tsv.gz')
-        traits = trait_names_parsing.parse_trait_names(test_filename)
+        trait_names = [trait.name for trait in trait_names_parsing.parse_trait_names(test_filename)]
         self.assertEqual(
-            sorted(traits),
+            sorted(trait_names),
             sorted([
                 'breast-ovarian cancer, familial 1', 'hereditary breast and ovarian cancer syndrome',
                 'hereditary cancer-predisposing syndrome', 'not provided'])
