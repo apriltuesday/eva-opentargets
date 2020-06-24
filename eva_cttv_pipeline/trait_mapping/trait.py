@@ -29,12 +29,13 @@ class Trait:
     Object to hold data for one trait name. Including the number of ClinVar record's traits it
     appears in, any Zooma and OxO mappings, and any mappings which are ready to be output.
     """
-    def __init__(self, name, frequency):
+    def __init__(self, name, frequency, associated_with_nt_expansion):
         self.name = name
         self.frequency = frequency
         self.zooma_result_list = []
         self.oxo_result_list = []
         self.finished_mapping_set = set()
+        self.associated_with_nt_expansion = associated_with_nt_expansion
 
     @property
     def is_finished(self):
@@ -42,6 +43,14 @@ class Trait:
         Return boolean which confirms whether the trait has finished mappings ready to be output
         """
         return len(self.finished_mapping_set) > 0
+
+    @property
+    def is_associated_with_nt_expansion(self):
+        """
+        Returns a boolean property which indicates whether the trait is associated with a NT expansion (nucleotide
+        repeat expansion) variant.
+        """
+        return self.associated_with_nt_expansion
 
     def process_zooma_results(self):
         """
