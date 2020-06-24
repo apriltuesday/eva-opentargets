@@ -17,10 +17,12 @@ def parse_trait_names(filepath: str) -> list:
         frequencies of each trait later on.
     """
 
-    # This is a dict of sets we use to keep track on which alleles are linked to which traits. The reason this is done
-    # is because some (most) alleles appear twice in the document with coordinates for GRCh37 and GRCh38, and we don't
-    # want to count them twice.
-    trait_names_by_allele_id = dict()
+    # This set stores all unique (AlleleID, RCV, trait name) tuples. The reason for that is each such tuple will,
+    # generally speaking, correspond to one output evidence string. So if we want to gauge which trait names are more
+    # important to curate, we need to consider how many such tuples it appears in. The reason we need to keep track of
+    # only unique tuples is because some (most) alleles will appear twice in the document with coordinates for GRCh37
+    # and GRCh38, and we don't want to count them twice.
+    unique_association_records = set()
 
     with gzip.open(filepath, "rt") as clinvar_summary:
         header = clinvar_summary.readline().rstrip().split('\t')
@@ -36,15 +38,16 @@ def parse_trait_names(filepath: str) -> list:
             if not acceptable_clinical_significance_present:
                 continue
 
-            # Extract allele ID and list of phenotypes
+            # Extract relevant tuple elements
             allele_id = data['#AlleleID']
             traits = set(data['PhenotypeList'].split(';'))
-            trait_names_by_allele_id.setdefault(allele_id, set())
-            trait_names_by_allele_id[allele_id] |= traits
+            rcv_ids = set(data['RCVaccession'].split(';'))
+            for trait, rcv_id in zip(traits, rcv_ids):
+                unique_association_records |= {(allele_id, trait, rcv_id)}
 
     # Now combine all traits into a single list
     trait_name_list = []
-    for traits in trait_names_by_allele_id.values():
+    for _, trait, _ in unique_association_records:
         trait_name_list.extend(traits)
 
     return [t.lower() for t in trait_name_list]
