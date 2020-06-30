@@ -59,9 +59,9 @@ def parse_trait_names(filepath: str) -> list:
 
             # Process all (trait, rcv) records
             for trait, rcv_id in zip(traits, rcv_ids):
-                unique_association_tuples |= {(trait, rcv_id, allele_id)}
+                unique_association_tuples.add((trait, rcv_id, allele_id))
                 if is_nt_expansion_variant:
-                    nt_expansion_traits |= {trait}
+                    nt_expansion_traits.add(trait)
 
     # Count trait occurrences
     trait_names = [t[0] for t in unique_association_tuples]
