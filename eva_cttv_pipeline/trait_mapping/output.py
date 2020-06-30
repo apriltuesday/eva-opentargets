@@ -33,7 +33,11 @@ def output_for_curation(trait: Trait, curation_writer: csv.writer):
     :param trait: A Trait with no finished ontology mappings in finished_mapping_set
     :param curation_writer: A csv.writer to write non-finished ontology mappings for manual curation
     """
-    output_row = [trait.name, trait.frequency]
+
+    # Traits which are associated with NT expansion variants are of highest importance, and they need to be curated
+    # even if the number of records they are associated with is low.
+    trait_frequency = 'NT expansion' if trait.associated_with_nt_expansion else trait.frequency
+    output_row = [trait.name, trait_frequency]
 
     zooma_mapping_list = get_mappings_for_curation(trait.zooma_result_list)
 

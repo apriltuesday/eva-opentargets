@@ -20,17 +20,29 @@ http://www.orpha.net/ORDO/Orphanet_199306
 ## Run the automated protocol
 
 ```bash
+# Define some variables for readability
+export EXISTING_MAPPINGS=${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv
+export NEW_MAPPINGS=${CURATION_RELEASE_ROOT}/trait_names_to_ontology_mappings.tsv
+
 # Concatenate finished automated and manual mappings into a single file
 cat \
   ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   ${CURATION_RELEASE_ROOT}/finished_mappings_curation.tsv \
-> ${CURATION_RELEASE_ROOT}/trait_names_to_ontology_mappings.tsv
+> ${NEW_MAPPINGS}
+
+# Add all mappings from the database which are *not* present in the results of the current curation iteration (automated
+# + manually curated). This is done in order to never lose mappings, even if they are not present in ClinVar during the
+# latest curation iteration.
+# The first file operand is the list of mappings in the current database; and the second is the list of trait names
+# which are only present in the existing database and not in the new mappings.
+join -j 1 -t$'\t' \
+  <(sort -k1,1 ${EXISTING_MAPPINGS}) \
+  <(comm -23 <(cut -f1 ${EXISTING_MAPPINGS} | sort -u) <(cut -f1 ${NEW_MAPPINGS} | sort -u)) \
+>> ${NEW_MAPPINGS}
 
 # Update the symbolic link pointing to the location of the most recent curation result. This will be used by the main
 # evidence string generation protocol.
-ln -s -f \
-  ${CURATION_RELEASE_ROOT}/trait_names_to_ontology_mappings.tsv \
-  ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv
+ln -s -f ${NEW_MAPPINGS} ${EXISTING_MAPPINGS}
 
 # Run the helper script to prepare the table for import
 python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \

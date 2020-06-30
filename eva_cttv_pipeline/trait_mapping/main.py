@@ -70,9 +70,8 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
 def main(input_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host, oxo_target_list,
          oxo_distance):
     logger.info('Started parsing trait names')
-    trait_names_list = parse_trait_names(input_filepath)
-    trait_names_counter = Counter(trait_names_list)
-    logger.info("Loaded {} trait names".format(len(trait_names_counter)))
+    trait_list = parse_trait_names(input_filepath)
+    logger.info("Loaded {} trait names".format(len(trait_list)))
 
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
             open(output_curation_filepath, "wt") as curation_file:
@@ -81,9 +80,7 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
         curation_writer = csv.writer(curation_file, delimiter="\t")
 
         logger.info('Processing trait names in parallel')
-        trait_list = [Trait(trait_name, freq) for trait_name, freq in trait_names_counter.items()]
         trait_process_pool = multiprocessing.Pool(processes=12)
-
         processed_trait_list = [
             trait_process_pool.apply(
                 process_trait,

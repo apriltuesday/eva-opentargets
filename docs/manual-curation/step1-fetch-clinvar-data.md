@@ -38,7 +38,7 @@ cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py
 few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful. However, having
 a very large table degrades the performance of Google Sheets substantially.
 cut -f-50 ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv \
-  | sort -t$'\t' -k2,2rn > ${CURATION_RELEASE_ROOT}/google_sheets_table.tsv
+  | sort -t$'\t' -k2,2rV > ${CURATION_RELEASE_ROOT}/google_sheets_table.tsv
 ```
 
 ## Create a Google spreadsheet for curation

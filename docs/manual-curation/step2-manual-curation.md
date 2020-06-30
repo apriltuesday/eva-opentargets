@@ -1,6 +1,9 @@
 # Manual curation, part II, biological: perform manual curation
 
-The final goal of manual curation is for traits with occurence ≥ 10 to have 100% coverage. For the rest of the traits, we curate as many as possible.
+The goals of the manual curation:
+* All traits which are linked to NT expansion (nucleotide repeat expansion) variants must be curated. Those are marked as "NT expansion" in the frequency column.
+* All traits with occurrence ≥ **10** must be curated. Additionally, if there are less than **200** such terms, then the top 200 terms must be curated.
+* For the rest of the traits, we curate as many as possible.
 
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/ORDO/MONDO terms will also be in EFO but some are not. These can be imported to EFO using the Webulous submission service.
 
