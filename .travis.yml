@@ -32,6 +32,7 @@ script:
   - echo 'Test 3. Repeat expansion pipeline'
   - pip3 install --editable .
   - pytest
+  - cd ..
 
 after_success:
   - coveralls --merge=clinvar-xml-parser/target/coveralls.json
