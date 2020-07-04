@@ -1,0 +1,7 @@
+biopython
+cython
+pandas
+parse
+pytest
+requests
+retry
