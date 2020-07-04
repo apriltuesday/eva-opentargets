@@ -152,7 +152,7 @@ def determine_repeat_type(row):
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
         pd.notnull(row['RepeatType']) and
-        row['EnsemblChromosomeName'].isin(STANDARD_CHROMOSOME_NAMES)
+        row['EnsemblChromosomeName'] in STANDARD_CHROMOSOME_NAMES
     )
     return row
 
@@ -164,7 +164,7 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     variants = variants[
         ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
          'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
-         'EnsemblGeneID', 'EnsemblGeneName', 'GeneAnnotationSource',
+         'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']
     ]
     # Write the full dataframe. This is used for debugging and investigation purposes.
