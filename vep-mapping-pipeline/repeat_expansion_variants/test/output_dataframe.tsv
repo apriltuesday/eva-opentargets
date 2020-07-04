@@ -1,4 +1,4 @@
-Name	RCVaccession	GeneSymbol	HGNC_ID	RepeatUnitLength	CoordinateSpan	IsProteinHGVS	TranscriptID	EnsemblGeneID	EnsemblGeneName	GeneAnnotationSource	RepeatType	RecordIsComplete
+Name	RCVaccession	GeneSymbol	HGNC_ID	RepeatUnitLength	CoordinateSpan	IsProteinHGVS	TranscriptID	EnsemblGeneID	EnsemblGeneName	EnsemblChromosomeName	GeneAnnotationSource	RepeatType	RecordIsComplete
 
 # This is annotated output test data, full dataframe.
 
