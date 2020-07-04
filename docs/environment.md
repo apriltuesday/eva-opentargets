@@ -33,22 +33,13 @@ export PYTHONPATH=${PYTHON_INSTALL_PATH}
 # External service paths
 CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
 
-export MAIN_REMOTE=origin
-export MAIN_BRANCH=master
-export VEP_REMOTE=origin
-export VEP_BRANCH=master
+export GIT_REMOTE=origin
+export GIT_BRANCH=master
 
 cd ${CODE_ROOT}
-git fetch ${MAIN_REMOTE}
-git checkout ${MAIN_BRANCH}
-git reset --hard ${MAIN_REMOTE}/${MAIN_BRANCH}
-
-git submodule update --init --recursive
-cd vep-mapping-pipeline
-git fetch ${VEP_REMOTE}
-git checkout ${VEP_BRANCH}
-git reset --hard ${VEP_REMOTE}/${VEP_BRANCH}
-cd ..
+git fetch ${GIT_REMOTE}
+git checkout ${GIT_BRANCH}
+git reset --hard ${GIT_REMOTE}/${GIT_BRANCH}
 
 python3 -m pip -q install -r requirements.txt
 python3 -m pip -q install -r vep-mapping-pipeline/requirements.txt

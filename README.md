@@ -55,7 +55,7 @@ Approximately one month before the submission deadline, OpenTargets will contact
 
 
 
-## Workflow diagram
+# Workflow diagram
 
 ![](docs/workflow-diagram/workflow.png)
 

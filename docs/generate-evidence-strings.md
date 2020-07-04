@@ -122,7 +122,7 @@ Here, we run several steps in sequence:
 * **Transform and filter ClinVar data**
   + Transform ClinVar's XML file into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step. Result is `clinvar.json.gz`.
   + Filter this file, extracting only records with allowed levels of clinical significance (as provided by ClinVar). For example, this step filters out records where the clinical significance is “Benign”, meaning that the variant *does not* contribute to a disease. Result is `clinvar.filtered.json.gz`.
-* **Map variants to gene and functional consequences.** Each evidence string must include the variant, the gene it affects, and the functional effect it has in that gene. We obtain this information separately for repeat expansion variants and for all other types. Detailed information can be found in the [repository where the pipelines are contained](https://github.com/EBIvariation/vep-mapping-pipeline).
+* **Map variants to gene and functional consequences.** Each evidence string must include the variant, the gene it affects, and the functional effect it has in that gene. We obtain this information separately for repeat expansion variants and for all other types. Detailed information can be found in the [subdirectory where the pipelines are contained](../vep-mapping-pipeline).
   + Run repeat expansion pipeline
   + Run main VEP pipeline
   + Concatenate the results into a single file
