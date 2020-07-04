@@ -54,7 +54,6 @@ RCV000192035	1	ENSG00000183770	FOXL2	trinucleotide_repeat_expansion	0
 # Test record I
 # * XYLT1 has two mappings in Ensembl based on its HGNC ID, but only one is on a "standard" chromosome → expect to see only one record here
 RCV000758144	1	ENSG00000103489	XYLT1	trinucleotide_repeat_expansion	0
-RCV000758144	1	ENSG00000285395	XYLT1	trinucleotide_repeat_expansion	0
 
 
 

@@ -67,7 +67,6 @@ NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)])	RCV000192035	FOXL2	HGNC:1
 # Test record I
 # * XYLT1 has two mappings in Ensembl based on its HGNC ID, but only one is on a "standard" chromosome → expect to see only one record here
 NW_019805500.1:g.472169CCG[(100-833)]	RCV000758144	XYLT1	HGNC:15516	3.0		False	NW_019805500	ENSG00000103489	XYLT1	HGNC_ID	trinucleotide_repeat_expansion	True
-NW_019805500.1:g.472169CCG[(100-833)]	RCV000758144	XYLT1	HGNC:15516	3.0		False	NW_019805500	ENSG00000285395	XYLT1	HGNC_ID	trinucleotide_repeat_expansion	True
 
 
 
