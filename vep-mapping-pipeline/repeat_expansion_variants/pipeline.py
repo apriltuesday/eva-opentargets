@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+STANDARD_CHROMOSOME_NAMES = {str(c) for c in range(1, 23)} | {'X', 'Y', 'M', 'MT'}
+
+
 def none_to_nan(*args):
     """Converts all arguments which are None to np.nan, for consistency inside a Pandas dataframe."""
     return [np.nan if a is None else a for a in args]
@@ -96,17 +99,26 @@ def annotate_ensembl_gene_info(variants):
     # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
     # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
     variants = variants.explode('EnsemblGeneID')
-    # Fetch Ensembl gene name based on Ensembl gene ID
-    annotation_info = biomart.query_biomart(
-        key_column=('ensembl_gene_id', 'EnsemblGeneID'),
-        query_column=('external_gene_name', 'EnsemblGeneName'),
-        identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
+
+    # Based on the Ensembl gene ID, annotate (1) gene name and (2) which chromosome it is on
+    gene_query_columns = (
+        ('external_gene_name', 'EnsemblGeneName'),
+        ('chromosome_name', 'EnsemblChromosomeName'),
     )
-    variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
-    # Check that there are no multiple gene name mappings for any given gene ID
-    assert variants['EnsemblGeneName'].str.len().dropna().max() == 1, 'Multiple gene ID → gene name mappings found!'
-    # Convert the one-item list into a plain column
-    return variants.explode('EnsemblGeneName')
+    for column_name_in_biomart, column_name_in_dataframe in gene_query_columns:
+        annotation_info = biomart.query_biomart(
+            key_column=('ensembl_gene_id', 'EnsemblGeneID'),
+            query_column=(column_name_in_biomart, column_name_in_dataframe),
+            identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
+        )
+        variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
+        # Check that there are no multiple mappings for any given ID
+        assert variants[column_name_in_dataframe].str.len().dropna().max() == 1, \
+            'Found multiple gene ID → gene attribute mappings!'
+        # Convert the one-item list into a plain column
+        variants = variants.explode(column_name_in_dataframe)
+
+    return variants
 
 
 def determine_repeat_type(row):
@@ -139,7 +151,8 @@ def determine_repeat_type(row):
     row['RecordIsComplete'] = (
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
-        pd.notnull(row['RepeatType'])
+        pd.notnull(row['RepeatType']) and
+        row['EnsemblChromosomeName'].isin(STANDARD_CHROMOSOME_NAMES)
     )
     return row
 

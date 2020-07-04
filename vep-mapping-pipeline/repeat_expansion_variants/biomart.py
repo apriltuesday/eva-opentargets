@@ -44,7 +44,6 @@ def query_biomart(key_column, query_column, identifier_list):
         query_column: A tuple of query column names, similar to `key_column`, e.g. ('ensembl_gene_id', 'EnsemblGeneID')
         identifier_list: List of identifiers to query, e.g. ['HGNC:10548', 'HGNC:10560']
 
-
     Returns:
         A Pandas dataframe with two columns. It will contain at most one row per input identifier. The query column will
         always contain a *list* to support the possibility of multiple mappings. In the example above, this will be:
