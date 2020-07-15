@@ -65,6 +65,10 @@ AlleleID	Type	Name	GeneID	GeneSymbol	HGNC_ID	ClinicalSignificance	ClinSigSimple	
 # * Repeat unit sequence includes a N
 178778	NT expansion	NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)])	668	FOXL2	HGNC:1092	Pathogenic	1	Feb 05, 2015	-1	-	RCV000192035	MedGen:C0220663,OMIM:110100,Orphanet:ORPHA126	Blepharophimosis, ptosis, and epicanthus inversus	germline	germline		na	na	-1	-1	na	na	-	no assertion criteria provided	1		N	-	1	180596
 
+# Test record I
+# * XYLT1 has two mappings in Ensembl based on its HGNC ID, but only one is on a "standard" chromosome.
+610577	NT expansion	NW_019805500.1:g.472169CCG[(100-833)]	64131	XYLT1	HGNC:15516	Pathogenic	1	Nov 07, 2019	-1	-	RCV000758144	MedGen:C4014294,OMIM:615777	Desbuquois dysplasia 2	germline	germline	GRCh38	NW_019805500.1	16	472169	472169	na	na	-	no assertion criteria provided	1		N	OMIM Allelic Variant:608124.0008	1	619182
+
 
 
 # REST OF RECORDS ARE LISTED BELOW
@@ -176,7 +180,6 @@ AlleleID	Type	Name	GeneID	GeneSymbol	HGNC_ID	ClinicalSignificance	ClinSigSimple	
 553276	NT expansion	ATXN7, (CAG)n REPEAT EXPANSION	6314	ATXN7	HGNC:10560	Pathogenic	1	Sep 01, 1997	-1	-	RCV000003087	MedGen:C0752125,OMIM:164500,Orphanet:ORPHA94147	Spinocerebellar ataxia 7	germline	germline		na	na	-1	-1	na	na	-	no assertion criteria provided	1		N	OMIM Allelic Variant:607640.0001	1	562100
 578658	NT expansion	NM_001007026.1:c.1462CAG[(48_93)]	-1	-	-	Pathogenic	1	May 06, 2011	-1	-	RCV000714981	MedGen:C0751781,OMIM:125370,Orphanet:ORPHA101	Dentatorubral pallidoluysian atrophy	not provided	not provided		na	na	-1	-1	na	na	-	no assertion criteria provided	1		N	-	1	587700
 581209	NT expansion	ATN1, (CAG)n REPEAT EXPANSION	1822	ATN1	HGNC:3033	Pathogenic	1	Oct 31, 2019	-1	-	RCV000003333	MedGen:C0751781,OMIM:125370,Orphanet:ORPHA101	Dentatorubral pallidoluysian atrophy	germline	germline		na	na	-1	-1	na	na	-	no assertion criteria provided	1		N	OMIM Allelic Variant:607462.0001	1	590267
-610577	NT expansion	NW_019805500.1:g.472169CCG[(100-833)]	64131	XYLT1	HGNC:15516	Pathogenic	1	Nov 07, 2019	-1	-	RCV000758144	MedGen:C4014294,OMIM:615777	Desbuquois dysplasia 2	germline	germline	GRCh38	NW_019805500.1	16	472169	472169	na	na	-	no assertion criteria provided	1		N	OMIM Allelic Variant:608124.0008	1	619182
 612430	NT expansion	NM_002024.5(FMR1):c.-128_-126GGC(55_200)	2332	FMR1	HGNC:3775	Pathogenic	1	Dec 30, 2017	-1	-	RCV000761550;RCV000761551	MedGen:C1839780,OMIM:300623,Orphanet:ORPHA93256;MedGen:C4552079,OMIM:311360	Fragile X tremor/ataxia syndrome;Premature ovarian failure 1	unknown	unknown	GRCh37	NC_000023.10	X	146993570	146993572	GGC	na	Xq27.3	criteria provided, single submitter	1		N	-	2	623467
 612430	NT expansion	NM_002024.5(FMR1):c.-128_-126GGC(55_200)	2332	FMR1	HGNC:3775	Pathogenic	1	Dec 30, 2017	-1	-	RCV000761550;RCV000761551	MedGen:C1839780,OMIM:300623,Orphanet:ORPHA93256;MedGen:C4552079,OMIM:311360	Fragile X tremor/ataxia syndrome;Premature ovarian failure 1	unknown	unknown	GRCh38	NC_000023.11	X	147912052	147912054	GGC	na	Xq27.3	criteria provided, single submitter	1		N	-	2	623467
 679582	NT expansion	NOTCH2NLC, (GGC)n REPEAT EXPANSION	100996717	NOTCH2NLC	HGNC:53924	Pathogenic	1	Oct 24, 2019	-1	-	RCV000853078	MedGen:C1863843,OMIM:603472,Orphanet:ORPHA2289	Neuronal intranuclear inclusion disease	germline	germline		na	na	-1	-1	na	na	-	no assertion criteria provided	1		N	OMIM Allelic Variant:618025.0001	1	691867
