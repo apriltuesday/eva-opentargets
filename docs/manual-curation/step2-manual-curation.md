@@ -45,7 +45,11 @@ The new manual workflow can be shortened if necessary, while the quality of the 
 ## Entering the curation results
 
 ### Adding new mappings
-To select a new mapping which does not appear in the list of automatically generated mappings, use the following format: `URL|LABEL|||EFO_STATUS`. Example: `http://www.ebi.ac.uk/efo/EFO_0006329|response to citalopram|||EFO_CURRENT`. The last value can be either `EFO_CURRENT` (trait is present in the latest EFO version available in OLS), or `NOT_CONTAINED` if the term is not contained in the EFO.
+The general full format of a mapping is `URL|LABEL|ZOOMA_QUALITY|ZOOMA_SOURCE|EFO_STATUS`.
+
+To add a new mapping which does not appear in the list of automatically generated mappings, use the following shortened format: `URL|LABEL|||EFO_STATUS`, for example: `http://www.ebi.ac.uk/efo/EFO_0006329|response to citalopram|||EFO_CURRENT`. The last value can be either `EFO_CURRENT` (trait is present in the latest EFO version available in OLS), or `NOT_CONTAINED` if the term is not contained in the EFO.
+
+Make sure **not** to use a mixed format, `URL|LABEL|ZOOMA_QUALITY|ZOOMA_SOURCE|||EFO_STATUS`, as it would not be properly processed by the spreadsheet.
 
 ### Marking the status of curated terms
 The “Status” column has the following acceptable values:
