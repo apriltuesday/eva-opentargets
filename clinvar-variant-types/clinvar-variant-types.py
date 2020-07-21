@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
+from collections import Counter
 import gzip
+import sys
 import xml.etree.ElementTree as ElementTree
 
 parser = argparse.ArgumentParser()
@@ -9,16 +11,15 @@ parser.add_argument('--clinvar-xml', required=True)
 args = parser.parse_args()
 
 
-def add_transitions(transitions_dict, transition_chain):
+def add_transitions(transitions_counter, transition_chain):
     """Increments the count of a particular flow in Sankey diagram."""
     for transition_from, transition_to in zip(transition_chain, transition_chain[1:]):
-        transitions_dict.setdefault((transition_from, transition_to), 0)
-        transitions_dict[(transition_from, transition_to)] += 1
+        transitions_counter[(transition_from, transition_to)] += 1
 
 
 # The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
-# Sankey diagrams can be visualised with SankeyMatic.
-high_level_transitions, variant_transitions = dict(), dict()
+# Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/)
+high_level_transitions, variant_transitions = Counter(), Counter()
 
 
 # ClinVar XML have the following top-level structure:
@@ -77,7 +78,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
 
 # Output the code for Sankey diagram. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
-for transitions_dict in high_level_transitions, variant_transitions:
+for transitions_counter in high_level_transitions, variant_transitions:
     print()
-    for (transition_from, transition_to), count in sorted(transitions_dict.items(), key=lambda x: x[1], reverse=True):
+    for (transition_from, transition_to), count in sorted(transitions_counter.items(), key=lambda x: -x[1]):
         print('{transition_from} [{count}] {transition_to}'.format(**locals()))
