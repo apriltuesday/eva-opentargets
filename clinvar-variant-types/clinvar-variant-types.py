@@ -73,9 +73,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
     # Track the number of already processed elements
     elements_processed += 1
     if elements_processed % 10000 == 0:
-        print('Processed {} elements'.format(elements_processed))
-    # if elements_processed == 10000:
-    #     break
+        print('Processed {} elements'.format(elements_processed), file=sys.stderr)
 
 # Output the code for Sankey diagram. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
