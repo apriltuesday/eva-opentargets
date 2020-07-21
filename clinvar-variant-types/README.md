@@ -1,4 +1,4 @@
-# ClinVar data model and variant types
+# ClinVar data model and attribute value distributions
 
 The script in this directory parses ClinVar XML types and calculates statistics on all possible ways the variants can be represented. The results are described below.
 
@@ -13,7 +13,9 @@ python3 \
 
 ## Results
 
-Generated from the file `ClinVarFullRelease_2020-0706.xml.gz` (click to enlarge):
+All graphs in this section were generated from the file `ClinVarFullRelease_2020-0706.xml.gz`. Graphs can be enlarged by clicking on them.
+
+### Data model and variant types
 
 ![](variant-types.png)
 
@@ -44,3 +46,28 @@ Generated from the file `ClinVarFullRelease_2020-0706.xml.gz` (click to enlarge)
   - **Diplotype.** Similar, but at least one of the _trans_ phased alleles includes a haplotype. An example of this would be three variants located on one copy of the gene, and one variant in the second one, all interpreted together.
 
 The most common case is the MeasureSet/Variant one, accounting for 1114689 out of 1115169 RCV records (as of the date when this report was compiled), or 99.96%.
+
+### Clinical significance
+
+![](clinical-significance.png)
+
+Under the current criteria, 188,518 out of 1,114,689 (17%) records are being processed.
+
+For the situations where multiple clinical significance levels were reported for a given association, they are converted into a single composite string, e.g. `Benign/Likely benign, other`. Before processing such records, we need to decide which activity codes should correspond to them.
+
+### Star rating (review status)
+
+![](star-rating.png)
+
+The distribution of records by star rating is:
+* ☆☆☆☆ 142,855 (13%)
+* ★☆☆☆ 894,109 (80%)
+* ★★☆☆ 66,107 (6%)
+* ★★★☆ 11,583 (1%)
+* ★★★★ 35 (< 0.01%)
+
+### Mode of inheritance
+
+![](mode-of-inheritance.png)
+
+Only a small fraction of all records specify their mode of inheritance: 35,009 out of 1,114,689, or about 3%.
