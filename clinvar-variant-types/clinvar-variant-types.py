@@ -3,6 +3,7 @@
 import argparse
 from collections import Counter
 import gzip
+import re
 import sys
 import xml.etree.ElementTree as ElementTree
 
@@ -105,11 +106,20 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
             # Clinical significance
             clinical_significance = find_attribute(
                 rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
-            add_transitions(clin_sig_transitions, (
-                'Variant',
-                'Processed' if clinical_significance in PROCESSED_CLIN_SIG else 'Not processed',
-                clinical_significance,
-            ))
+            if clinical_significance in PROCESSED_CLIN_SIG:
+                add_transitions(clin_sig_transitions, (
+                    'Variant',
+                    'Processed',
+                    clinical_significance,
+                ))
+            else:
+                significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
+                add_transitions(clin_sig_transitions, (
+                    'Variant',
+                    'Not processed',
+                    significance_type,
+                    clinical_significance,
+                ))
 
             # Review status
             review_status = find_attribute(
