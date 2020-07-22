@@ -3,13 +3,12 @@ from collections import UserDict
 
 
 class ClinvarRecord(UserDict):
-    """
-    Class of which instances hold data on individual clinvar records. Subclass of UserDict rather
-    than dict in order to use attributes
+    """Instances of this class hold data on individual ClinVar records. It is a subclass of UserDict rather than a regular
+    dict in order to use attributes.
     """
 
     # A score for the review status of the assigned clinical significance ranges from 0 to 4 and corresponds to the
-    # number of gold stars displayed on ClinVar website. See details here:
+    # number of "gold stars" displayed on ClinVar website. See details here:
     # https://www.ncbi.nlm.nih.gov/clinvar/docs/details/#review_status
     score_map = {
         "CRITERIA_PROVIDED_SINGLE_SUBMITTER": 1,
@@ -47,13 +46,13 @@ class ClinvarRecord(UserDict):
 
     @property
     def date(self):
-        return datetime.utcfromtimestamp(
-            self.data['referenceClinVarAssertion']['dateLastUpdated'] / 1000).isoformat()
+        return datetime.utcfromtimestamp(self.data['referenceClinVarAssertion']['dateLastUpdated'] / 1000).isoformat()
 
     @property
     def score(self):
         """Returns a score for the review status of the assigned clinical significance. See score_map above. It should
-        be noted that currently this property is not used, but this might change in the future."""
+        be noted that currently this property is not used, but this might change in the future.
+        """
         return self.score_map.get(self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus'], 0)
 
     @property
@@ -116,8 +115,7 @@ class ClinvarRecord(UserDict):
 
     @property
     def clinical_significance(self):
-        return \
-            self.data['referenceClinVarAssertion']['clinicalSignificance']['description']
+        return self.data['referenceClinVarAssertion']['clinicalSignificance']['description']
 
     @property
     def allele_origins(self):
@@ -130,6 +128,10 @@ class ClinvarRecord(UserDict):
 
 
 class ClinvarRecordMeasure(UserDict):
+    """This class represents individual ClinVar record "measures". Measures are essentially isolated variants, which
+    can be combined into MeasureSets (include one or move Measures) or GenotypeSets. For a detailed description of
+    ClinVar data model, see /clinvar-variant-types/.
+    """
 
     def __init__(self, clinvar_measure_dict, clinvar_record):
         UserDict.__init__(self, clinvar_measure_dict)
@@ -207,4 +209,3 @@ class ClinvarRecordMeasure(UserDict):
                     if attr in sequence_location:
                         return sequence_location[attr]
         return None
-
