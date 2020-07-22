@@ -77,13 +77,6 @@
           "status": true
         }
       },
-      "resource_score": {
-        "type": "pvalue",
-        "method": {
-          "description": "Not provided by data supplier"
-        },
-        "value": 1e-7
-      },
       "functional_consequence": null,
       "date_asserted": null
     }

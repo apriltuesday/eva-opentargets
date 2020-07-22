@@ -26,13 +26,6 @@
           "status": true
         }
       },
-      "resource_score": {
-        "method": {
-          "description": "Not provided by data supplier"
-        },
-        "type": "pvalue",
-        "value": 1e-07
-      },
       "urls": [
         {
           "nice_name": "Further details in ClinVar database",
