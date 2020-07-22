@@ -20,16 +20,28 @@ class ClinvarRecord(UserDict):
     }
 
     def __init__(self, cellbase_dict):
+        """Initialise a ClinVar record object from JSON data. See /clinvar-variant-types/README.md for the in-depth
+        explanation of ClinVar data model. See also issue #127 for the most recent discussions on changing support of
+        different ClinVar record types.
+        """
         UserDict.__init__(self, cellbase_dict)
-        if "measureSet" in self.data['referenceClinVarAssertion']:
-            measure_list = self.data['referenceClinVarAssertion']["measureSet"]["measure"]
-        elif "measureSet" in self.data['referenceClinVarAssertion']["genotypeSet"]:
+        if 'measureSet' in self.data['referenceClinVarAssertion']:
+            # MeasureSet provides information on a variant or a set of variants located on the same chromosomal copy.
+            if self.data['referenceClinVarAssertion']['measureSet']['type'] == 'Variant':
+                # The measure "list" actually only contains a single variant. This is the only case we are currently
+                # supporting. As of July 2020, it accounts for >99.7% of all ClinVar records.
+                measure_list = self.data['referenceClinVarAssertion']['measureSet']['measure']
+            else:
+                # Uncommon record types, such as "Haplotype", "Phase unknown", or "Distinct chromosomes".
+                # Not currently supported.
+                measure_list = []
+        elif 'measureSet' in self.data['referenceClinVarAssertion']['genotypeSet']:
+            # The record contains a GenotypeSet, a rare subtype which contains an assertion about a group of variants
+            # from several chromosome copies. This could be either a CompoundHeterozygote or a Diplotype, and those
+            # types are currently not processed.
             measure_list = []
-            for measure_set in self.data['referenceClinVarAssertion']["genotypeSet"]["measureSet"]:
-                for measure in measure_set["measure"]:
-                    measure_list.append(measure)
         else:
-            raise KeyError()
+            raise KeyError('ClinVar record contains neither a MeasureSet, nor a GenotypeSet')
 
         self.measures = [ClinvarRecordMeasure(measure_dict, self) for measure_dict in measure_list]
 
