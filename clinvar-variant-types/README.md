@@ -45,7 +45,7 @@ All graphs in this section were generated from the file `ClinVarFullRelease_2020
   - **CompoundHeterozygote.** Presumably this should include exactly two variants which are _trans_ phased and interpreted together.
   - **Diplotype.** Similar, but at least one of the _trans_ phased alleles includes a haplotype. An example of this would be three variants located on one copy of the gene, and one variant in the second one, all interpreted together.
 
-The most common case is the MeasureSet/Variant one, accounting for 1114689 out of 1115169 RCV records (as of the date when this report was compiled), or 99.96%.
+As of July 2020, the most common case is the MeasureSet/Variant one, accounting for 1114689 out of 1117817 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.**
 
 ### Clinical significance
 
