@@ -43,13 +43,6 @@ def find_attribute(rcv, xpath, attribute_name):
         return '{} multiple'.format(attribute_name)
 
 
-def clin_sig_color(clinical_significance):
-    return '{} {}'.format(
-        clinical_significance,
-        '#ff0000' if clinical_significance in PROCESSED_CLIN_SIG else ''
-    )
-
-
 def review_status_stars(review_status):
     black_stars = SIG_STARS.get(review_status, 0)
     white_stars = 4 - black_stars
