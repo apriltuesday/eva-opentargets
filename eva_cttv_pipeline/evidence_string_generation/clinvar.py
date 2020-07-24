@@ -20,8 +20,8 @@ class ClinvarRecord(UserDict):
 
     def __init__(self, cellbase_dict):
         """Initialise a ClinVar record object from JSON data. See /clinvar-variant-types/README.md for the in-depth
-        explanation of ClinVar data model. See also issue #127 for the most recent discussions on changing support of
-        different ClinVar record types.
+        explanation of ClinVar data model. See also issue https://github.com/EBIvariation/eva-opentargets/issues/127
+        for the most recent discussions on changing support of different ClinVar record types.
         """
         UserDict.__init__(self, cellbase_dict)
         if 'measureSet' in self.data['referenceClinVarAssertion']:
