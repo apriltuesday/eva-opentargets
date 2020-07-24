@@ -3,13 +3,12 @@ from collections import UserDict
 
 
 class ClinvarRecord(UserDict):
-    """
-    Class of which instances hold data on individual clinvar records. Subclass of UserDict rather
-    than dict in order to use attributes
+    """Instances of this class hold data on individual ClinVar records. It is a subclass of UserDict rather than a regular
+    dict in order to use attributes.
     """
 
     # A score for the review status of the assigned clinical significance ranges from 0 to 4 and corresponds to the
-    # number of gold stars displayed on ClinVar website. See details here:
+    # number of "gold stars" displayed on ClinVar website. See details here:
     # https://www.ncbi.nlm.nih.gov/clinvar/docs/details/#review_status
     score_map = {
         "CRITERIA_PROVIDED_SINGLE_SUBMITTER": 1,
@@ -20,28 +19,40 @@ class ClinvarRecord(UserDict):
     }
 
     def __init__(self, cellbase_dict):
+        """Initialise a ClinVar record object from JSON data. See /clinvar-variant-types/README.md for the in-depth
+        explanation of ClinVar data model. See also issue https://github.com/EBIvariation/eva-opentargets/issues/127
+        for the most recent discussions on changing support of different ClinVar record types.
+        """
         UserDict.__init__(self, cellbase_dict)
-        if "measureSet" in self.data['referenceClinVarAssertion']:
-            measure_list = self.data['referenceClinVarAssertion']["measureSet"]["measure"]
-        elif "measureSet" in self.data['referenceClinVarAssertion']["genotypeSet"]:
+        if 'measureSet' in self.data['referenceClinVarAssertion']:
+            # MeasureSet provides information on a variant or a set of variants located on the same chromosomal copy.
+            if self.data['referenceClinVarAssertion']['measureSet']['type'] == 'Variant':
+                # The measure "list" actually only contains a single variant. This is the only case we are currently
+                # supporting. As of July 2020, it accounts for >99.7% of all ClinVar records.
+                measure_list = self.data['referenceClinVarAssertion']['measureSet']['measure']
+            else:
+                # Uncommon record types, such as "Haplotype", "Phase unknown", or "Distinct chromosomes".
+                # Not currently supported.
+                measure_list = []
+        elif 'measureSet' in self.data['referenceClinVarAssertion']['genotypeSet']:
+            # The record contains a GenotypeSet, a rare subtype which contains an assertion about a group of variants
+            # from several chromosome copies. This could be either a CompoundHeterozygote or a Diplotype, and those
+            # types are currently not processed.
             measure_list = []
-            for measure_set in self.data['referenceClinVarAssertion']["genotypeSet"]["measureSet"]:
-                for measure in measure_set["measure"]:
-                    measure_list.append(measure)
         else:
-            raise KeyError()
+            raise KeyError('ClinVar record contains neither a MeasureSet, nor a GenotypeSet')
 
         self.measures = [ClinvarRecordMeasure(measure_dict, self) for measure_dict in measure_list]
 
     @property
     def date(self):
-        return datetime.utcfromtimestamp(
-            self.data['referenceClinVarAssertion']['dateLastUpdated'] / 1000).isoformat()
+        return datetime.utcfromtimestamp(self.data['referenceClinVarAssertion']['dateLastUpdated'] / 1000).isoformat()
 
     @property
     def score(self):
         """Returns a score for the review status of the assigned clinical significance. See score_map above. It should
-        be noted that currently this property is not used, but this might change in the future."""
+        be noted that currently this property is not used, but this might change in the future.
+        """
         return self.score_map.get(self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus'], 0)
 
     @property
@@ -104,8 +115,7 @@ class ClinvarRecord(UserDict):
 
     @property
     def clinical_significance(self):
-        return \
-            self.data['referenceClinVarAssertion']['clinicalSignificance']['description']
+        return self.data['referenceClinVarAssertion']['clinicalSignificance']['description']
 
     @property
     def allele_origins(self):
@@ -118,6 +128,10 @@ class ClinvarRecord(UserDict):
 
 
 class ClinvarRecordMeasure(UserDict):
+    """This class represents individual ClinVar record "measures". Measures are essentially isolated variants, which
+    can be combined into MeasureSets (include one or move Measures) or GenotypeSets. For a detailed description of
+    ClinVar data model, see /clinvar-variant-types/.
+    """
 
     def __init__(self, clinvar_measure_dict, clinvar_record):
         UserDict.__init__(self, clinvar_measure_dict)
@@ -195,4 +209,3 @@ class ClinvarRecordMeasure(UserDict):
                     if attr in sequence_location:
                         return sequence_location[attr]
         return None
-
