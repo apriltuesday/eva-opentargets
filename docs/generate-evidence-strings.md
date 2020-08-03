@@ -202,7 +202,7 @@ The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use 
 1. **clinvar_xrefs.** ClinVar data already includes some cross-links from trait names to disease ontologies. Unfortunately, it almost exclusively uses MedGen and OMIM, which are not acceptable for Open Targets (since they're using EFO). However, mappings from trait names to MedGen and OMIM might still be useful to other users. Hence, we extract and submit them to ZOOMA under the evidence handle “ClinVar_xRefs”.
 1. **eva_clinvar.** This contains the trait mappings (to EFO) created during the evidence string generation, including automated and manual mappings.
 
-You need to upload two files to the FTP as feedback to ZOOMA: `clinvar_xrefs` and `eva_clinvar`.
+The files are uploaded to the FTP, where ZOOMA will pick it up. At this stage, you only need to upload the **clinvar_xrefs** dataset (the *eva_clinvar* dataset is updated in the process of the manual curation).
 
 To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then run `become <FTP administrative user> /bin/bash`. (Please see [this document](https://www.ebi.ac.uk/seqdb/confluence/display/VAR/Simplified+EVA+FTP+SOP) for details on the FTP administrative user.) After you do this, the environment will be wiped clean, so you will need to set the `BATCH_ROOT` variable again.
 
@@ -212,28 +212,15 @@ To make changes to the FTP, you will need to log in to the cluster using your **
 export BATCH_ROOT=...
 export FTP_PATH_BASE=...
 
-# Create the folder
-
+# Create the folder, copy the file to FTP, and update the “latest” folder
 FTP_PATH=${FTP_PATH_BASE}/`date +%Y/%m/%d`
 mkdir -p ${FTP_PATH}
-
-# Copy both files to FTP
-cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt ${FTP_PATH}
-
-# Update files in the “latest” folder
-for ZOOMA_FILE in clinvar_xrefs eva_clinvar; do
-    # ln -f -s ${FTP_PATH}/${ZOOMA_FILE}.txt ${FTP_PATH_BASE}/latest/${ZOOMA_FILE}.txt
-    # # Note: as of August 2019, for some reason symbolic links aren't working consistently; using copying for now
-    cp ${FTP_PATH}/${ZOOMA_FILE}.txt ${FTP_PATH_BASE}/latest/${ZOOMA_FILE}.txt
-done
+cp ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt ${FTP_PATH}
+cp ${FTP_PATH}/clinvar_xrefs.txt ${FTP_PATH_BASE}/latest/clinvar_xrefs.txt
 ```
 
 After uploading both files, confirm that the changes have propagated to the FTP:
 ```bash
-md5sum ${BATCH_ROOT}/evidence_strings/eva_clinvar.txt
-wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt | md5sum
-wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/`date +%Y/%m/%d`/eva_clinvar.txt | md5sum
-
 md5sum ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/`date +%Y/%m/%d`/clinvar_xrefs.txt | md5sum
 wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/clinvar_xrefs.txt | md5sum
