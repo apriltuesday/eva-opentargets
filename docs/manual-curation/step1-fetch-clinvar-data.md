@@ -23,15 +23,10 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 4G \
   -o ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   -c ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv
 
-# Download the latest eva_clinvar release from FTP. At this step, mappings produced by the pipeline on the previous
-# iteration (including automated and manual) are downloaded to be used to aid the manual curation process.
-wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt \
-  | cut -f4-5 | sort -u > ${CURATION_RELEASE_ROOT}/previous_mappings.tsv
-
 # Create the final table for manual curation
 cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py \
   --traits-for-curation ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv \
-  --previous-mappings ${CURATION_RELEASE_ROOT}/previous_mappings.tsv \
+  --previous-mappings ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
   --output ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv
 
 # Sort and export to Google Sheets. Note that the number of columns in the output table is limited to 50, because only a

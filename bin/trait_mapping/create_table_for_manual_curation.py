@@ -36,15 +36,16 @@ if __name__ == '__main__':
         help='Table with traits for which the pipeline failed to make a confident prediction')
     parser.add_argument(
         '-m', '--previous-mappings',
-        help='Table with all mappings previously issued by EVA')
+        help='Table with all mappings previously issued by EVA. TSV with columns: ClinVar trait name; ontology URI; '
+             'ontology label (not used)')
     parser.add_argument(
         '-o', '--output',
         help='Output TSV to be loaded in Google Sheets for manual curation')
     args = parser.parse_args()
     outfile = open(args.output, 'w')
 
-    # Load all previous mappings
-    previous_mappings = dict(l.rstrip().split('\t') for l in open(args.previous_mappings))
+    # Load all previous mappings: ClinVar trait name to ontology URI
+    previous_mappings = dict(line.rstrip().split('\t')[:2] for line in open(args.previous_mappings))
 
     # Process all mappings which require manual curation
     for line in open(args.traits_for_curation):
