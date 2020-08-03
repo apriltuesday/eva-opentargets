@@ -1,4 +1,4 @@
-# Manual curation, part III, technical: export curation results
+# Manual curation, part III, technical: export curation results and submit feedback to ZOOMA
 
 Before running, set up the environment:
 * [Common environment](../environment.md)
@@ -52,3 +52,26 @@ python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
 
 ## Copy the table for EFO import
 The file `${CURATION_RELEASE_ROOT}/efo_import_table.tsv` will contain a partially ready table for EFO import. Copy its contents into the “Add EFO disease” sheet in the curation spreadsheet.
+
+## Submit feedback to ZOOMA
+See more details on ZOOMA feedback in the [evidence string generation protocol](../generate-evidence-strings.md#submit-feedback-to-zooma). At this stage, only the **eva_clinvar** dataset is being submitted; clinvar_xrefs is submitted during evidence string generation.
+
+```bash
+# EXECUTE UNDER FTP ADMINISTRATIVE USER
+# DON'T FORGET TO SET THE TWO VARIABLES BELOW AGAIN
+export BATCH_ROOT_BASE=...
+export FTP_PATH_BASE=...
+
+# Create the folder, copy the file to FTP, and update the “latest” folder
+FTP_PATH=${FTP_PATH_BASE}/`date +%Y/%m/%d`
+mkdir -p ${FTP_PATH}
+cp ${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt ${FTP_PATH}
+cp ${FTP_PATH}/eva_clinvar.txt ${FTP_PATH_BASE}/latest/eva_clinvar.txt
+```
+
+After uploading both files, confirm that the changes have propagated to the FTP:
+```bash
+md5sum ${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt
+wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/`date +%Y/%m/%d`/eva_clinvar.txt | md5sum
+wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest/eva_clinvar.txt | md5sum
+```
