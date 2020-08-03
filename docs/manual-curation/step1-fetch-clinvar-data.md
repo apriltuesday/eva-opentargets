@@ -35,8 +35,8 @@ cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py
   --output ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv
 
 # Sort and export to Google Sheets. Note that the number of columns in the output table is limited to 50, because only a
-few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful. However, having
-a very large table degrades the performance of Google Sheets substantially.
+# few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful. However, having
+# a very large table degrades the performance of Google Sheets substantially.
 cut -f-50 ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv \
   | sort -t$'\t' -k2,2rV > ${CURATION_RELEASE_ROOT}/google_sheets_table.tsv
 ```
