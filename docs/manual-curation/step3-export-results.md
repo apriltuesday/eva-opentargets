@@ -40,14 +40,24 @@ join -j 1 -t$'\t' \
   <(comm -23 <(cut -f1 ${EXISTING_MAPPINGS} | sort -u) <(cut -f1 ${NEW_MAPPINGS} | sort -u)) \
 >> ${NEW_MAPPINGS}
 
-# Update the symbolic link pointing to the location of the most recent curation result. This will be used by the main
-# evidence string generation protocol.
-ln -s -f ${NEW_MAPPINGS} ${EXISTING_MAPPINGS}
-
-# Run the helper script to prepare the table for import
+# Run the helper script to prepare the table for EFO import
 python3 ${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
   -i ${CURATION_RELEASE_ROOT}/terms_for_efo_import.txt \
   -o ${CURATION_RELEASE_ROOT}/efo_import_table.tsv
+
+# Generate ZOOMA feedback
+echo -e 'STUDY\tBIOENTITY\tPROPERTY_TYPE\tPROPERTY_VALUE\tSEMANTIC_TAG\tANNOTATOR\tANNOTATION_DATE' \
+  > ${CURATION_RELEASE_ROOT}/eva_clinvar.txt
+tail -n+2 ${NEW_MAPPINGS} \
+  | cut -f-2 \
+  | sort -t$'\t' -k1,1 \
+  | awk -F$'\t' -vDATE="$(date +'%y/%m/%d %H:%M')" '{print "\t\tdisease\t" $1 "\t" $2 "\teva\t" DATE}' \
+>> ${CURATION_RELEASE_ROOT}/eva_clinvar.txt
+
+# Update the symbolic links pointing to the location of the most recent curation result and ZOOMA feedback dataset.
+# This will be used by the main evidence string generation protocol.
+ln -s -f ${NEW_MAPPINGS} ${EXISTING_MAPPINGS}
+ln -s -f ${CURATION_RELEASE_ROOT}/eva_clinvar.txt ${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt
 ```
 
 ## Copy the table for EFO import
