@@ -40,7 +40,7 @@ cd ${CODE_ROOT}
 git fetch ${GIT_REMOTE}
 git checkout ${GIT_BRANCH}
 git reset --hard ${GIT_REMOTE}/${GIT_BRANCH}
-
+source env/bin/activate
 python3 -m pip -q install -r requirements.txt
 python3 -m pip -q install -r vep-mapping-pipeline/requirements.txt
 python3 setup.py install
