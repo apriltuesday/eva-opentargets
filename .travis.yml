@@ -32,7 +32,7 @@ script:
 
   - echo 'Test 3. Repeat expansion pipeline'
   - python3 -m pip install --editable .
-  - pytest
+  - python3 -m pytest
   - cd ..
 
 after_success:
