@@ -4,18 +4,19 @@ python:
   - "3.8"
 
 install:
-  - echo 'Installing main pipeline dependencies'
-  - pip3 install -r requirements.txt
-  - pip3 install coveralls
-  - python setup.py install
-
-  - echo 'Installing VEP and repeat expansion pipeline dependencies'
+  - echo 'Installing pipeline dependencies'
   - sudo apt update
-  - sudo apt -y install samtools bcftools parallel libbz2-dev liblzma-dev
-  - pip3 -q install -r vep-mapping-pipeline/requirements.txt
+  - sudo apt -y install python3-venv samtools bcftools parallel libbz2-dev liblzma-dev
+
+  - echo 'Prepare virtual environment'
+  - python3 -m venv env
+  - source env/bin/activate
+  - pip3 install --upgrade setuptools pip
+  - pip3 install -r requirements.txt
 
 script:
   - echo 'Test 1. Main pipeline'
+  - python setup.py install
   - python3 setup.py test
   - cd clinvar-xml-parser && mvn clean test jacoco:report coveralls:report && cd -
 
