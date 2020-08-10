@@ -10,7 +10,7 @@ Before running, set up the environment:
 Once the manual curation is completed, apply a spreadsheet filter so that only traits with **Status = DONE** are visible. Copy data for all non-empty rows from three columns: “ClinVar label”; “URI of selected mapping”; “Label of selected mapping”, in that order. **Do not include header lines.** Save the data to a file `${CURATION_RELEASE_ROOT}/finished_mappings_curation.tsv`.
 
 ### Terms requiring import into EFO
-After the manual curation has been completed, traits remaining unmapped or poorly mapped should be submitted to EFO if a suitable parent term is available. Open the curation spreadsheet and use filters to display only terms with **Status = IMPORT.** Copy _just the ontology_ URLs into the file `${CURATION_RELEASE_ROOT}/terms_for_efo_import.txt`, one URL per line, for example Example:
+After the manual curation has been completed, traits remaining unmapped or poorly mapped should be submitted to EFO if a suitable parent term is available. Open the curation spreadsheet and use filters to display only terms with **Status = IMPORT.** Copy _just the ontology_ URLs into the file `${CURATION_RELEASE_ROOT}/terms_for_efo_import.txt`, one URL per line, for example:
 ```
 http://purl.obolibrary.org/obo/HP_0002647
 http://purl.obolibrary.org/obo/MONDO_0000727
