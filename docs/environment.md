@@ -4,7 +4,7 @@ Log in to the LSF cluster, where all data processing must take place. Switch to 
 
 Notes:
 * The first five variables are installation-specific and are blanked in this repository. You can get the values for the EVA use case from the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md).
-* By modifying the `*REMOTE` and `*BRANCH` variables, you can run arbitrary versions of both the main and the VEP pipeline. This is highly useful for development and debugging. By default it fetches master branches of both repositories.
+* By modifying the `*REMOTE` and `*BRANCH` variables, you can run arbitrary versions of the pipeline. This is highly useful for development and debugging. By default it fetches master branches of both repositories.
 * Running these commands will overwrite any local changes you had in the repository copy on the cluster, including any changes to the Java ClinVar XML parser. Be sure to commit and push those before re-running this block of commands.
 
 ```bash
