@@ -83,8 +83,8 @@ git clone --recursive git@github.com:EBIvariation/eva-cttv-pipeline.git
 cd eva-cttv-pipeline
 virtualenv -p python3.8 venv
 source venv/bin/activate
+python3 -m pip -q install --upgrade setuptools pip
 python3 -m pip -q install -r requirements.txt
-python3 -m pip -q install -r vep-mapping-pipeline/requirements.txt
 ```
 
 And then one of:
