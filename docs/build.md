@@ -77,12 +77,15 @@ To use the local deployment, uncomment the configuration section at the top of `
 
 Please contact the semantic data integration team at [SPOT](https://www.ebi.ac.uk/about/spot-team) if you have questions about local OLS installation.
 
-## Full commands to install the pipeline
+## Pipeline installation
+
+Before proceeding with the installation, make sure to make the default Python 3.8 or later by running the `export PATH` commands described above.
+
 ```bash
-git clone --recursive git@github.com:EBIvariation/eva-cttv-pipeline.git
-cd eva-cttv-pipeline
-virtualenv -p python3.8 venv
-source venv/bin/activate
+git clone https://github.com/EBIvariation/eva-opentargets.git
+cd eva-opentargets
+python3 -m venv env
+source env/bin/activate
 python3 -m pip -q install --upgrade setuptools pip
 python3 -m pip -q install -r requirements.txt
 ```
