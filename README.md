@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/EBIvariation/eva-opentargets.svg?branch=master)](https://travis-ci.com/EBIvariation/eva-opentargets)
-[![Coverage Status](https://coveralls.io/repos/github/EBIvariation/eva-cttv-pipeline/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/eva-cttv-pipeline?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/EBIvariation/eva-opentargets/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/eva-opentargets?branch=master)
 
 
 

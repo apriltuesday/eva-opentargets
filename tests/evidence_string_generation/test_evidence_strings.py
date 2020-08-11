@@ -218,7 +218,7 @@ class SomaticEvidenceStringTest(unittest.TestCase):
         test_args = get_input_data_for_evidence_string_generation()
         self.test_ses = evidence_strings.CTTVSomaticEvidenceString(*test_args)
         ot_schema_path = os.path.join(
-            os.path.dirname(__file__), 'resources', 'opentargets.1.6.7.json.gz')
+            os.path.dirname(__file__), 'resources', 'opentargets.1.7.1.json.gz')
         self.ot_schema_contents = json.loads(gzip.open(ot_schema_path).read().decode('utf-8'))
 
     def test_db_xref_url(self):

@@ -4,8 +4,8 @@
 /eva_cttv_pipeline.egg-info
 /build
 /dist
-/venv
-/venv_3.5
+/env
+/env_3.5
 /eva_cttv_pipeline/evidence_string_generation/resources/schema_local
 .cache
 .eggs
