@@ -78,12 +78,10 @@ class GeneticsEvidenceStringTest(unittest.TestCase):
         self.assertEqual(self.test_ges['unique_association_fields'][uaf_5[0]], uaf_5[1])
 
     def test_set_target(self):
-        target = ("http://identifiers.org/ensembl/ENSG00000135486",
-                  "http://identifiers.org/cttv.activity/predicted_damaging")
+        target = "http://identifiers.org/ensembl/ENSG00000135486"
         self.test_ges._clear_target()
-        self.test_ges.set_target(*target)
-        self.assertEqual(self.test_ges['target']['id'], target[0])
-        self.assertEqual(self.test_ges['target']['activity'], target[1])
+        self.test_ges.set_target(target)
+        self.assertEqual(self.test_ges['target']['id'], target)
 
     def test_disease(self):
         disease_id = "Ciliary dyskinesia, primary, 26"

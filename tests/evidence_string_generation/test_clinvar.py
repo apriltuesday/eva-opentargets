@@ -36,7 +36,7 @@ class TestClinvarRecord(unittest.TestCase):
         self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [15258582, 15322982])
 
     def test_clinical_significance(self):
-        self.assertEqual(self.test_clinvar_record.clinical_significance, "Pathogenic")
+        self.assertEqual(self.test_clinvar_record.clinical_significance, 'Pathogenic')
 
     def test_allele_origins(self):
         self.assertEqual(self.test_clinvar_record.allele_origins, ['germline'])
