@@ -157,20 +157,15 @@ def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, 
         sys.exit(1)
 
 
-def launch_pipeline(dir_out, allowed_clinical_significance, efo_mapping_file, snp_2_gene_file, json_file, ot_schema):
-
-    allowed_clinical_significance = (allowed_clinical_significance.split(',')
-                                     if allowed_clinical_significance
-                                     else get_default_allowed_clinical_significance())
+def launch_pipeline(dir_out, efo_mapping_file, snp_2_gene_file, json_file, ot_schema):
     mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
     report = clinvar_to_evidence_strings(
-        allowed_clinical_significance, mappings, json_file, ot_schema,
-        output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME)
+        mappings, json_file, ot_schema, output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME)
     report.write_output(dir_out)
     print(report)
 
 
-def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file, ot_schema, output_evidence_strings):
+def clinvar_to_evidence_strings(mappings, json_file, ot_schema, output_evidence_strings):
     report = Report(trait_mappings=mappings.trait_2_efo)
     cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
     ot_schema_contents = json.loads(open(ot_schema).read())
@@ -195,8 +190,8 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
                     traits,
                     converted_allele_origins):
 
-                if skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele_origin,
-                               allowed_clinical_significance, report):
+                if consequence_type is None:
+                    report.counters["no_variant_to_ensg_mapping"] += 1
                     continue
 
                 if allele_origin == 'germline':
@@ -240,24 +235,6 @@ def get_mappings(efo_mapping_file, snp_2_gene_file):
     mappings.trait_2_efo = load_efo_mapping(efo_mapping_file)
     mappings.consequence_type_dict = CT.process_consequence_type_file(snp_2_gene_file)
     return mappings
-
-
-def skip_record(clinvar_record, clinvar_record_measure, consequence_type, allele_origin,
-                allowed_clinical_significance, report):
-    if clinvar_record.clinical_significance.lower() not in allowed_clinical_significance:
-        if clinvar_record_measure.nsv_id is not None:
-            report.counters["n_nsv_skipped_clin_sig"] += 1
-        return True
-
-    if consequence_type is None:
-        report.counters["no_variant_to_ensg_mapping"] += 1
-        return True
-
-    if allele_origin not in ('germline', 'somatic'):
-        report.n_unrecognised_allele_origin[allele_origin] += 1
-        return True
-
-    return False
 
 
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
@@ -382,15 +359,6 @@ def get_terms_from_file(terms_file_path):
         terms_list = []
 
     return terms_list
-
-
-def get_default_allowed_clinical_significance():
-    return ['unknown', 'untested', 'non-pathogenic', 'probable-non-pathogenic',
-            'probable-pathogenic', 'pathogenic', 'drug-response', 'drug response',
-            'histocompatibility', 'other', 'benign', 'protective', 'not provided',
-            'likely benign', 'confers sensitivity', 'uncertain significance',
-            'likely pathogenic', 'conflicting data from submitters', 'risk factor',
-            'association']
 
 
 def convert_allele_origins(orig_allele_origins):

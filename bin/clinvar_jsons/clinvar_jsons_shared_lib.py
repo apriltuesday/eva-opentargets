@@ -69,13 +69,3 @@ def get_traits_from_json(clinvar_json, trait_dict):
         trait_dict[preferred_trait_name] = trait
 
     return trait_dict
-
-
-def has_allowed_clinical_significance(clinvar_json):
-    if "description" in clinvar_json["clinvarSet"]["referenceClinVarAssertion"]["clinicalSignificance"]:
-        if clinvar_json["clinvarSet"]["referenceClinVarAssertion"]["clinicalSignificance"]["description"].lower() \
-                in ["pathogenic", "likely pathogenic", "protective", "association", "risk_factor", "affects", "drug response"]:
-            return True
-    return False
-
-

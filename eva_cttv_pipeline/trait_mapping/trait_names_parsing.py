@@ -5,11 +5,6 @@ import json
 from eva_cttv_pipeline.trait_mapping.trait import Trait
 
 
-# TODO: unify the acceptable clinical significance levels project-wide
-ACCEPTABLE_CLINICAL_SIGNIFICANCE = ['pathogenic', 'likely pathogenic', 'protective', 'association', 'risk_factor',
-                                    'affects', 'drug response']
-
-
 def parse_trait_names(filepath: str) -> list:
     """
     For a file containing ClinVar records in the TSV format, return a list of Traits for the records in the file. Each
@@ -42,14 +37,6 @@ def parse_trait_names(filepath: str) -> list:
         for line in clinvar_summary:
             values = line.rstrip().split('\t')
             data = dict(zip(header, values))
-
-            # Check if the record should be processed given its level of clinical significance
-            acceptable_clinical_significance_present = False
-            for clinical_significance in data['ClinicalSignificance'].split(','):
-                if clinical_significance.strip().lower() in ACCEPTABLE_CLINICAL_SIGNIFICANCE:
-                    acceptable_clinical_significance_present = True
-            if not acceptable_clinical_significance_present:
-                continue
 
             # Extract relevant fields
             is_nt_expansion_variant = data['Type'] == 'NT expansion'
