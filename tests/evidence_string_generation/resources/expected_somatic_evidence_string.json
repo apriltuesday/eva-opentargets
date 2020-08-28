@@ -82,7 +82,6 @@
   },
   "sourceID": "eva_somatic",
   "target": {
-    "activity": "http://identifiers.org/cttv.activity/unknown",
     "id": "http://identifiers.org/ensembl/ENSG00000139988",
     "target_type": "http://identifiers.org/cttv.target/gene_variant"
   },

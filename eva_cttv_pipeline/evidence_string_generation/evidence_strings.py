@@ -1,38 +1,11 @@
 import copy
 import json
+import re
 
 import jsonschema
 
 from eva_cttv_pipeline.evidence_string_generation import config
 from eva_cttv_pipeline.evidence_string_generation import utilities
-
-
-CLIN_SIG_TO_ACTIVITY = {'other': 'http://identifiers.org/cttv.activity/unknown',
-                        'unknown': 'http://identifiers.org/cttv.activity/unknown',
-                        'protective': 'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'probable-pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'non-pathogenic':
-                            'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'benign': 'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'likely pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'probable-non-pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_tolerated',
-                        'pathogenic': 'http://identifiers.org/cttv.activity/damaging_to_target',
-                        'association': 'http://identifiers.org/cttv.activity/damaging_to_target',
-                        'conflicting data from submitters':
-                            'http://identifiers.org/cttv.activity/unknown',
-                        'uncertain significance': 'http://identifiers.org/cttv.activity/unknown',
-                        'likely benign':
-                            'http://identifiers.org/cttv.activity/predicted_tolerated',
-                        'histocompatibility': 'http://identifiers.org/cttv.activity/unknown',
-                        'not provided': 'http://identifiers.org/cttv.activity/unknown',
-                        'untested': 'http://identifiers.org/cttv.activity/unknown',
-                        'confers sensitivity':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'drug-response': 'http://identifiers.org/cttv.activity/unknown',
-                        'risk factor': 'http://identifiers.org/cttv.activity/predicted_damaging'}
 
 
 def get_cttv_variant_type(clinvar_record_measure):
@@ -99,9 +72,8 @@ class CTTVEvidenceString(dict):
     def _clear_target(self):
         self['target']['id'] = []
 
-    def set_target(self, target_id, activity):
+    def set_target(self, target_id):
         self['target']['id'] = target_id
-        self['target']['activity'] = activity
 
     @property
     def disease_name(self):
