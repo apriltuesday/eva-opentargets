@@ -53,7 +53,7 @@ As of July 2020, the most common case is the MeasureSet/Variant one, accounting 
 
 Under the current criteria, 188,518 out of 1,114,689 (17%) records are being processed.
 
-For the situations where multiple clinical significance levels were reported for a given association, they are converted into a single composite string, e.g. `Benign/Likely benign, other`. Before processing such records, we need to decide which activity codes should correspond to them.
+For the situations where multiple clinical significance levels were reported for a given association, they are converted into a single composite string, e.g. `Benign/Likely benign, other`.
 
 ### Star rating (review status)
 
