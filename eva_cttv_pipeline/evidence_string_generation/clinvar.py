@@ -63,10 +63,10 @@ class ClinvarRecord(UserDict):
         """Returns a mode of inheritance for a given ClinVar record, if present, and None otherwise."""
         mode_of_inheritance = None
         for attribute in self.data['referenceClinVarAssertion'].get('attributeSet', []):
-            if attribute['type'] == 'ModeOfInheritance':
+            if attribute['attribute']['type'] == 'ModeOfInheritance':
                 if mode_of_inheritance:
                     raise AssertionError('Multiple ModeOfInheritance attributes found')
-                mode_of_inheritance = attribute['value']
+                mode_of_inheritance = attribute['attribute']['value']
         return mode_of_inheritance
 
     @property
