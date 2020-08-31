@@ -12,12 +12,9 @@ echo "Defining functions"
 # * date_asserted
 # The two arguments are input and output JSON files.
 sort_keys () {
-  jq -S "." --tab <"$1" \
-    | tr -d '\t\n' \
-    | sed -e 's|}{|}~{|g' \
-    | tr '~' '\n' \
-    | sed -e 's|,"validated_against_schema_version": "[0-9.]*"||g' \
-    | sed -e 's|"date_asserted": ".\{19\}",||g' \
+  jq -c -S "." <"$1" \
+    | sed -e 's|,"validated_against_schema_version":"[0-9.]*"||g' \
+    | sed -e 's|"date_asserted":".\{19\}",||g' \
   > "$2"
 }
 
