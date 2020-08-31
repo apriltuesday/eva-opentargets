@@ -60,14 +60,12 @@ class ClinvarRecord(UserDict):
 
     @property
     def mode_of_inheritance(self):
-        """Returns a mode of inheritance for a given ClinVar record, if present, and None otherwise."""
-        mode_of_inheritance = None
-        for attribute in self.data['referenceClinVarAssertion'].get('attributeSet', []):
-            if attribute['attribute']['type'] == 'ModeOfInheritance':
-                if mode_of_inheritance:
-                    raise AssertionError('Multiple ModeOfInheritance attributes found')
-                mode_of_inheritance = attribute['attribute']['value']
-        return mode_of_inheritance
+        """Returns a (possibly empty) list of modes of inheritance for a given ClinVar record."""
+        return sorted({
+            attribute['attribute']['value']
+            for attribute in self.data['referenceClinVarAssertion'].get('attributeSet', [])
+            if attribute['attribute']['type'] == 'ModeOfInheritance'
+        })
 
     @property
     def accession(self):
