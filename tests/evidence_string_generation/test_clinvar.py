@@ -21,7 +21,7 @@ class TestClinvarRecord(unittest.TestCase):
                          datetime.utcfromtimestamp(1567033200000/1000).isoformat())
 
     def test_score(self):
-        self.assertEqual(self.test_clinvar_record.score, 0)
+        self.assertEqual(self.test_clinvar_record.score, (0, 'no assertion criteria provided'))
 
     def test_acc(self):
         self.assertEqual(self.test_clinvar_record.accession, "RCV000002127")
