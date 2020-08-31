@@ -165,6 +165,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
                              variant_type)
             self.add_unique_association_field('variant_id', clinvar_record.accession)
         self.date = clinvar_record.date
+        self.last_evaluated_date = clinvar_record.last_evaluated_date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
         # See https://github.com/opentargets/platform/issues/1139#issuecomment-682592678
