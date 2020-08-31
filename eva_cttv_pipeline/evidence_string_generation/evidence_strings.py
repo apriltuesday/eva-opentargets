@@ -283,6 +283,14 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         self['evidence']['variant2disease']['date_asserted'] = date_string
 
     @property
+    def last_evaluated_date(self):
+        return self['evidence']['variant2disease']['last_evaluated_date']
+
+    @last_evaluated_date.setter
+    def last_evaluated_date(self, last_evaluated_date_string):
+        self['evidence']['variant2disease']['last_evaluated_date'] = last_evaluated_date_string
+
+    @property
     def clinical_significance(self):
         return self['evidence']['variant2disease']['clinical_significance']
 
