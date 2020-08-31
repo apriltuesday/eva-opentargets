@@ -51,7 +51,6 @@
       },
       "unique_experiment_reference": "http://europepmc.org/abstract/MED/0",
       "date_asserted": null,
-      "last_evaluated_date": null,
       "clinvar_rating": {}
     },
     "gene2variant": {

@@ -58,8 +58,10 @@ class ClinvarRecord(UserDict):
     def last_evaluated_date(self):
         """This tracks the latest (re)evaluation date for the clinical interpretation.
         See https://github.com/opentargets/platform/issues/1161#issuecomment-683938510 for details."""
-        return datetime.utcfromtimestamp(
-            self.data['referenceClinVarAssertion']['clinicalSignificance']['dateLastEvaluated'] / 1000).isoformat()
+        if 'dateLastEvaluated' not in self.data['referenceClinVarAssertion']['clinicalSignificance']:
+            return None
+        return datetime.utcfromtimestamp(self.data['referenceClinVarAssertion']['clinicalSignificance']['dateLastEvaluated']
+             / 1000).isoformat()
 
     @property
     def score(self):
