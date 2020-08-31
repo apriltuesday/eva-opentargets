@@ -50,7 +50,8 @@
         "value": 1e-7
       },
       "unique_experiment_reference": "http://europepmc.org/abstract/MED/0",
-      "date_asserted": null
+      "date_asserted": null,
+      "clinvar_rating": {}
     },
     "gene2variant": {
       "is_associated": true,
