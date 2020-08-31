@@ -299,6 +299,14 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
             'review_status': review_status,
         }
 
+    @property
+    def mode_of_inheritance(self):
+        return self['evidence']['variant2disease'].get('mode_of_inheritance')
+
+    @mode_of_inheritance.setter
+    def mode_of_inheritance(self, mode_of_inheritance):
+        self['evidence']['variant2disease']['mode_of_inheritance'] = mode_of_inheritance
+
 
 class CTTVSomaticEvidenceString(CTTVEvidenceString):
 
