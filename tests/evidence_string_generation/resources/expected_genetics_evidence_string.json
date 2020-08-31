@@ -46,6 +46,7 @@
         "http://purl.obolibrary.org/obo/ECO_0000205"
       ],
       "is_associated": true,
+      "last_evaluated_date": "2004-09-30T23:00:00",
       "provenance_type": {
         "database": {
           "dbxref": {
