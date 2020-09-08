@@ -1,38 +1,11 @@
 import copy
 import json
+import re
 
 import jsonschema
 
 from eva_cttv_pipeline.evidence_string_generation import config
 from eva_cttv_pipeline.evidence_string_generation import utilities
-
-
-CLIN_SIG_TO_ACTIVITY = {'other': 'http://identifiers.org/cttv.activity/unknown',
-                        'unknown': 'http://identifiers.org/cttv.activity/unknown',
-                        'protective': 'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'probable-pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'non-pathogenic':
-                            'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'benign': 'http://identifiers.org/cttv.activity/tolerated_by_target',
-                        'likely pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'probable-non-pathogenic':
-                            'http://identifiers.org/cttv.activity/predicted_tolerated',
-                        'pathogenic': 'http://identifiers.org/cttv.activity/damaging_to_target',
-                        'association': 'http://identifiers.org/cttv.activity/damaging_to_target',
-                        'conflicting data from submitters':
-                            'http://identifiers.org/cttv.activity/unknown',
-                        'uncertain significance': 'http://identifiers.org/cttv.activity/unknown',
-                        'likely benign':
-                            'http://identifiers.org/cttv.activity/predicted_tolerated',
-                        'histocompatibility': 'http://identifiers.org/cttv.activity/unknown',
-                        'not provided': 'http://identifiers.org/cttv.activity/unknown',
-                        'untested': 'http://identifiers.org/cttv.activity/unknown',
-                        'confers sensitivity':
-                            'http://identifiers.org/cttv.activity/predicted_damaging',
-                        'drug-response': 'http://identifiers.org/cttv.activity/unknown',
-                        'risk factor': 'http://identifiers.org/cttv.activity/predicted_damaging'}
 
 
 def get_cttv_variant_type(clinvar_record_measure):
@@ -55,6 +28,19 @@ def get_cttv_variant_type(clinvar_record_measure):
     return cttv_variant_type
 
 
+def process_clinical_significance(clin_sig):
+    """
+    Processes ClinVar clinical significance string into a format suitable for OT JSON schema.
+
+    Namely, splits multiple clinical significance levels into an array and normalises names (to lowercase, using only
+    spaces for delimiters). Multiple levels of clinical significance are separated using two delimieters: ('/', ', ').
+    See /clinvar-variant-types/README.md for further explanation. The output array is sorted alphabetically.
+
+    Example: 'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor'].
+    """
+    return sorted(re.split('/|, ', clin_sig.lower().replace('_', ' ')))
+
+
 class CTTVEvidenceString(dict):
     """
     Base evidence string class. Holds variables and methods common between somatic and genetic
@@ -73,13 +59,7 @@ class CTTVEvidenceString(dict):
 
         if ensembl_gene_id:
             ensembl_gene_id_uri = get_ensembl_gene_id_uri(ensembl_gene_id)
-            try:
-                self.set_target(ensembl_gene_id_uri,
-                                CLIN_SIG_TO_ACTIVITY[clinvar_record.clinical_significance])
-            except KeyError:
-                report.unrecognised_clin_sigs.add(clinvar_record.clinical_significance)
-                self.set_target(ensembl_gene_id_uri,
-                                'http://identifiers.org/cttv.activity/unknown')
+            self.set_target(ensembl_gene_id_uri)
 
         if ref_list and len(ref_list) > 0:
             self.top_level_literature = ref_list
@@ -99,9 +79,8 @@ class CTTVEvidenceString(dict):
     def _clear_target(self):
         self['target']['id'] = []
 
-    def set_target(self, target_id, activity):
+    def set_target(self, target_id):
         self['target']['id'] = target_id
-        self['target']['activity'] = activity
 
     @property
     def disease_name(self):
@@ -188,8 +167,8 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         self.date = clinvar_record.date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
-        self.association = clinvar_record.clinical_significance not in \
-                           ('non-pathogenic', 'probable-non-pathogenic', 'likely benign', 'benign')
+        # See https://github.com/opentargets/platform/issues/1139#issuecomment-682592678
+        self.association = True
         self.gene_2_var_ev_codes = ['http://identifiers.org/eco/cttv_mapping_pipeline']
         most_severe_so_term = consequence_type.so_term
         if most_severe_so_term.accession is None:
@@ -205,7 +184,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
             self.unique_reference = ref_list[0]
 
         if clinvar_record.clinical_significance:
-            self.clinical_significance = clinvar_record.clinical_significance
+            self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
 
     @property
     def db_xref_url(self):
@@ -338,8 +317,8 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
         self.date = clinvar_record.date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
-        self.association = clinvar_record.clinical_significance not in \
-                           ('non-pathogenic', 'probable-non-pathogenic', 'likely benign', 'benign')
+        # See https://github.com/opentargets/platform/issues/1139#issuecomment-682592678
+        self.association = True
 
         self.set_known_mutations(consequence_type.so_term)
 
@@ -347,7 +326,7 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
             self.evidence_literature = ref_list
 
         if clinvar_record.clinical_significance:
-            self.clinical_significance = clinvar_record.clinical_significance
+            self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
 
     @property
     def db_xref_url(self):

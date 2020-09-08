@@ -34,7 +34,9 @@
       ]
     },
     "variant2disease": {
-      "clinical_significance": "Pathogenic",
+      "clinical_significance": [
+        "pathogenic"
+      ],
       "date_asserted": "2019-08-28T23:00:00",
       "evidence_codes": [
         "http://purl.obolibrary.org/obo/ECO_0000205"
@@ -111,7 +113,6 @@
   },
   "sourceID": "eva",
   "target": {
-    "activity": "http://identifiers.org/cttv.activity/unknown",
     "id": "http://identifiers.org/ensembl/ENSG00000139988",
     "target_type": "http://identifiers.org/cttv.target/gene_variant"
   },

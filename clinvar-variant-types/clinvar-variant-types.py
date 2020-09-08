@@ -7,9 +7,6 @@ import re
 import sys
 import xml.etree.ElementTree as ElementTree
 
-PROCESSED_CLIN_SIG = ['Pathogenic', 'Likely pathogenic', 'protective', 'association', 'risk_factor', 'affects',
-                      'drug response']
-
 SIG_STARS = {
     'practice guideline': 4,
     'reviewed by expert panel': 3,
@@ -53,6 +50,7 @@ def review_status_stars(review_status):
 # Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
 variant_type_transitions, clin_sig_transitions, review_status_transitions, inheritance_mode_transitions \
     = Counter(), Counter(), Counter(), Counter()
+all_clinical_significance_levels = set()
 
 
 # ClinVar XML have the following top-level structure:
@@ -99,20 +97,13 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
             # Clinical significance
             clinical_significance = find_attribute(
                 rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
-            if clinical_significance in PROCESSED_CLIN_SIG:
-                add_transitions(clin_sig_transitions, (
-                    'Variant',
-                    'Processed',
-                    clinical_significance,
-                ))
-            else:
-                significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
-                add_transitions(clin_sig_transitions, (
-                    'Variant',
-                    'Not processed',
-                    significance_type,
-                    clinical_significance,
-                ))
+            all_clinical_significance_levels.add(clinical_significance)
+            significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
+            add_transitions(clin_sig_transitions, (
+                'Variant',
+                significance_type,
+                clinical_significance,
+            ))
 
             # Review status
             review_status = find_attribute(
@@ -158,3 +149,7 @@ for transitions_counter in (variant_type_transitions, clin_sig_transitions, revi
     print()
     for (transition_from, transition_to), count in sorted(transitions_counter.items(), key=lambda x: -x[1]):
         print('{transition_from} [{count}] {transition_to}'.format(**locals()))
+
+print('\n\nAll clinical significance levels:')
+for clin_sig in sorted(all_clinical_significance_levels):
+    print(clin_sig)

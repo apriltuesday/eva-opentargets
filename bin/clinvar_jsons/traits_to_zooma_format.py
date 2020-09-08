@@ -10,7 +10,7 @@ from time import gmtime, strftime
 import progressbar
 import requests
 
-from clinvar_jsons_shared_lib import clinvar_jsons, get_traits_from_json, has_allowed_clinical_significance
+from clinvar_jsons_shared_lib import clinvar_jsons, get_traits_from_json
 from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
@@ -25,9 +25,8 @@ def main(args):
                                       widgets=[progressbar.AdaptiveETA(samples=1000)])
         is_zooma_mapping_dict = {}
         for clinvar_json in bar(clinvar_jsons(args.infile_path)):
-            if has_allowed_clinical_significance(clinvar_json):
-                is_zooma_mapping_dict = process_clinvar_json(clinvar_json, outfile, args.zooma_host,
-                                                             args.filters, is_zooma_mapping_dict)
+            is_zooma_mapping_dict = process_clinvar_json(clinvar_json, outfile, args.zooma_host,
+                                                         args.filters, is_zooma_mapping_dict)
 
 
 def check_if_zooma_mapping(trait_name, is_zooma_mapping_dict, zooma_host, filters):

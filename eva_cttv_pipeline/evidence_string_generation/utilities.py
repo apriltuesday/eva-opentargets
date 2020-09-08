@@ -40,17 +40,6 @@ class ArgParser:
         usage = """Generates CTTV evidence strings from ClinVar data and trait mappings."""
         parser = argparse.ArgumentParser(usage)
 
-        parser.add_argument("--clinSig", dest="clinical_significance",
-                            help="""Optional. String containing a comma-sparated list with the
-                            clinical significances that will be allowed to generate
-                            evidence-strings. By default all clinical significances will be
-                            considered. Possible tags: 'unknown','untested','non-pathogenic',
-                            'probable-non-pathogenic','probable-pathogenic','pathogenic',
-                            'drug-response','drug response','histocompatibility','other','benign',
-                            'protective','not provided','likely benign','confers sensitivity',
-                            'uncertain significance','likely pathogenic',
-                            'conflicting data from submitters','risk factor','association' """,
-                            default="pathogenic,likely pathogenic,protective,association,risk_factor,affects,drug response")
         parser.add_argument("--ignore", dest="ignore_terms_file",
                             help="""Optional. String containing full path to a txt file containing
                             a list of term urls which will be ignored during batch processing """,
@@ -77,7 +66,6 @@ class ArgParser:
 
         args = parser.parse_args(args=argv[1:])
 
-        self.clinical_significance = args.clinical_significance
         self.ignore_terms_file = args.ignore_terms_file
         self.adapt_terms_file = args.adapt_terms_file
         self.out = args.out

@@ -119,9 +119,7 @@ There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JS
 
 ## 4. Process data
 Here, we run several steps in sequence:
-* **Transform and filter ClinVar data**
-  + Transform ClinVar's XML file into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step. Result is `clinvar.json.gz`.
-  + Filter this file, extracting only records with allowed levels of clinical significance (as provided by ClinVar). For example, this step filters out records where the clinical significance is “Benign”, meaning that the variant *does not* contribute to a disease. Result is `clinvar.filtered.json.gz`.
+* **Transform ClinVar data.** XML file is converted into a JSON file which can be parsed by the downstream tools, using an XML parser which we (if necessary) updated during the previous step. Result is `clinvar.json.gz`.
 * **Map variants to gene and functional consequences.** Each evidence string must include the variant, the gene it affects, and the functional effect it has in that gene. We obtain this information separately for repeat expansion variants and for all other types. Detailed information can be found in the [subdirectory where the pipelines are contained](../vep-mapping-pipeline).
   + Run repeat expansion pipeline
   + Run main VEP pipeline
@@ -140,12 +138,6 @@ ${BSUB_CMDLINE} -K -n 8 -M 16G \
   java -Xmx15G -jar ${CODE_ROOT}/clinvar-xml-parser/target/clinvar-parser-1.0-SNAPSHOT-jar-with-dependencies.jar \
   -i ${BATCH_ROOT}/clinvar/ClinVarFullRelease_${CLINVAR_RELEASE}.xml.gz \
   -o ${BATCH_ROOT}/clinvar && \
-${BSUB_CMDLINE} -K \
-  -o ${BATCH_ROOT}/logs/filter_clinvar_json.out \
-  -e ${BATCH_ROOT}/logs/filter_clinvar_json.err \
-  python3 ${CODE_ROOT}/bin/clinvar_jsons/extract_pathogenic_and_likely_pathogenic_variants.py \
-  -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
-  -o ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz && \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
   -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
@@ -170,14 +162,14 @@ ${BSUB_CMDLINE} -K \
   python3 ${CODE_ROOT}/bin/evidence_string_generation.py \
   -e ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
   -g ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv \
-  -j ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
+  -j ${BATCH_ROOT}/clinvar/clinvar.json.gz \
   --ot-schema ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   --out ${BATCH_ROOT}/evidence_strings/ && \
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
   -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
   python3 ${CODE_ROOT}/bin/clinvar_jsons/traits_to_zooma_format.py \
-  -i ${BATCH_ROOT}/clinvar/clinvar.filtered.json.gz \
+  -i ${BATCH_ROOT}/clinvar/clinvar.json.gz \
   -o ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt && \
 ${BSUB_CMDLINE} -K -n 8 -M 16G \
   -o ${BATCH_ROOT}/logs/opentargets_validator.out \

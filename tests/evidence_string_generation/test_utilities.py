@@ -14,7 +14,6 @@ class GetResourceFileTest(unittest.TestCase):
 
 
 class ArgParserTest(unittest.TestCase):
-    clin_sig = 'pathogenic,likely pathogenic'
     ignore = '/path/to/ignore/file'
     out = '/path/to/out/file'
     efo_map_file = '/path/to/efo/file'
@@ -23,13 +22,10 @@ class ArgParserTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        argv = ['clinvar_to_evidence_strings.py', '--clinSig', cls.clin_sig, '--ignore',
+        argv = ['clinvar_to_evidence_strings.py', '--ignore',
                 cls.ignore, '--out', cls.out, '-e', cls.efo_map_file, '-g', cls.snp_2_gene_file,
                 '--ot-schema', cls.ot_schema_path]
         cls.argparser = utilities.ArgParser(argv)
-
-    def test_clin_sig(self):
-        self.assertEqual(self.argparser.clinical_significance, self.clin_sig)
 
     def test_ignore(self):
         self.assertEqual(self.argparser.ignore_terms_file, self.ignore)
