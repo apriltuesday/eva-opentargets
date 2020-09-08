@@ -191,9 +191,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         self.clinvar_rating = (star_rating, review_status)
 
         # Populate mode of inheritance (if present)
-        mode_of_inheritance = clinvar_record.mode_of_inheritance
-        if mode_of_inheritance:
-            self.mode_of_inheritance = mode_of_inheritance
+        self.mode_of_inheritance = clinvar_record.mode_of_inheritance
 
     @property
     def db_xref_url(self):
@@ -310,7 +308,8 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
 
     @mode_of_inheritance.setter
     def mode_of_inheritance(self, mode_of_inheritance):
-        self['evidence']['variant2disease']['mode_of_inheritance'] = mode_of_inheritance
+        if mode_of_inheritance:
+            self['evidence']['variant2disease']['mode_of_inheritance'] = mode_of_inheritance
 
 
 class CTTVSomaticEvidenceString(CTTVEvidenceString):
