@@ -186,6 +186,10 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         if clinvar_record.clinical_significance:
             self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
 
+        # Populate star rating and review status
+        star_rating, review_status = clinvar_record.score
+        self.clinvar_rating = (star_rating, review_status)
+
     @property
     def db_xref_url(self):
         if self['evidence']['gene2variant']['provenance_type']['database']['dbxref']['url'] \
@@ -283,6 +287,18 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
     def clinical_significance(self, clinical_significance):
         self['evidence']['variant2disease']['clinical_significance'] = clinical_significance
 
+    @property
+    def clinvar_rating(self):
+        return self['evidence']['variant2disease']['clinvar_rating']
+
+    @clinvar_rating.setter
+    def clinvar_rating(self, clinvar_rating_data):
+        star_rating, review_status = clinvar_rating_data
+        self['evidence']['variant2disease']['clinvar_rating'] = {
+            'star_rating': star_rating,
+            'review_status': review_status,
+        }
+
 
 class CTTVSomaticEvidenceString(CTTVEvidenceString):
 
@@ -327,6 +343,10 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
 
         if clinvar_record.clinical_significance:
             self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
+
+        # Populate star rating and review status
+        star_rating, review_status = clinvar_record.score
+        self.clinvar_rating = (star_rating, review_status)
 
     @property
     def db_xref_url(self):
@@ -393,6 +413,18 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
     @clinical_significance.setter
     def clinical_significance(self, clinical_significance):
         self['evidence']['clinical_significance'] = clinical_significance
+
+    @property
+    def clinvar_rating(self):
+        return self['evidence']['clinvar_rating']
+
+    @clinvar_rating.setter
+    def clinvar_rating(self, clinvar_rating_data):
+        star_rating, review_status = clinvar_rating_data
+        self['evidence']['clinvar_rating'] = {
+            'star_rating': star_rating,
+            'review_status': review_status,
+        }
 
 
 def get_ensembl_gene_id_uri(ensembl_gene_id):

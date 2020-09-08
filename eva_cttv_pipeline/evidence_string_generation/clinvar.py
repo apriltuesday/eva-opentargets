@@ -10,12 +10,17 @@ class ClinvarRecord(UserDict):
     # A score for the review status of the assigned clinical significance ranges from 0 to 4 and corresponds to the
     # number of "gold stars" displayed on ClinVar website. See details here:
     # https://www.ncbi.nlm.nih.gov/clinvar/docs/details/#review_status
+    # TODO: the mapping back from uppercase-underscore to lowercase-space wording is required because we still use the
+    # TODO: Java XML parser, which loses the original values. Once we get rid of it (see issue #144), this can be
+    # TODO: removed.
     score_map = {
-        "CRITERIA_PROVIDED_SINGLE_SUBMITTER": 1,
-        "CRITERIA_PROVIDED_CONFLICTING_INTERPRETATIONS": 1,
-        "CRITERIA_PROVIDED_MULTIPLE_SUBMITTERS_NO_CONFLICTS": 2,
-        "REVIEWED_BY_EXPERT_PANEL": 3,
-        "PRACTICE_GUIDELINE": 4,
+        "NO_ASSERTION_PROVIDED": (0, 'no assertion provided'),
+        "NO_ASSERTION_CRITERIA_PROVIDED": (0, 'no assertion criteria provided'),
+        "CRITERIA_PROVIDED_SINGLE_SUBMITTER": (1, 'criteria provided, single submitter'),
+        "CRITERIA_PROVIDED_CONFLICTING_INTERPRETATIONS": (1, 'criteria provided, conflicting interpretations'),
+        "CRITERIA_PROVIDED_MULTIPLE_SUBMITTERS_NO_CONFLICTS": (2, 'criteria provided, multiple submitters, no conflicts'),
+        "REVIEWED_BY_EXPERT_PANEL": (3, 'reviewed by expert panel'),
+        "PRACTICE_GUIDELINE": (4, 'practice guideline'),
     }
 
     def __init__(self, cellbase_dict):
@@ -50,10 +55,8 @@ class ClinvarRecord(UserDict):
 
     @property
     def score(self):
-        """Returns a score for the review status of the assigned clinical significance. See score_map above. It should
-        be noted that currently this property is not used, but this might change in the future.
-        """
-        return self.score_map.get(self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus'], 0)
+        """Returns a (star rating, review status) tuple for the assigned clinical significance. See score_map above."""
+        return self.score_map[self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus']]
 
     @property
     def accession(self):

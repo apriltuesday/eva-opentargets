@@ -42,6 +42,7 @@
       "type": "probability",
       "value": 1
     },
-    "date_asserted": null
+    "date_asserted": null,
+    "clinvar_rating": {}
   }
 }
