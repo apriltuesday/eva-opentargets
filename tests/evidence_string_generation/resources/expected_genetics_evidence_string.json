@@ -5,7 +5,6 @@
   },
   "evidence": {
     "gene2variant": {
-      "date_asserted": "2019-08-28T23:00:00",
       "evidence_codes": [
         "http://identifiers.org/eco/cttv_mapping_pipeline"
       ],
