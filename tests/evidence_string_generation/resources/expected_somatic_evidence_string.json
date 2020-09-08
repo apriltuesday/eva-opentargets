@@ -7,6 +7,10 @@
     "clinical_significance": [
       "pathogenic"
     ],
+    "clinvar_rating": {
+      "review_status": "no assertion criteria provided",
+      "star_rating": 0
+    },
     "date_asserted": "2019-08-28T23:00:00",
     "evidence_codes": [
       "http://purl.obolibrary.org/obo/ECO_0000205"
