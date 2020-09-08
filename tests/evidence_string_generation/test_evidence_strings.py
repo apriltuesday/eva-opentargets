@@ -194,9 +194,7 @@ class GeneticsEvidenceStringTest(unittest.TestCase):
     def test_date(self):
         date_string = datetime.fromtimestamp(1412982000000 / 1000).isoformat()
         self.test_ges.date = date_string
-        self.assertEqual(self.test_ges['evidence']['gene2variant']['date_asserted'], date_string)
-        self.assertEqual(self.test_ges['evidence']['variant2disease']['date_asserted'],
-                         date_string)
+        self.assertEqual(self.test_ges['evidence']['variant2disease']['date_asserted'], date_string)
         self.assertEqual(self.test_ges.date, date_string)
 
     def test_validate(self):

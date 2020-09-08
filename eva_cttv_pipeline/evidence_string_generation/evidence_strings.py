@@ -165,6 +165,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
                              variant_type)
             self.add_unique_association_field('variant_id', clinvar_record.accession)
         self.date = clinvar_record.date
+        self.last_evaluated_date = clinvar_record.last_evaluated_date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
         # See https://github.com/opentargets/platform/issues/1139#issuecomment-682592678
@@ -271,16 +272,20 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
 
     @property
     def date(self):
-        if self['evidence']['gene2variant']['date_asserted'] == \
-                self['evidence']['variant2disease']['date_asserted']:
-            return self['evidence']['gene2variant']['date_asserted']
-        else:
-            raise Exception("date attributes have different values")
+        return self['evidence']['variant2disease']['date_asserted']
 
     @date.setter
     def date(self, date_string):
-        self['evidence']['gene2variant']['date_asserted'] = date_string
         self['evidence']['variant2disease']['date_asserted'] = date_string
+
+    @property
+    def last_evaluated_date(self):
+        return self['evidence']['variant2disease']['last_evaluated_date']
+
+    @last_evaluated_date.setter
+    def last_evaluated_date(self, clinvar_last_evaluated_date):
+        if clinvar_last_evaluated_date:
+            self['evidence']['variant2disease']['last_evaluated_date'] = clinvar_last_evaluated_date
 
     @property
     def clinical_significance(self):
@@ -343,6 +348,7 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
             self.add_unique_association_field('variant_id', clinvar_record.accession)
 
         self.date = clinvar_record.date
+        self.last_evaluated_date = clinvar_record.last_evaluated_date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
         # See https://github.com/opentargets/platform/issues/1139#issuecomment-682592678
@@ -403,6 +409,15 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
     @date.setter
     def date(self, date_string):
         self['evidence']['date_asserted'] = date_string
+
+    @property
+    def last_evaluated_date(self):
+        return self['evidence']['last_evaluated_date']
+
+    @last_evaluated_date.setter
+    def last_evaluated_date(self, clinvar_last_evaluated_date):
+        if clinvar_last_evaluated_date:
+            self['evidence']['last_evaluated_date'] = clinvar_last_evaluated_date
 
     def _clear_known_mutations(self):
         self['evidence']['known_mutations'] = []
