@@ -59,6 +59,15 @@ class ClinvarRecord(UserDict):
         return self.score_map[self.data['referenceClinVarAssertion']['clinicalSignificance']['reviewStatus']]
 
     @property
+    def mode_of_inheritance(self):
+        """Returns a (possibly empty) list of modes of inheritance for a given ClinVar record."""
+        return sorted({
+            attribute['attribute']['value']
+            for attribute in self.data['referenceClinVarAssertion'].get('attributeSet', [])
+            if attribute['attribute']['type'] == 'ModeOfInheritance'
+        })
+
+    @property
     def accession(self):
         return self.data['referenceClinVarAssertion']['clinVarAccession']['acc']
 
