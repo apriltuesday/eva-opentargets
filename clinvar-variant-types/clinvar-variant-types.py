@@ -115,8 +115,12 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
             ))
 
             # Mode of inheritance
-            mode_of_inheritance = find_attribute(
-                rcv, 'AttributeSet/Attribute[@Type="ModeOfInheritance"]', 'ModeOfInheritance')
+            mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
+            mode_of_inheritance = find_attribute(rcv, mode_of_inheritance_xpath, 'ModeOfInheritance')
+            if mode_of_inheritance.endswith('multiple'):
+                # Having multiple ModeOfInheritance is rare. Log them for further investigation
+                all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
+                print(f'Multiple ModeOfInheritance: {all_modes}')
             add_transitions(inheritance_mode_transitions, (
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
