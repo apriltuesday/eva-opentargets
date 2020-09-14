@@ -54,6 +54,9 @@ def parse_trait_names(filepath: str) -> list:
     trait_names = [t[0] for t in unique_association_tuples]
     traits = []
     for trait_name, trait_frequency in Counter(trait_names).items():
+        if trait_name == '-':
+            print('Skipped {} missing trait names'.format(trait_frequency))
+            continue
         associated_with_nt_expansion = trait_name in nt_expansion_traits
         traits.append(Trait(name=trait_name.lower(), frequency=trait_frequency,
                             associated_with_nt_expansion=associated_with_nt_expansion))
