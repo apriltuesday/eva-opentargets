@@ -15,7 +15,7 @@ wget -q \
   ${CLINVAR_PATH_BASE}/tab_delimited/variant_summary.txt.gz
 
 # Run the trait mapping pipeline
-cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 4G \
+cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 12G \
   -o ${CURATION_RELEASE_ROOT}/log.trait_mapping.out \
   -e ${CURATION_RELEASE_ROOT}/log.trait_mapping.err \
   python3 bin/trait_mapping.py \
