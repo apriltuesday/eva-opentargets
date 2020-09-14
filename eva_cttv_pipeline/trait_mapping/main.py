@@ -80,7 +80,7 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
         curation_writer = csv.writer(curation_file, delimiter="\t")
 
         logger.info('Processing trait names in parallel')
-        trait_process_pool = multiprocessing.Pool(processes=12)
+        trait_process_pool = multiprocessing.Pool(processes=24)
         processed_trait_list = [
             trait_process_pool.apply(
                 process_trait,
@@ -89,6 +89,7 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
             for trait in trait_list
         ]
 
+        logger.info('Writing output with the processed traits')
         for trait in processed_trait_list:
             output_trait(trait, mapping_writer, curation_writer)
 
