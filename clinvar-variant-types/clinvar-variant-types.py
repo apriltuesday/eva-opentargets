@@ -74,6 +74,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
     rcv_records = elem.findall('ReferenceClinVarAssertion')
     assert len(rcv_records) == 1, 'Found multiple RCV records per ClinVarSet'
     rcv = rcv_records[0]
+    rcv_id = 'RCV{:09}'.format(int(rcv.attrib['ID']))
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
     measure_sets = rcv.findall('MeasureSet')
@@ -120,7 +121,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
             if mode_of_inheritance.endswith('multiple'):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
                 all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
-                print(f'Multiple ModeOfInheritance: {all_modes}')
+                print(f'Multiple ModeOfInheritance\t{rcv_id}\t{all_modes}')
             add_transitions(inheritance_mode_transitions, (
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
