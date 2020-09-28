@@ -20,7 +20,7 @@ export CLINVAR_RELEASE_YEAR=YYYY
 export CLINVAR_RELEASE_MONTH=MM
 
 # Open Targets JSON schema version
-export OT_SCHEMA_VERSION=1.7.1
+export OT_SCHEMA_VERSION=1.7.3
 
 # Open Targets validator schema version
 export OT_VALIDATOR_VERSION=0.6.0
@@ -112,7 +112,7 @@ Update the currently supported version mentioned in this document.
 ### Update the code to reflect the Open Targets schema change
 Open Targets have a [JSON schema](https://github.com/opentargets/json_schema) used to validate submitted data. Validation of generated evidence strings is carried out during generation.
 
-When Open Targets schema version changes, test files in `tests/evidence_string_generation/resources` also need to be updated, as well as all mentions of old schema version throughout the code (use global search for that). The currently supported schema version is **1.7.1.**
+When Open Targets schema version changes, test files in `tests/evidence_string_generation/resources` also need to be updated, as well as all mentions of old schema version throughout the code (use global search for that). The currently supported schema version is **1.7.3.**
 
 ### Check and correct known problematic mappings
 There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.

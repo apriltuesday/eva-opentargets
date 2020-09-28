@@ -2,7 +2,7 @@
   "type": "somatic_mutation",
   "access_level": "public",
   "sourceID": "eva_somatic",
-  "validated_against_schema_version": "1.7.1",
+  "validated_against_schema_version": "1.7.3",
   "disease": {
     "id": []
   },
