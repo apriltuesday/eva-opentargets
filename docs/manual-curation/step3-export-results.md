@@ -37,7 +37,7 @@ cat \
 # which are only present in the existing database and not in the new mappings.
 join -j 1 -t$'\t' \
   <(sort -k1,1 ${EXISTING_MAPPINGS}) \
-  <(comm -23 <(cut -f1 ${EXISTING_MAPPINGS} | sort -u) <(cut -f1 ${NEW_MAPPINGS} | sort -u)) \
+  <(comm -23 <(cut -f1 ${EXISTING_MAPPINGS} | sort -u -k1,1) <(cut -f1 ${NEW_MAPPINGS} | sort -u -k1,1)) \
 >> ${NEW_MAPPINGS}
 
 # Run the helper script to prepare the table for EFO import
