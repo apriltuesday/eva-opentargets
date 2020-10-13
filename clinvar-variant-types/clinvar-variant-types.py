@@ -48,8 +48,8 @@ def review_status_stars(review_status):
 
 # The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
 # Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
-variant_type_transitions, clin_sig_transitions, review_status_transitions, inheritance_mode_transitions \
-    = Counter(), Counter(), Counter(), Counter()
+variant_type_transitions, clin_sig_transitions, review_status_transitions, inheritance_mode_transitions,\
+    allele_origin_transitions = Counter(), Counter(), Counter(), Counter(), Counter()
 all_clinical_significance_levels = set()
 
 
@@ -79,7 +79,6 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
     measure_sets = rcv.findall('MeasureSet')
     genotype_sets = rcv.findall('GenotypeSet')
-
     if len(measure_sets) == 1 and len(genotype_sets) == 0:
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
@@ -130,14 +129,20 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
                 add_transitions(inheritance_mode_transitions, (
                     'ModeOfInheritance present', mode_of_inheritance
                 ))
-
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
         add_transitions(variant_type_transitions, ('RCV', 'GenotypeSet', genotype_set.attrib['Type']))
-
     else:
         raise AssertionError('RCV must contain either exactly one measure set, or exactly one genotype set')
+
+    allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
+    if len(allele_origins) == 0:
+        add_transitions(allele_origin_transitions, ('RCV', 'No allele origin'))
+    else:
+        allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
+        allele_origins_text = ','.join(sorted(allele_origins))
+        add_transitions(allele_origin_transitions, ('RCV', allele_origins_count, allele_origins_text))
 
     # Remove the processed element from the tree to save memory
     elem.clear()
@@ -150,7 +155,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
 # Output the code for Sankey diagram. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
 for transitions_counter in (variant_type_transitions, clin_sig_transitions, review_status_transitions,
-                            inheritance_mode_transitions):
+                            inheritance_mode_transitions, allele_origin_transitions):
     print()
     for (transition_from, transition_to), count in sorted(transitions_counter.items(), key=lambda x: -x[1]):
         print('{transition_from} [{count}] {transition_to}'.format(**locals()))

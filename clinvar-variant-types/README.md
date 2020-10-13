@@ -13,9 +13,9 @@ python3 \
 
 ## Results
 
-All graphs in this section were generated from the file `ClinVarFullRelease_2020-0706.xml.gz`. Graphs can be enlarged by clicking on them.
+Graphs can be enlarged by clicking on them. Dates in parentheses specify when the graph was last updated.
 
-### Data model and variant types
+### Data model and variant types (2020-07-06)
 
 ![](variant-types.png)
 
@@ -47,7 +47,9 @@ All graphs in this section were generated from the file `ClinVarFullRelease_2020
 
 As of July 2020, the most common case is the MeasureSet/Variant one, accounting for 1114689 out of 1117817 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.**
 
-### Clinical significance
+### Clinical significance (2020-07-06)
+
+Calculated from `ClinVarFullRelease_2020-0706.xml.gz`.
 
 ![](clinical-significance.png)
 
@@ -55,7 +57,7 @@ Under the current criteria, 188,518 out of 1,114,689 (17%) records are being pro
 
 For the situations where multiple clinical significance levels were reported for a given association, they are converted into a single composite string, e.g. `Benign/Likely benign, other`.
 
-### Star rating (review status)
+### Star rating and review status (2020-07-06)
 
 ![](star-rating.png)
 
@@ -66,8 +68,14 @@ The distribution of records by star rating is:
 * ★★★☆ 11,583 (1%)
 * ★★★★ 35 (< 0.01%)
 
-### Mode of inheritance
+### Mode of inheritance (2020-07-21)
 
 ![](mode-of-inheritance.png)
 
 Only a small fraction of all records specify their mode of inheritance: 35,009 out of 1,114,689, or about 3%.
+
+### Allele origin (2020-10-13)
+
+![](allele-origin.png)
+
+All records specify an allele origin. It can be either a single value (the majority of them) or multiple ones.
