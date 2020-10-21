@@ -231,9 +231,6 @@ If everything has been done correctly, hash sums will be the same. Note that the
 * Step 2 “Set up directories and download the data”
   + Working directory exists and its structure is as described in the instructions for the step
 * Step 3 “Manual steps & checks before running the pipeline”
-  + ClinVar schema version is either unchanged, *or* schema is changed and the PR for the changes has been submitted
-    - If the PR is submitted, check that there are no breaking changes in the schema version
-    - If the PR is submitted, tests must be updated as well
   + References to the Open Targets schema version are updated throughout the code and in the test files
 * Step 4 “Process data”
   + Functional consequences
@@ -251,7 +248,7 @@ If everything has been done correctly, hash sums will be the same. Note that the
   + Generated evidence strings validate against the schema
     - Have actually been submitted to the Open Targets cloud storage
     - The file is the same as on the cluster (check md5)
-    - (After review) E-mail has been sent to Open Targets, with eva-dev in copy
+    - E-mail has been sent to Open Targets, with eva-dev in copy
   + ZOOMA feedback (the FTP path is http://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest; to see where files are located on the cluster, see variable `BATCH_ROOT_BASE` on [this page](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md))
     - The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
     - The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
