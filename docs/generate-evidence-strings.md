@@ -3,7 +3,7 @@
 ## 1. Preparation steps
 
 ### Update the code to reflect version changes on the Open Targets side
-A few weeks before the release, there will be an email from Open Targets which will specify the versions of JSON schema to use. The pipeline currently uses [JSON schema](https://github.com/opentargets/json_schema) version **1.7.3.** When this changes, all references throughout the code must be updated using a global search, as well as the test files in [`tests/evidence_string_generation/resources`](/tests/evidence_string_generation/resources).
+A few weeks before the release, there will be an email from Open Targets which will specify the versions of JSON schema to use. The pipeline currently uses [JSON schema](https://github.com/opentargets/json_schema) version **1.7.5.** When this changes, all references throughout the code must be updated using a global search, as well as the test files in [`tests/evidence_string_generation/resources`](/tests/evidence_string_generation/resources).
 
 ### Set up the environment
 First, [set up the common environment.](environment.md)

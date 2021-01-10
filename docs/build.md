@@ -20,8 +20,6 @@ wget https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tgz
 tar zxfv Python-${VERSION}.tgz
 mv Python-${VERSION}/* .
 rmdir Python-${VERSION}
-ln -s python python3
-chmod a+x python python3
 ```
 
 ### Root installation
@@ -42,6 +40,8 @@ This is the only way which will work on the `ebi-cli` cluster. It is also useful
 ./configure --prefix=${INSTALL_PATH}
 make -j `nproc`
 make -j `nproc` install
+ln -s python python3
+chmod a+x python python3
 ```
 
 You can invoke this installation by using a direct path, `${INSTALL_PATH}/python`. In order to temporarily set it as default (and invoke simply as `python`), configure the paths:
