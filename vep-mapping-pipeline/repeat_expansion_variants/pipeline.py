@@ -22,14 +22,16 @@ def none_to_nan(*args):
     return [np.nan if a is None else a for a in args]
 
 
-def load_clinvar_data(clinvar_xml):
+def load_clinvar_data(clinvar_xml, number_of_records=None):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
     # Iterate through ClinVar XML records. Load all Microsatellite variants
     variant_data = []  # Name, RCVaccession, GeneSymbol, HGNC_ID
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i % 10000 == 0:
             logger.info(f'Processed {i} records, have {len(variant_data)} variants')
-        if clinvar_record.measure and clinvar_record.measure.variant_type == 'Microsatellite':
+        if number_of_records and i > number_of_records:
+            break
+        if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
             # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
             # summary format which was used previously.
             gene_symbols = clinvar_record.measure.preferred_gene_symbols

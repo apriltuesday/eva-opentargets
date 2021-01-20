@@ -89,7 +89,7 @@ def query_biomart(key_column, query_column, identifier_list):
             identifier_list=','.join(identifier_chunk)
         )
         result += process_biomart_request(biomart_query)
-    resulting_df = pd.read_table(StringIO(result), names=(df_key_column, df_query_column))
+    resulting_df = pd.read_table(StringIO(result), names=(df_key_column, df_query_column), dtype=str)
     # Group all potential mappings into lists.
     resulting_df = resulting_df.groupby(df_key_column)[df_query_column].apply(list).reset_index(name=df_query_column)
     return resulting_df

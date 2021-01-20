@@ -232,8 +232,7 @@ class ClinVarRecordMeasure:
 
     @property
     def hgnc_ids(self):
-        return [elem.attrib['ID'] for elem in find_elements(
-            self.measure_xml, './MeasureRelationship/XRef[@DB="HGNC"]')]
+        return [elem.attrib['ID'] for elem in find_elements(self.measure_xml, './MeasureRelationship/XRef[@DB="HGNC"]')]
 
     @property
     def rs_id(self):
@@ -314,3 +313,23 @@ class ClinVarRecordMeasure:
             # TODO: https://github.com/EBIvariation/eva-opentargets/issues/172
             return None
         return sequence_locations[0].attrib.get(attr)
+
+    @property
+    def is_repeat_expansion_variant(self):
+        """Determines whether the event described by the given chromosomal coordinates represents a repeat expansion
+        variant."""
+
+        if self.variant_type == 'Microsatellite':
+            if self.has_complete_coordinates:
+                if len(self.vcf_ref) < len(self.vcf_alt):
+                    print(f'MICROSATELLITE EXPANSION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}')
+                    return True
+                else:
+                    print(f'MICROSATELLITE DELETION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}')
+                    return False
+            else:
+                print(f'MICROSATELLITE NO FULL COORDS\t{self.name}')
+                return True
+        return False
+
+        return self.variant_type == 'Microsatellite' and len(self.vcf_ref) < len(self.vcf_alt)
