@@ -128,7 +128,7 @@
     "phenotype": "http://www.orpha.net/ORDO/Orphanet_88991",
     "variant_id": "rs28940313"
   },
-  "validated_against_schema_version": "1.7.3",
+  "validated_against_schema_version": "1.7.5",
   "variant": {
     "id": "http://identifiers.org/dbsnp/rs28940313",
     "type": "snp single"

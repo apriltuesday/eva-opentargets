@@ -19,8 +19,8 @@ export OT_RELEASE=YYYY-MM
 export CLINVAR_RELEASE_YEAR=YYYY
 export CLINVAR_RELEASE_MONTH=MM
 
-# Open Targets JSON schema version
-export OT_SCHEMA_VERSION=1.7.3
+# Open Targets JSON schema version.
+export OT_SCHEMA_VERSION=1.7.5
 
 # Open Targets validator schema version
 export OT_VALIDATOR_VERSION=0.6.0
