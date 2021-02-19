@@ -281,6 +281,11 @@ class ClinVarRecordMeasure:
     def has_complete_coordinates(self):
         return self.chr and self.vcf_pos and self.vcf_ref and self.vcf_alt
 
+    @property
+    def vcf_full_coords(self):
+        if self.has_complete_coordinates():
+            return '_'.join([self.chr, self.vcf_pos, self.vcf_ref, self.vcf_alt])
+
     def sequence_location_helper(self, attr):
         if self.variant_type == 'Translocation':
             # TODO: Translocations have multiple locations and are not supported.

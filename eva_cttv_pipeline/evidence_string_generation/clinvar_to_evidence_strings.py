@@ -191,14 +191,10 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             # Iterate over all EFO mappings (there may be multiple per trait)
             for ontology_id, ontology_label in string_to_efo_mappings[clinvar_trait.name.lower()]:
-                if allele_origin == 'germline':
-                    evidence_string = evidence_strings.CTTVGeneticsEvidenceString(
-                        clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type)
-                elif allele_origin == 'somatic':
-                    evidence_string = evidence_strings.CTTVSomaticEvidenceString(
-                        clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type)
-                else:
-                    raise AssertionError('Unknown allele_origin present in the data: {}'.format(allele_origin))
+                assert allele_origin in ('germline', 'somatic'), \
+                    f'Unknown allele_origin {allele_origin} present in the data'
+                evidence_string = evidence_strings.EvidenceString(allele_origin, clinvar_record, clinvar_trait,
+                                                                  ontology_id, consequence_type)
 
                 # Validate and immediately output the evidence string (not keeping everything in memory)
                 validate_evidence_string(evidence_string, clinvar_record, clinvar_trait,
