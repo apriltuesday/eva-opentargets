@@ -309,13 +309,53 @@ def get_terms_from_file(terms_file_path):
 
 
 def convert_allele_origins(orig_allele_origins):
-    orig_allele_origins = [item.lower() for item in orig_allele_origins]
+    """Splits the original list of allele origins from ClinVar into up to two groups: one for 'somatic' (if present),
+    and another one for all other types, which are considered 'germline' (if present)."""
+    orig_allele_origins = {item.lower() for item in orig_allele_origins}
     converted_allele_origins = []
-    if "somatic" in orig_allele_origins:
-        converted_allele_origins.append("somatic")
-    if set(orig_allele_origins).intersection({"biparental", "de novo", "germline", "inherited",
-                                              "maternal", "not applicable", "not provided",
-                                              "paternal", "uniparental", "unknown"}):
-        converted_allele_origins.append("germline")
-
+    if 'somatic' in orig_allele_origins:
+        converted_allele_origins.append(['somatic'])
+        orig_allele_origins.remove('somatic')
+    if orig_allele_origins:  # Is there something remaining for the second (non-somatic) group?
+        converted_allele_origins.append(sorted(orig_allele_origins))
     return converted_allele_origins
+
+
+def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings, report):
+    """Processes and groups diseases from a ClinVar record in two ways. First, diseases mapping to the same EFO term are
+    grouped together. Second, if a group of diseases has multiple EFO mappings, they are split into separate groups.
+    For each group, the tuple of the following values is returned: (1) the original name of the disease which comes
+    first lexicographically; (2) the original MedGen ID of that disease; (3) the mapped EFO term of that disease.
+    Diseases without mappings are skipped.
+
+    For example, for a ClinVar record with the following mappings:
+        * Diseases A, B, C -> EFO_1
+        * Disease D -> EFO_2 & EFO_3
+        * Diseases E, F -> EFO_4 & EFO_5
+        * Disease G -> No mapping
+
+    The following tuples will be generated:
+        * (A, MedGen_A, EFO_1)
+        * (D, MedGen_D, EFO_2)
+        * (D, MedGen_D, EFO_3)
+        * (E, MedGen_E, EFO_4)
+        * (E, MedGen_E, EFO_5)"""
+
+    # Group traits by their EFO mappings and explode multiple mappings
+    efo_to_traits = dict()  # Key: EFO ID, value: list of traits mapped to that ID
+    for trait in clinvar_record_traits:
+        trait_name = trait.name.lower()
+        if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
+            report.counters['n_missed_strings_unmapped_traits'] += 1
+            continue
+        for efo_id, efo_label in string_to_efo_mappings[trait_name]:
+            efo_to_traits.setdefault(efo_id, []).append(trait)
+
+    # Generate tuples by keeping only one disease from each group
+    grouped_tuples = []
+    for efo_id, traits in efo_to_traits.values():
+        traits = sorted(traits, key=lambda t: t.name)
+        selected_trait = traits[0]
+        # TODO: Fill in the MedGen ID
+        grouped_tuples.append((selected_trait.name, None, efo_id))
+    return grouped_tuples
