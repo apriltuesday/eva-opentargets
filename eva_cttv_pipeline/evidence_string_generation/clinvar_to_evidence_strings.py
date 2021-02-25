@@ -185,61 +185,60 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
         for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                 grouped_allele_origins, grouped_diseases, consequence_types):
-
             disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
-            e = dict()
+            is_somatic = allele_origins == ['somatic']
 
-            # ALLELE ORIGIN ATTRIBUTES. There are three attributes which are currently completely redundant (their
-            # values are completely correlated between each other). This is intended, see answer to question 1 here:
-            # https://github.com/EBIvariation/eva-opentargets/issues/189#issuecomment-782136128.
-            e['alleleOrigins'] = allele_origins
-            if allele_origins == ['somatic']:
-                e['datasourceId'] = 'eva_somatic'
-                e['datatypeId'] = 'somatic_mutation'
-            else:
-                e['datasourceId'] = 'eva'
-                e['datatypeId'] = 'genetic_association'
+            evidence_string = {
 
-            # ASSOCIATION ATTRIBUTES.
-            # List of patterns of inheritance reported for the variant.
-            if clinvar_record.mode_of_inheritance:
-                e['allelicRequirements'] = clinvar_record.mode_of_inheritance
-            # Levels of clinical significance reported for the variant.
-            e['clinicalSignificances'] = clinvar_record.clinical_significance_list
+                # ALLELE ORIGIN ATTRIBUTES. There are three attributes which are currently completely redundant (their
+                # values are completely correlated between each other). This is intended, see answer to question 1 here:
+                # https://github.com/EBIvariation/eva-opentargets/issues/189#issuecomment-782136128.
+                'alleleOrigins': allele_origins,
+                'datasourceId': 'eva_somatic' if is_somatic else 'eva',
+                'datatypeId': 'somatic_mutation' if is_somatic else 'genetic_association',
 
-            # Confidence (review status).
-            e['confidence'] = clinvar_record.review_status
+                # ASSOCIATION ATTRIBUTES.
+                # List of patterns of inheritance reported for the variant.
+                'allelicRequirements': clinvar_record.mode_of_inheritance,
 
-            # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
-            # "observed in" references. Open Targets are interested only in that last category.
-            e['literature'] = sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs]))
+                # Levels of clinical significance reported for the variant.
+                'clinicalSignificances': clinvar_record.clinical_significance_list,
 
-            # RCV identifier.
-            e['studyID'] = clinvar_record.accession
+                # Confidence (review status).
+                'confidence': clinvar_record.review_status,
 
-            # VARIANT ATTRIBUTES.
-            e['targetFromSourceId'] = consequence_attributes.ensembl_gene_id
-            e['variantFunctionalConsequenceId'] = consequence_attributes.so_term.name
-            e['variantId'] = clinvar_record.measure.vcf_full_coords  # CHROM_POS_REF_ALT notation
-            e['variantRsId'] = clinvar_record.measure.rs_id
+                # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
+                # "observed in" references. Open Targets are interested only in that last category.
+                'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
 
-            # PHENOTYPE ATTRIBUTES.
-            # The alphabetical list of *all* disease names from that ClinVar record
-            e['cohortPhenotypes'] = sorted([trait.name for trait in clinvar_record.traits])
+                # RCV identifier.
+                'studyID': clinvar_record.accession,
 
-            # One disease name for this evidence string (see group_diseases_by_efo_mapping)
-            e['diseaseFromSource'] = disease_name
+                # VARIANT ATTRIBUTES.
+                'targetFromSourceId': consequence_attributes.ensembl_gene_id,
+                'variantFunctionalConsequenceId': consequence_attributes.so_term.name,
+                'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation
+                'variantRsId': clinvar_record.measure.rs_id,
 
-            # The internal identifier of that disease
-            # FIXME: not currently populated
-            e['diseaseFromSourceId'] = disease_source_id
+                # PHENOTYPE ATTRIBUTES.
+                # The alphabetical list of *all* disease names from that ClinVar record
+                'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits]),
 
-            # The EFO identifier to which we mapped that first disease
-            e['diseaseFromSourceMappedId'] = disease_mapped_efo_id
+                # One disease name for this evidence string (see group_diseases_by_efo_mapping)
+                'diseaseFromSource': disease_name,
+
+                # The internal identifier of that disease
+                # FIXME: not currently populated
+                'diseaseFromSourceId': disease_source_id,
+
+                # The EFO identifier to which we mapped that first disease
+                'diseaseFromSourceMappedId': disease_mapped_efo_id,
+
+            }
 
             # Validate and immediately output the evidence string (not keeping everything in memory)
-            validate_evidence_string(e, ot_schema_contents)
-            output_evidence_strings_file.write(json.dumps(e) + '\n')
+            validate_evidence_string(evidence_string, ot_schema_contents)
+            output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
 
             report.evidence_string_count += 1
             report.counters['n_valid_rs_and_nsv'] += (clinvar_record.measure.nsv_id is not None)
