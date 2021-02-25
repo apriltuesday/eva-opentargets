@@ -322,13 +322,13 @@ class ClinVarRecordMeasure:
         if self.variant_type == 'Microsatellite':
             if self.has_complete_coordinates:
                 if len(self.vcf_ref) < len(self.vcf_alt):
-                    print(f'MICROSATELLITE EXPANSION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}')
+                    print(f'MICROSATELLITE EXPANSION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}\t{self.clinvar_record.accession}')
                     return True
                 else:
-                    print(f'MICROSATELLITE DELETION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}')
+                    print(f'MICROSATELLITE DELETION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}\t{self.clinvar_record.accession}')
                     return False
             else:
-                print(f'MICROSATELLITE NO FULL COORDS\t{self.name}')
+                print(f'MICROSATELLITE NO FULL COORDS\t{self.name}\t{self.clinvar_record.accession}')
                 return True
         return False
 
