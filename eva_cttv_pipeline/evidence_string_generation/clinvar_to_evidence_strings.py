@@ -10,7 +10,6 @@ import jsonschema
 
 from eva_cttv_pipeline import clinvar_xml_utils, file_utils
 from eva_cttv_pipeline.evidence_string_generation import config
-from eva_cttv_pipeline.evidence_string_generation import evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)
@@ -130,16 +129,13 @@ class Report:
                 "n_total_clinvar_records": 0}
 
 
-def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, ot_schema_contents):
+def validate_evidence_string(ev_string, ot_schema_contents):
     try:
-        ev_string.validate(ot_schema_contents)
+        jsonschema.validate(ev_string, ot_schema_contents, format_checker=jsonschema.FormatChecker())
     except jsonschema.exceptions.ValidationError as err:
         logger.error('Error: evidence string does not validate against schema.')
         logger.error(f'Error message: {err}')
         logger.error(f'Complete evidence string: {json.dumps(ev_string)}')
-        logger.error(f'ClinVar record: {clinvar_record}')
-        logger.error(f'ClinVar trait: {trait}')
-        logger.error(f'Ensembl gene ID: {ensembl_gene_id}')
         sys.exit(1)
     except jsonschema.exceptions.SchemaError:
         logger.error('Error: OpenTargets schema file is invalid')
@@ -175,38 +171,82 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         report.counters['n_nsvs'] += (clinvar_record.measure.nsv_id is not None)
         append_nsv(report.nsv_list, clinvar_record.measure)
         report.counters['n_multiple_allele_origin'] += (len(clinvar_record.allele_origins) > 1)
-        converted_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
-        for consequence_type, clinvar_trait, allele_origin in itertools.product(
-                get_consequence_types(clinvar_record.measure, variant_to_gene_mappings),
-                clinvar_record.traits,
-                converted_allele_origins):
 
-            # Skip records for which crucial information (consequences or EFO mappings) is not available
-            if consequence_type is None:
-                report.counters['n_no_variant_to_ensg_mapping'] += 1
-                continue
-            if clinvar_trait.name.lower() not in string_to_efo_mappings:
-                report.counters['n_missed_strings_unmapped_traits'] += 1
-                continue
+        # Within each ClinVar record, an evidence string is generated for all possible permutations of:
+        # 1. Allele origins
+        grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
+        # 2. EFO mappings
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings)
+        # 3. Genes where the variant has effect
+        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+        if not consequence_types:
+            report.counters['n_no_variant_to_ensg_mapping'] += 1
+            continue
 
-            # Iterate over all EFO mappings (there may be multiple per trait)
-            for ontology_id, ontology_label in string_to_efo_mappings[clinvar_trait.name.lower()]:
-                assert allele_origin in ('germline', 'somatic'), \
-                    f'Unknown allele_origin {allele_origin} present in the data'
-                evidence_string = evidence_strings.EvidenceString(allele_origin, clinvar_record, clinvar_trait,
-                                                                  ontology_id, consequence_type)
+        for allele_origins, disease_attributes, consequence_attributes in itertools.product(
+                grouped_allele_origins, grouped_diseases, consequence_types):
 
-                # Validate and immediately output the evidence string (not keeping everything in memory)
-                validate_evidence_string(evidence_string, clinvar_record, clinvar_trait,
-                                         consequence_type.ensembl_gene_id, ot_schema_contents)
-                output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
-                report.evidence_string_count += 1
-                report.counters['n_valid_rs_and_nsv'] += (clinvar_record.measure.nsv_id is not None)
-                report.traits.add(ontology_id)
-                report.remove_trait_mapping(clinvar_trait.name)
-                report.ensembl_gene_id_uris.add(
-                    evidence_strings.get_ensembl_gene_id_uri(consequence_type.ensembl_gene_id))
-                n_ev_strings_per_record += 1
+            disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
+            e = dict()
+
+            # ALLELE ORIGIN ATTRIBUTES. There are three attributes which are currently completely redundant (their
+            # values are completely correlated between each other). This is intended, see answer to question 1 here:
+            # https://github.com/EBIvariation/eva-opentargets/issues/189#issuecomment-782136128.
+            e['alleleOrigins'] = allele_origins
+            if allele_origins == ['somatic']:
+                e['datasourceId'] = 'eva_somatic'
+                e['datatypeId'] = 'somatic_mutation'
+            else:
+                e['datasourceId'] = 'eva'
+                e['datatypeId'] = 'genetic_association'
+
+            # ASSOCIATION ATTRIBUTES.
+            # List of patterns of inheritance reported for the variant.
+            if clinvar_record.mode_of_inheritance:
+                e['allelicRequirements'] = clinvar_record.mode_of_inheritance
+            # Levels of clinical significance reported for the variant.
+            e['clinicalSignificances'] = clinvar_record.clinical_significance_list
+
+            # Confidence (review status).
+            e['confidence'] = clinvar_record.review_status
+
+            # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
+            # "observed in" references. Open Targets are interested only in that last category.
+            e['literature'] = sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs]))
+
+            # RCV identifier.
+            e['studyID'] = clinvar_record.accession
+
+            # VARIANT ATTRIBUTES.
+            e['targetFromSourceId'] = consequence_attributes.ensembl_gene_id
+            e['variantFunctionalConsequenceId'] = consequence_attributes.so_term.name
+            e['variantId'] = clinvar_record.measure.vcf_full_coords  # CHROM_POS_REF_ALT notation
+            e['variantRsId'] = clinvar_record.measure.rs_id
+
+            # PHENOTYPE ATTRIBUTES.
+            # The alphabetical list of *all* disease names from that ClinVar record
+            e['cohortPhenotypes'] = sorted([trait.name for trait in clinvar_record.traits])
+
+            # One disease name for this evidence string (see group_diseases_by_efo_mapping)
+            e['diseaseFromSource'] = disease_name
+
+            # The internal identifier of that disease
+            # FIXME: not currently populated
+            e['diseaseFromSourceId'] = disease_source_id
+
+            # The EFO identifier to which we mapped that first disease
+            e['diseaseFromSourceMappedId'] = disease_mapped_efo_id
+
+            # Validate and immediately output the evidence string (not keeping everything in memory)
+            validate_evidence_string(e, ot_schema_contents)
+            output_evidence_strings_file.write(json.dumps(e) + '\n')
+
+            report.evidence_string_count += 1
+            report.counters['n_valid_rs_and_nsv'] += (clinvar_record.measure.nsv_id is not None)
+            report.traits.add(disease_mapped_efo_id)
+            report.remove_trait_mapping(disease_name)
+            report.ensembl_gene_id_uris.add(consequence_attributes.ensembl_gene_id)
+            n_ev_strings_per_record += 1
 
         if n_ev_strings_per_record > 0:
             report.counters['n_processed_clinvar_records'] += 1
@@ -258,7 +298,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.
-    return [None]
+    return []
 
 
 def write_string_list_to_file(string_list, filename):
