@@ -8,11 +8,17 @@ from collections import defaultdict
 
 import jsonschema
 
-from eva_cttv_pipeline import clinvar_xml_utils, file_utils
-from eva_cttv_pipeline.evidence_string_generation import config
+from eva_cttv_pipeline import clinvar_xml_utils
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)
+
+# Output settings
+EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
+EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
+UNMAPPED_TRAITS_FILE_NAME = 'unmappedTraits.tsv'
+UNAVAILABLE_EFO_FILE_NAME = 'unavailableefo.tsv'
+NSV_LIST_FILE = 'nsvlist.txt'
 
 
 class Report:
@@ -77,7 +83,7 @@ class Report:
             str(self.counters["n_missed_strings_unmapped_traits"]) +
             ' ClinVar records with allowed clinical significance, valid rs id and ' +
             'Variant->ENSG mapping were skipped due to a lack of EFO mapping (see ' +
-            config.UNMAPPED_TRAITS_FILE_NAME + ').',
+            UNMAPPED_TRAITS_FILE_NAME + ').',
             str(self.counters["n_records_no_recognised_allele_origin"]) +
             ' ClinVar records with allowed clinical significance, ' +
             'valid rs id, valid Variant->ENSG' +
@@ -96,10 +102,10 @@ class Report:
         return '\n'.join(report_strings)
 
     def write_output(self, dir_out):
-        write_string_list_to_file(self.nsv_list, dir_out + '/' + config.NSV_LIST_FILE)
+        write_string_list_to_file(self.nsv_list, dir_out + '/' + NSV_LIST_FILE)
 
         # Contains traits without a mapping in Gary's xls
-        with file_utils.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
+        with open(dir_out + '/' + UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
             fdw.write('Trait\tCount\n')
             for trait_list in self.unmapped_traits:
                 fdw.write(str(trait_list) + '\t' +
@@ -148,7 +154,7 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
-        output_evidence_strings=os.path.join(dir_out, config.EVIDENCE_STRINGS_FILE_NAME))
+        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
     report.write_output(dir_out)
     print(report)
 
@@ -157,7 +163,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                                 output_evidence_strings):
     report = Report(trait_mappings=string_to_efo_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
-    output_evidence_strings_file = file_utils.open_file(output_evidence_strings, 'wt')
+    output_evidence_strings_file = open(output_evidence_strings, 'wt')
 
     logger.info('Processing ClinVar records')
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(clinvar_xml):
@@ -186,57 +192,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                 grouped_allele_origins, grouped_diseases, consequence_types):
             disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
-            is_somatic = allele_origins == ['somatic']
-
-            evidence_string = {
-
-                # ALLELE ORIGIN ATTRIBUTES. There are three attributes which are currently completely redundant (their
-                # values are completely correlated between each other). This is intended, see answer to question 1 here:
-                # https://github.com/EBIvariation/eva-opentargets/issues/189#issuecomment-782136128.
-                'alleleOrigins': allele_origins,
-                'datasourceId': 'eva_somatic' if is_somatic else 'eva',
-                'datatypeId': 'somatic_mutation' if is_somatic else 'genetic_association',
-
-                # ASSOCIATION ATTRIBUTES.
-                # List of patterns of inheritance reported for the variant.
-                'allelicRequirements': clinvar_record.mode_of_inheritance,
-
-                # Levels of clinical significance reported for the variant.
-                'clinicalSignificances': clinvar_record.clinical_significance_list,
-
-                # Confidence (review status).
-                'confidence': clinvar_record.review_status,
-
-                # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
-                # "observed in" references. Open Targets are interested only in that last category.
-                'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
-
-                # RCV identifier.
-                'studyID': clinvar_record.accession,
-
-                # VARIANT ATTRIBUTES.
-                'targetFromSourceId': consequence_attributes.ensembl_gene_id,
-                'variantFunctionalConsequenceId': consequence_attributes.so_term.name,
-                'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation
-                'variantRsId': clinvar_record.measure.rs_id,
-
-                # PHENOTYPE ATTRIBUTES.
-                # The alphabetical list of *all* disease names from that ClinVar record
-                'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits]),
-
-                # One disease name for this evidence string (see group_diseases_by_efo_mapping)
-                'diseaseFromSource': disease_name,
-
-                # The internal identifier of that disease
-                'diseaseFromSourceId': disease_source_id,
-
-                # The EFO identifier to which we mapped that first disease
-                'diseaseFromSourceMappedId': disease_mapped_efo_id,
-
-            }
-
-            # Remove the attributes with empty values (either None or empty lists)
-            evidence_string = {key: value for key, value in evidence_string.items() if value}
+            evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
+                                                       disease_mapped_efo_id, consequence_attributes)
 
             # Validate and immediately output the evidence string (not keeping everything in memory)
             validate_evidence_string(evidence_string, ot_schema_contents)
@@ -256,6 +213,59 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
     output_evidence_strings_file.close()
     return report
+
+
+def generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id, disease_mapped_efo_id,
+                             consequence_attributes):
+    """Generates an evidence string based on ClinVar record and some additional attributes."""
+    is_somatic = allele_origins == ['somatic']
+    evidence_string = {
+        # ALLELE ORIGIN ATTRIBUTES. There are three attributes which are currently completely redundant (their
+        # values are completely correlated between each other). This is intended, see answer to question 1 here:
+        # https://github.com/EBIvariation/eva-opentargets/issues/189#issuecomment-782136128.
+        'alleleOrigins': allele_origins,
+        'datasourceId': 'eva_somatic' if is_somatic else 'eva',
+        'datatypeId': 'somatic_mutation' if is_somatic else 'genetic_association',
+
+        # ASSOCIATION ATTRIBUTES.
+        # List of patterns of inheritance reported for the variant.
+        'allelicRequirements': clinvar_record.mode_of_inheritance,
+
+        # Levels of clinical significance reported for the variant.
+        'clinicalSignificances': clinvar_record.clinical_significance_list,
+
+        # Confidence (review status).
+        'confidence': clinvar_record.review_status,
+
+        # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
+        # "observed in" references. Open Targets are interested only in that last category.
+        'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
+
+        # RCV identifier.
+        'studyID': clinvar_record.accession,
+
+        # VARIANT ATTRIBUTES.
+        'targetFromSourceId': consequence_attributes.ensembl_gene_id,
+        'variantFunctionalConsequenceId': consequence_attributes.so_term.name,
+        'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation
+        'variantRsId': clinvar_record.measure.rs_id,
+
+        # PHENOTYPE ATTRIBUTES.
+        # The alphabetical list of *all* disease names from that ClinVar record
+        'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits]),
+
+        # One disease name for this evidence string (see group_diseases_by_efo_mapping)
+        'diseaseFromSource': disease_name,
+
+        # The internal identifier of that disease
+        'diseaseFromSourceId': disease_source_id,
+
+        # The EFO identifier to which we mapped that first disease
+        'diseaseFromSourceMappedId': disease_mapped_efo_id,
+    }
+    # Remove the attributes with empty values (either None or empty lists)
+    evidence_string = {key: value for key, value in evidence_string.items() if value}
+    return evidence_string
 
 
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
@@ -303,7 +313,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
 
 
 def write_string_list_to_file(string_list, filename):
-    with file_utils.open_file(filename, 'wt') as out_file:
+    with open(filename, 'wt') as out_file:
         out_file.write('\n'.join(string_list))
 
 
@@ -318,7 +328,7 @@ def load_efo_mapping(efo_mapping_file):
     trait_2_efo = defaultdict(list)
     n_efo_mappings = 0
 
-    with file_utils.open_file(efo_mapping_file, "rt") as f:
+    with open(efo_mapping_file, "rt") as f:
         for line in f:
             line = line.rstrip()
             if line.startswith("#") or not line:
@@ -340,7 +350,7 @@ def load_efo_mapping(efo_mapping_file):
 def get_terms_from_file(terms_file_path):
     if terms_file_path is not None:
         print('Loading list of terms...')
-        with file_utils.open_file(terms_file_path, 'rt') as terms_file:
+        with open(terms_file_path, 'rt') as terms_file:
             terms_list = [line.rstrip() for line in terms_file]
         print(str(len(terms_file_path)) + ' terms found at ' + terms_file_path)
     else:
