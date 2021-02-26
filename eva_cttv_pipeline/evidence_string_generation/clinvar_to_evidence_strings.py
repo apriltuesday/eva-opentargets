@@ -228,7 +228,6 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                 'diseaseFromSource': disease_name,
 
                 # The internal identifier of that disease
-                # FIXME: not currently populated
                 'diseaseFromSourceId': disease_source_id,
 
                 # The EFO identifier to which we mapped that first disease
@@ -395,6 +394,5 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
     for efo_id, traits in efo_to_traits.values():
         traits = sorted(traits, key=lambda t: t.name)
         selected_trait = traits[0]
-        # TODO: Fill in the MedGen ID
-        grouped_tuples.append((selected_trait.name, None, efo_id))
+        grouped_tuples.append((selected_trait.name, selected_trait.medgen_id, efo_id))
     return grouped_tuples

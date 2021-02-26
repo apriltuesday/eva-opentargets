@@ -195,6 +195,20 @@ class ClinVarTrait:
         return [(elem.attrib['DB'], elem.attrib['ID'], elem.attrib.get('Status', 'current').lower())
                 for elem in find_elements(self.trait_xml, './XRef')]
 
+    @property
+    def medgen_id(self):
+        """Attempts to resolve a single MedGen ID for a trait. When not present, returns None. When multiple are
+        present, issues a warning and returns the first one lexicographically."""
+        medgen_ids = []
+        for db, id_, status in self.xrefs:
+            if db == 'MedGen' and status == 'current':
+                medgen_ids.append(id_)
+        medgen_ids.sort()
+        if len(medgen_ids) > 1:
+            logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
+        if medgen_ids:
+            return medgen_ids[0]
+
 
 class ClinVarRecordMeasure:
     """This class represents individual ClinVar record "measures". Measures are essentially isolated variants, which can
