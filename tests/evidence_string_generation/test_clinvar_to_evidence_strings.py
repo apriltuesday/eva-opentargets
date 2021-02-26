@@ -1,5 +1,6 @@
 import unittest
 
+import json
 import os
 
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
@@ -118,7 +119,6 @@ class TestConvertAlleleOrigins(unittest.TestCase):
             orig_allele_origins)
         self.assertListEqual(["somatic"], converted_allele_origins)
 
-
     def test_stringcase(self):
         orig_allele_origins_list = [["Germline"],
                                ["InHerIted"],
@@ -163,3 +163,43 @@ class TestGetConsequenceTypes(unittest.TestCase):
             clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}),
             [None]
         )
+
+
+class GenerateEvidenceStringTest(unittest.TestCase):
+    """Verifies that the evidence strings generated from a test ClinVar record matches the expectation."""
+
+    def setUp(self):
+        self.maxDiff = None  # this is required to display evidence string diffs (if any)
+        self.clinvar_record = config.get_test_clinvar_record()
+        self.disease_name = 'Rare congenital non-syndromic heart malformation'
+        self.disease_source_id = 'C4017284'
+        self.disease_mapped_efo_id = 'Orphanet_88991'
+        self.consequence_attributes = GENE_MAPPINGS['14:67729209:A:G'][0]
+
+    def test_genetics_evidence_string(self):
+        """Verifies expected genetics evidence string generation."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=['germline'],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id=self.disease_mapped_efo_id,
+            consequence_attributes=self.consequence_attributes
+        )
+        evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
+        expected_evidence_string = open(config.expected_genetics_evidence_string).read()
+        self.assertEqual(evidence_string, expected_evidence_string)
+
+    def test_somatic_evidence_string(self):
+        """Verifies expected somatic evidence string generation."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=['somatic'],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id=self.disease_mapped_efo_id,
+            consequence_attributes=self.consequence_attributes
+        )
+        evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
+        expected_evidence_string = open(config.expected_somatic_evidence_string).read()
+        self.assertEqual(evidence_string, expected_evidence_string)
