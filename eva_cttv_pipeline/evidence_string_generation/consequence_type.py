@@ -1,8 +1,6 @@
 from collections import defaultdict
 import logging
 
-from eva_cttv_pipeline import file_utils
-
 logger = logging.getLogger(__package__)
 
 
@@ -14,7 +12,7 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath):
     consequence_type_dict = defaultdict(list)
     one_rs_multiple_genes = set()
 
-    with file_utils.open_file(snp_2_gene_filepath, "rt") as snp_2_gene_file:
+    with open(snp_2_gene_filepath, "rt") as snp_2_gene_file:
         for line in snp_2_gene_file:
             line = line.rstrip()
             line_list = line.split("\t")

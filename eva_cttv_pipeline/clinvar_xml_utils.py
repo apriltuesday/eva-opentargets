@@ -1,19 +1,18 @@
 """Contains utilities and classes to parse the ClinVar XML and convert the records into internal representation via
 ClinVarDataset, ClinVarRecord, and ClinVarRecordMeasure classes."""
 
+import gzip
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
-
-from eva_cttv_pipeline.file_utils import open_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 def iterate_rcv_from_xml(clinvar_xml):
-    """Iterates through ClinVar XML (possibly gzipped) and yields complete <ReferenceClinVarAssertion> records."""
-    with open_file(clinvar_xml, 'rt') as fh:
+    """Iterates through the gzipped ClinVar XML and yields complete <ReferenceClinVarAssertion> records."""
+    with gzip.open(clinvar_xml, 'rt') as fh:
         for event, elem in ElementTree.iterparse(fh):
             # Wait until we have built a complete ClinVarSet element
             if elem.tag != 'ClinVarSet':
