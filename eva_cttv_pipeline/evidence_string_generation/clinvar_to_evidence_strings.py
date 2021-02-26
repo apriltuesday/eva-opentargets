@@ -235,6 +235,9 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             }
 
+            # Remove the attributes with empty values (either None or empty lists)
+            evidence_string = {key: value for key, value in evidence_string.items() if value}
+
             # Validate and immediately output the evidence string (not keeping everything in memory)
             validate_evidence_string(evidence_string, ot_schema_contents)
             output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
@@ -391,7 +394,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
 
     # Generate tuples by keeping only one disease from each group
     grouped_tuples = []
-    for efo_id, traits in efo_to_traits.values():
+    for efo_id, traits in efo_to_traits.items():
         traits = sorted(traits, key=lambda t: t.name)
         selected_trait = traits[0]
         grouped_tuples.append((selected_trait.name, selected_trait.medgen_id, efo_id))
