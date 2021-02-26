@@ -2,12 +2,14 @@ import unittest
 
 import json
 import os
+import requests
 
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 from tests.evidence_string_generation import config
 
 
+OT_SCHEMA_VERSION = "2.0.4"
 EFO_MAPPINGS = clinvar_to_evidence_strings.load_efo_mapping(config.efo_mapping_file)
 GENE_MAPPINGS = CT.process_consequence_type_file(config.snp_2_gene_file)
 
@@ -169,12 +171,17 @@ class GenerateEvidenceStringTest(unittest.TestCase):
     """Verifies that the evidence strings generated from a test ClinVar record matches the expectation."""
 
     def setUp(self):
-        self.maxDiff = None  # this is required to display evidence string diffs (if any)
+        # This is required to display evidence string diffs (if any)
+        self.maxDiff = None
+        # Attributes for the evidence string generation
         self.clinvar_record = config.get_test_clinvar_record()
         self.disease_name = 'Rare congenital non-syndromic heart malformation'
         self.disease_source_id = 'C4017284'
         self.disease_mapped_efo_id = 'Orphanet_88991'
         self.consequence_attributes = GENE_MAPPINGS['14:67729209:A:G'][0]
+        # Open Targets JSON schema
+        schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{OT_SCHEMA_VERSION}/opentargets.json'
+        self.ot_schema_contents = requests.get(schema_url).text
 
     def test_genetics_evidence_string(self):
         """Verifies expected genetics evidence string generation."""
@@ -188,7 +195,10 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         )
         evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
         expected_evidence_string = open(config.expected_genetics_evidence_string).read()
+        # Check that the evidence string contents are as expected
         self.assertEqual(evidence_string, expected_evidence_string)
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence_string, self.ot_schema_contents)
 
     def test_somatic_evidence_string(self):
         """Verifies expected somatic evidence string generation."""
@@ -202,4 +212,7 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         )
         evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
         expected_evidence_string = open(config.expected_somatic_evidence_string).read()
+        # Check that the evidence string contents are as expected
         self.assertEqual(evidence_string, expected_evidence_string)
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence_string, self.ot_schema_contents)

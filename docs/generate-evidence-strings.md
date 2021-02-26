@@ -5,7 +5,7 @@
 ### Set up the environment
 First, [set up the common environment.](environment.md)
 
-Next, set up the protocol-specific environment. The variables in it are specific to each Open Targets release. They are announced the e-mail which they send a few weeks before the data submission deadline:
+Next, set up the protocol-specific environment. The variables in it are specific to each Open Targets release. They are announced in the e-mail which they send a few weeks before the data submission deadline:
 
 ```bash
 # Year and month for the upcoming Open Targets release.
@@ -13,10 +13,10 @@ Next, set up the protocol-specific environment. The variables in it are specific
 export OT_RELEASE=YYYY-MM
 
 # Open Targets JSON schema version.
-export OT_SCHEMA_VERSION=2.0.3
+export OT_SCHEMA_VERSION=2.0.4
 ```
 
-**Note:** when the version of the [JSON schema](https://github.com/opentargets/json_schema) changes, make sure to study the changelog and introduce the necessary changes to this pipeline. Make sure to update the latest schema version both in this document and in the [test files](/.travis.yml).
+**Note:** when the version of the [JSON schema](https://github.com/opentargets/json_schema) changes, make sure to study the changelog and introduce the necessary changes to this pipeline, if necessary. Make sure to also update the latest schema version both in this document and in the [test files](/tests/evidence_string_generation/test_clinvar_to_evidence_strings.py).
 
 ### Check and correct known problematic mappings
 There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
