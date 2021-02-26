@@ -1,107 +1,27 @@
 {
-  "access_level": "public",
-  "disease": {
-    "id": "http://www.orpha.net/ORDO/Orphanet_88991",
-    "name": "Rare congenital non-syndromic heart malformation",
-    "source_name": "Leber congenital amaurosis 13"
-  },
-  "evidence": {
-    "clinical_significance": [
-      "likely pathogenic",
-      "pathogenic"
-    ],
-    "clinvar_rating": {
-      "review_status": "criteria provided, multiple submitters, no conflicts",
-      "star_rating": 2
-    },
-    "date_asserted": "2020-09-16",
-    "evidence_codes": [
-      "http://purl.obolibrary.org/obo/ECO_0000205"
-    ],
-    "is_associated": true,
-    "known_mutations": [
-      {
-        "functional_consequence": "http://purl.obolibrary.org/obo/SO_0001583",
-        "preferred_name": "missense_variant"
-      }
-    ],
-    "last_evaluated_date": "2019-11-18",
-    "provenance_type": {
-      "database": {
-        "dbxref": {
-          "id": "http://identifiers.org/clinvar",
-          "url": "http://identifiers.org/clinvar.record/RCV000002127",
-          "version": "2017-08"
-        },
-        "id": "EVA",
-        "version": "1.0"
-      },
-      "expert": {
-        "statement": "Primary submitter of data",
-        "status": true
-      },
-      "literature": {
-        "references": [
-          {
-            "lit_id": "http://europepmc.org/abstract/MED/15258582"
-          },
-          {
-            "lit_id": "http://europepmc.org/abstract/MED/15322982"
-          },
-          {
-            "lit_id": "http://europepmc.org/abstract/MED/20301475"
-          },
-          {
-            "lit_id": "http://europepmc.org/abstract/MED/20301590"
-          },
-          {
-            "lit_id": "http://europepmc.org/abstract/MED/30285347"
-          }
-        ]
-      }
-    },
-    "resource_score": {
-      "type": "probability",
-      "value": 1
-    },
-    "urls": [
-      {
-        "nice_name": "Further details in ClinVar database",
-        "url": "http://www.ncbi.nlm.nih.gov/clinvar/RCV000002127"
-      }
-    ]
-  },
-  "literature": {
-    "references": [
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/15258582"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/15322982"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/20301475"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/20301590"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/30285347"
-      }
-    ]
-  },
-  "sourceID": "eva_somatic",
-  "target": {
-    "id": "http://identifiers.org/ensembl/ENSG00000139988",
-    "target_type": "http://identifiers.org/cttv.target/gene_variant"
-  },
-  "type": "somatic_mutation",
-  "unique_association_fields": {
-    "alleleOrigin": "somatic",
-    "clinvarAccession": "RCV000002127",
-    "gene": "ENSG00000139988",
-    "phenotype": "http://www.orpha.net/ORDO/Orphanet_88991",
-    "variant_id": "rs28940313"
-  },
-  "validated_against_schema_version": "1.7.5"
+  "alleleOrigins": [
+    "somatic"
+  ],
+  "clinicalSignificances": [
+    "likely pathogenic",
+    "pathogenic"
+  ],
+  "cohortPhenotypes": [
+    "Leber congenital amaurosis 13"
+  ],
+  "confidence": "criteria provided, multiple submitters, no conflicts",
+  "datasourceId": "eva_somatic",
+  "datatypeId": "somatic_mutation",
+  "diseaseFromSource": "Leber congenital amaurosis 13",
+  "diseaseFromSourceId": "C2675186",
+  "diseaseFromSourceMappedId": "Orphanet_65",
+  "literature": [
+    "15258582",
+    "15322982"
+  ],
+  "studyId": "RCV000002127",
+  "targetFromSourceId": "ENSG00000139988",
+  "variantFunctionalConsequenceId": "SO_0001583",
+  "variantId": "14_67729209_A_G",
+  "variantRsId": "rs28940313"
 }

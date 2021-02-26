@@ -296,7 +296,7 @@ class ClinVarRecordMeasure:
 
     @property
     def vcf_full_coords(self):
-        if self.has_complete_coordinates():
+        if self.has_complete_coordinates:
             return '_'.join([self.chr, self.vcf_pos, self.vcf_ref, self.vcf_alt])
 
     def sequence_location_helper(self, attr):

@@ -182,7 +182,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # 1. Allele origins
         grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
         # 2. EFO mappings
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings)
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings, report)
         # 3. Genes where the variant has effect
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
         if not consequence_types:
@@ -242,11 +242,11 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
 
         # RCV identifier.
-        'studyID': clinvar_record.accession,
+        'studyId': clinvar_record.accession,
 
         # VARIANT ATTRIBUTES.
         'targetFromSourceId': consequence_attributes.ensembl_gene_id,
-        'variantFunctionalConsequenceId': consequence_attributes.so_term.name,
+        'variantFunctionalConsequenceId': consequence_attributes.so_term.accession,
         'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation
         'variantRsId': clinvar_record.measure.rs_id,
 
@@ -260,8 +260,9 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         # The internal identifier of that disease
         'diseaseFromSourceId': disease_source_id,
 
-        # The EFO identifier to which we mapped that first disease
-        'diseaseFromSourceMappedId': disease_mapped_efo_id,
+        # The EFO identifier to which we mapped that first disease. Converting the URI to a compact representation as
+        # required by the Open Targets JSON schema.
+        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],
     }
     # Remove the attributes with empty values (either None or empty lists)
     evidence_string = {key: value for key, value in evidence_string.items() if value}

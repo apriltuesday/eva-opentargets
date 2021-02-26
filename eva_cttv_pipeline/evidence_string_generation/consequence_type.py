@@ -150,7 +150,7 @@ class SoTerm(object):
     def accession(self):
         if self._so_accession is not None:
             accession_number_str = str(self._so_accession)
-            return 'SO:' + accession_number_str.rjust(7, '0')
+            return 'SO_' + accession_number_str.rjust(7, '0')
         else:
             return None
 
