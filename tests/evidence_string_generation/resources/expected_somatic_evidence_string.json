@@ -12,9 +12,9 @@
   "confidence": "criteria provided, multiple submitters, no conflicts",
   "datasourceId": "eva_somatic",
   "datatypeId": "somatic_mutation",
-  "diseaseFromSource": "Leber congenital amaurosis 13",
-  "diseaseFromSourceId": "C2675186",
-  "diseaseFromSourceMappedId": "Orphanet_65",
+  "diseaseFromSource": "Rare congenital non-syndromic heart malformation",
+  "diseaseFromSourceId": "C4017284",
+  "diseaseFromSourceMappedId": "Orphanet_88991",
   "literature": [
     "15258582",
     "15322982"
