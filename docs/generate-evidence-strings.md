@@ -13,7 +13,7 @@ Next, set up the protocol-specific environment. The variables in it are specific
 export OT_RELEASE=YYYY-MM
 
 # Open Targets JSON schema version.
-export OT_SCHEMA_VERSION=2.0.4
+export OT_SCHEMA_VERSION=2.0.5
 ```
 
 **Note:** when the version of the [JSON schema](https://github.com/opentargets/json_schema) changes, make sure to study the changelog and introduce the necessary changes to this pipeline, if necessary. Make sure to also update the latest schema version both in this document and in the [test files](/tests/evidence_string_generation/test_clinvar_to_evidence_strings.py).
