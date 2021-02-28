@@ -2,6 +2,8 @@ import os
 
 from eva_cttv_pipeline import clinvar_xml_utils
 
+OT_SCHEMA_VERSION = "2.0.5"
+
 test_dir = os.path.dirname(__file__)
 efo_mapping_file = os.path.join(test_dir, 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
 snp_2_gene_file = os.path.join(test_dir, 'resources/snp2gene_extract.tsv')

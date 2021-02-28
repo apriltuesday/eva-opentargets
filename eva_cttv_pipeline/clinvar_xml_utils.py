@@ -196,17 +196,19 @@ class ClinVarTrait:
 
     @property
     def medgen_id(self):
-        """Attempts to resolve a single MedGen ID for a trait. When not present, returns None. When multiple are
-        present, issues a warning and returns the first one lexicographically."""
+        """Attempts to resolve a single MedGen ID for a trait. If not present, returns None. If multiple are present,
+        returns the first one lexicographically."""
         medgen_ids = []
         for db, id_, status in self.xrefs:
             if db == 'MedGen' and status == 'current':
                 medgen_ids.append(id_)
         medgen_ids.sort()
-        if len(medgen_ids) > 1:
-            logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
-        if medgen_ids:
+        if len(medgen_ids) == 0:
+            logger.warning(f'No MedGen ID for {self}')
+        elif len(medgen_ids) == 1:
             return medgen_ids[0]
+        else:
+            logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
 
 
 class ClinVarRecordMeasure:
@@ -296,6 +298,7 @@ class ClinVarRecordMeasure:
 
     @property
     def vcf_full_coords(self):
+        """Returns complete variant coordinates in CHROM_POS_REF_ALT format, if present, otherwise None."""
         if self.has_complete_coordinates:
             return '_'.join([self.chr, self.vcf_pos, self.vcf_ref, self.vcf_alt])
 
