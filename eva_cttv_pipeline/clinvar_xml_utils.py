@@ -313,23 +313,3 @@ class ClinVarRecordMeasure:
             # TODO: https://github.com/EBIvariation/eva-opentargets/issues/172
             return None
         return sequence_locations[0].attrib.get(attr)
-
-    @property
-    def is_repeat_expansion_variant(self):
-        """Determines whether the event described by the given chromosomal coordinates represents a repeat expansion
-        variant."""
-
-        if self.variant_type == 'Microsatellite':
-            if self.has_complete_coordinates:
-                if len(self.vcf_ref) < len(self.vcf_alt):
-                    print(f'MICROSATELLITE EXPANSION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}\t{self.clinvar_record.accession}')
-                    return True
-                else:
-                    print(f'MICROSATELLITE DELETION WITH COORDS\t{self.chr}-{self.vcf_pos}-{self.vcf_ref}-{self.vcf_alt}\t{self.clinvar_record.accession}')
-                    return False
-            else:
-                print(f'MICROSATELLITE NO FULL COORDS\t{self.name}\t{self.clinvar_record.accession}')
-                return True
-        return False
-
-        return self.variant_type == 'Microsatellite' and len(self.vcf_ref) < len(self.vcf_alt)

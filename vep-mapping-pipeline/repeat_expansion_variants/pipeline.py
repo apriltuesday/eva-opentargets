@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+# For ClinVar Microsatellite events with complete coordinates, require the event to be at list this number of bases long
+# in order for it to be considered a repeat expansion event. Smaller events will be processed as regular insertions. The
+# current value was chosen as a reasonable threshold to separate thousands of very small insertions which are
+# technically microsatellite expansion events but are not long enough to be considered clinically significant repeat
+# expansion variants.
+REPEAT_EXPANSION_THRESHOLD = 12
 STANDARD_CHROMOSOME_NAMES = {str(c) for c in range(1, 23)} | {'X', 'Y', 'M', 'MT'}
 
 
@@ -31,24 +37,45 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
             logger.info(f'Processed {i} records, have {len(variant_data)} variants')
         if number_of_records and i > number_of_records:
             break
-        if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
-            # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
-            # summary format which was used previously.
-            gene_symbols = clinvar_record.measure.preferred_gene_symbols
-            if not gene_symbols:
-                gene_symbols = ['-']
-            # Extract HGNC ID
-            hgnc_ids = clinvar_record.measure.hgnc_ids
-            hgnc_id = hgnc_ids[0] if len(hgnc_ids) == 1 and len(gene_symbols) == 1 else '-'
-            # Append data strings
-            for gene_symbol in gene_symbols:
-                variant_data.append([
-                    clinvar_record.measure.name,
-                    clinvar_record.accession,
-                    gene_symbol,
-                    hgnc_id
-                ])
-    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
+        # Skip the record unless it contains a Microsatellite event
+        if not clinvar_record.measure or clinvar_record.measure.variant_type != 'Microsatellite':
+            continue
+
+        # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
+        # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
+        # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
+        explicit_insertion_length = None
+        if clinvar_record.measure.has_complete_coordinates:
+            explicit_insertion_length = len(clinvar_record.measure.vcf_alt) - len(clinvar_record.measure.vcf_ref)
+            # If the variant has explicit allele sequences, but is determined to be either a deletion, or a very short
+            # insertion (based on a threshold), it will not be processed as a repeat expansion variant.
+            if explicit_insertion_length and explicit_insertion_length < REPEAT_EXPANSION_THRESHOLD:
+                continue
+            # Based on the complete
+
+        # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
+        # summary format which was used previously.
+        gene_symbols = clinvar_record.measure.preferred_gene_symbols
+        if not gene_symbols:
+            gene_symbols = ['-']
+
+        # Extract HGNC ID
+        hgnc_ids = clinvar_record.measure.hgnc_ids
+        hgnc_id = hgnc_ids[0] if len(hgnc_ids) == 1 and len(gene_symbols) == 1 else '-'
+
+        # Append data strings
+        for gene_symbol in gene_symbols:
+            variant_data.append([
+                clinvar_record.measure.name,
+                clinvar_record.accession,
+                explicit_insertion_length,
+                gene_symbol,
+                hgnc_id
+            ])
+
+    variants = pd.DataFrame(
+        variant_data, columns=('Name', 'RCVaccession', 'ExplicitInsertionLength', 'GeneSymbol', 'HGNC_ID')
+    )
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
@@ -141,14 +168,17 @@ def determine_repeat_type(row):
         # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
         repeat_type = 'trinucleotide_repeat_expansion'
     else:
-        # As a priority, use the repeat unit length determined directly from base sequence
-        repeat_unit_length = row['RepeatUnitLength']
+        # As a priority, use the explicit insertion length
+        repeat_length = row['ExplicitInsertionLength']
+        # If not available, fall back to the repeat unit length determined directly from the HGVS-like base sequence
+        if pd.isnull(repeat_length):
+            repeat_length = row['RepeatUnitLength']
         # If not available, fall back to using and end coordinate difference
-        if pd.isnull(repeat_unit_length):
-            repeat_unit_length = row['CoordinateSpan']
-        # Determine repeat type based on repeat unit length
-        if pd.notnull(repeat_unit_length):
-            if repeat_unit_length % 3 == 0:
+        if pd.isnull(repeat_length):
+            repeat_length = row['CoordinateSpan']
+        # Determine repeat type based on repeat length
+        if pd.notnull(repeat_length):
+            if repeat_length % 3 == 0:
                 repeat_type = 'trinucleotide_repeat_expansion'
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
@@ -168,7 +198,7 @@ def generate_output_files(variants, output_consequences, output_dataframe):
 
     # Rearrange order of dataframe columns
     variants = variants[
-        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
+        ['Name', 'RCVaccession', 'ExplicitInsertionLength', 'GeneSymbol', 'HGNC_ID',
          'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
          'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']
