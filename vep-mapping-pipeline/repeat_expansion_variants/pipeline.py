@@ -30,8 +30,9 @@ def none_to_nan(*args):
 
 def load_clinvar_data(clinvar_xml, number_of_records=None):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
-    # Iterate through ClinVar XML records. Load all Microsatellite variants
-    variant_data = []  # Name, RCVaccession, GeneSymbol, HGNC_ID
+    # Iterate through ClinVar XML records
+    variant_data = []  # To populate the return dataframe (see columns below)
+    stats = {s: 0 for s in ('deletion', 'short_insertion', 'repeat_expansion', 'no_complete_coords')}
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i % 10000 == 0:
             logger.info(f'Processed {i} records, have {len(variant_data)} variants')
@@ -47,11 +48,18 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
         explicit_insertion_length = None
         if clinvar_record.measure.has_complete_coordinates:
             explicit_insertion_length = len(clinvar_record.measure.vcf_alt) - len(clinvar_record.measure.vcf_ref)
-            # If the variant has explicit allele sequences, but is determined to be either a deletion, or a very short
-            # insertion (based on a threshold), it will not be processed as a repeat expansion variant.
-            if explicit_insertion_length and explicit_insertion_length < REPEAT_EXPANSION_THRESHOLD:
+            if explicit_insertion_length < 0:
+                # Not processing microsatellite contraction (deletion) events
+                stats['deletion'] += 1
                 continue
-            # Based on the complete
+            elif explicit_insertion_length < REPEAT_EXPANSION_THRESHOLD:
+                # Not processing very short insertions
+                stats['short_insertion'] += 1
+                continue
+            else:
+                stats['repeat_expansion'] += 1
+        else:
+            stats['no_complete_coords'] += 1
 
         # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
         # summary format which was used previously.
@@ -79,7 +87,7 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
-    return variants.sort_values(by=['Name'])
+    return variants.sort_values(by=['Name']), stats
 
 
 def parse_variant_identifier(row):
@@ -240,7 +248,19 @@ def main(clinvar_xml, output_consequences, output_dataframe):
             all relevant columns and can be used for review or debugging purposes."""
 
     logger.info('Load and preprocess variant data')
-    variants = load_clinvar_data(clinvar_xml)
+    variants, s = load_clinvar_data(clinvar_xml)
+
+    # Output ClinVar record statistics
+    complete_coords = s['deletion'] + s['short_insertion'] + s['repeat_expansion']
+    total_microsatellite = complete_coords + s['no_complete_coords']
+    logger.info(f'''
+        Microsatellite records: {total_microsatellite}
+            With complete coordinates: {complete_coords}
+                Deletions: {s['deletion']}
+                Short insertions: {s['short_insertion']}
+                Repeat expansions: {s['repeat_expansion']}
+            No complete coordinates: {s['no_complete_coords']}
+    '''.replace('\n' + ' ' * 8, '\n'))
 
     logger.info('Parse variant names and extract information about transcript ID and repeat length')
     variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
