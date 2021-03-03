@@ -30,8 +30,7 @@ def parse_trait_names(filepath: str) -> list:
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
         traits = set(trait.name for trait in clinvar_record.traits)
         unique_association_tuples |= {(clinvar_record.accession, trait) for trait in traits}
-        # FIXME not all microsatellites are actually NT expansions!
-        if clinvar_record.measure is not None and clinvar_record.measure.variant_type == 'Microsatellite':
+        if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
             nt_expansion_traits |= traits
 
     # Count trait occurrences

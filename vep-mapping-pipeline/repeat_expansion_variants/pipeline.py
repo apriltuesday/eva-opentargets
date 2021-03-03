@@ -27,7 +27,7 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
     # Iterate through ClinVar XML records
     variant_data = []  # To populate the return dataframe (see columns below)
-    stats = {s: 0 for s in ('deletion', 'short_insertion', 'repeat_expansion', 'no_complete_coords')}
+    stats = defaultdict(int)
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i and i % 100000 == 0:
             logger.info(f'Processed {i} records, collected {stats["repeat_expansion"] + stats["no_complete_coords"]} '
