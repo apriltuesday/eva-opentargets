@@ -50,12 +50,12 @@ if __name__ == '__main__':
     # Process all mappings which require manual curation
     for line in open(args.traits_for_curation):
         fields = line.rstrip().split('\t')
-        trait_name, trait_freq = fields[:2]
-        mappings = fields[2:]
+        trait_name, trait_freq, notes = fields[:3]
+        mappings = fields[3:]
         previous_mapping = find_previous_mapping(trait_name, previous_mappings)
         exact_mapping = find_exact_mapping(trait_name, mappings)
         out_line = '\t'.join(
-            [trait_name, trait_freq, previous_mapping, exact_mapping] + mappings
+            [trait_name, trait_freq, notes, previous_mapping, exact_mapping] + mappings
         ) + '\n'
         outfile.write(out_line)
 
