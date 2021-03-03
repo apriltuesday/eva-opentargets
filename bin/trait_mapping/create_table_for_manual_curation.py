@@ -49,7 +49,8 @@ if __name__ == '__main__':
 
     # Process all mappings which require manual curation
     for line in open(args.traits_for_curation):
-        fields = line.rstrip().split('\t')
+        fields = line.split('\t')
+        fields[-1] = fields[-1].rstrip()  # To avoid stripping the entire field if it's empty
         trait_name, trait_freq, notes = fields[:3]
         mappings = fields[3:]
         previous_mapping = find_previous_mapping(trait_name, previous_mappings)
