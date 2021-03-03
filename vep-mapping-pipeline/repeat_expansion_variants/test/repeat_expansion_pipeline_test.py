@@ -55,17 +55,21 @@ def test_short_insertion():
 
 def test_explicit_coordinates():
     """Repeat expansion events with complete coordinates must be processed with the correct type."""
-    assert run_pipeline('explicit_coords.xml.gz') == [
-        # CT expansion — non-trinucleotide
-        ['RCV000292700', '1', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion', '0'],
+    assert sorted(run_pipeline('explicit_coords.xml.gz')) == sorted([
         # CGC expansion — trinucleotide
         ['RCV001051772', '1', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion', '0'],
-    ]
+        # CCGGGACCGAGA (12 base unit) expansion - also to be considered a trinucleotide expansion
+        ['RCV000722291', '1', 'ENSG00000142599', 'RERE', 'trinucleotide_repeat_expansion', '0'],
+        # CT expansion — non-trinucleotide
+        ['RCV000292700', '1', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion', '0'],
+        # TCAT expansion - non-trinucleotide but could be mistaken for one (3 units of 4 = 12, divisible by 3)
+        ['RCV000122358', '1', 'ENSG00000135100', 'HNF1A', 'short_tandem_repeat_expansion', '0'],
+    ])
 
 
 def test_no_explicit_coordinates():
     """Repeat expansion events without complete coordinates must also be processed and parsed."""
     assert run_pipeline('no_explicit_coords.xml.gz') == [
         # NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)]) should be parsed as a trinucleotide expansion
-        ['RCV000192035', '1', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion', '0']
+        ['RCV000192035', '1', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion', '0'],
     ]
