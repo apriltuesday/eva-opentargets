@@ -34,14 +34,14 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
                         f'repeat expansion variants')
         if number_of_records and i > number_of_records:
             break
-        # Skip the record unless it contains a Microsatellite event
-        if not (clinvar_record.measure and clinvar_record.measure.variant_type == 'Microsatellite'):
+
+        # Skip a record if it does not contain variant information
+        if not clinvar_record.measure:
             continue
 
         # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
         # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
         # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
-        explicit_insertion_length = None
         microsatellite_category = clinvar_record.measure.microsatellite_category
         stats[microsatellite_category] += 1
         # Skip the record if it's a deletion or a short insertion
@@ -63,16 +63,13 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
             variant_data.append([
                 clinvar_record.measure.name,
                 clinvar_record.accession,
-                explicit_insertion_length,
                 gene_symbol,
                 hgnc_id
             ])
     logger.info(f'Done. A total of {i} records, {stats["repeat_expansion"] + stats["no_complete_coords"]} repeat '
                 f'expansion variants')
 
-    variants = pd.DataFrame(
-        variant_data, columns=('Name', 'RCVaccession', 'ExplicitInsertionLength', 'GeneSymbol', 'HGNC_ID')
-    )
+    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
@@ -165,17 +162,14 @@ def determine_repeat_type(row):
         # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
         repeat_type = 'trinucleotide_repeat_expansion'
     else:
-        # As a priority, use the explicit insertion length
-        repeat_length = row['ExplicitInsertionLength']
-        # If not available, fall back to the repeat unit length determined directly from the HGVS-like base sequence
-        if pd.isnull(repeat_length):
-            repeat_length = row['RepeatUnitLength']
+        # As a priority, use the repeat unit length determined directly from the HGVS-like base sequence
+        repeat_unit_length = row['RepeatUnitLength']
         # If not available, fall back to using and end coordinate difference
-        if pd.isnull(repeat_length):
-            repeat_length = row['CoordinateSpan']
+        if pd.isnull(repeat_unit_length):
+            repeat_unit_length = row['CoordinateSpan']
         # Determine repeat type based on repeat length
-        if pd.notnull(repeat_length):
-            if repeat_length % 3 == 0:
+        if pd.notnull(repeat_unit_length):
+            if repeat_unit_length % 3 == 0:
                 repeat_type = 'trinucleotide_repeat_expansion'
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
@@ -195,7 +189,7 @@ def generate_output_files(variants, output_consequences, output_dataframe):
 
     # Rearrange order of dataframe columns
     variants = variants[
-        ['Name', 'RCVaccession', 'ExplicitInsertionLength', 'GeneSymbol', 'HGNC_ID',
+        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
          'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
          'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']

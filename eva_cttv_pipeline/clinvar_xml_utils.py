@@ -286,16 +286,17 @@ class ClinVarRecordMeasure:
 
     @property
     def microsatellite_category(self):
-        if self.has_complete_coordinates:
-            explicit_insertion_length = len(self.vcf_alt) - len(self.vcf_ref)
-            if explicit_insertion_length < 0:
-                return self.MS_DELETION
-            elif explicit_insertion_length < self.REPEAT_EXPANSION_THRESHOLD:
-                return self.MS_SHORT_EXPANSION
-            else:
-                return self.MS_REPEAT_EXPANSION
-        else:
+        if self.variant_type != 'Microsatellite':
+            return None
+        if not self.has_complete_coordinates:
             return self.MS_NO_COMPLETE_COORDS
+        explicit_insertion_length = len(self.vcf_alt) - len(self.vcf_ref)
+        if explicit_insertion_length < 0:
+            return self.MS_DELETION
+        elif explicit_insertion_length < self.REPEAT_EXPANSION_THRESHOLD:
+            return self.MS_SHORT_EXPANSION
+        else:
+            return self.MS_REPEAT_EXPANSION
 
     @property
     def is_repeat_expansion_variant(self):
