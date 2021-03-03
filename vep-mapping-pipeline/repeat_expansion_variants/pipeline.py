@@ -34,12 +34,13 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
     variant_data = []  # To populate the return dataframe (see columns below)
     stats = {s: 0 for s in ('deletion', 'short_insertion', 'repeat_expansion', 'no_complete_coords')}
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
-        if i % 10000 == 0:
-            logger.info(f'Processed {i} records, have {len(variant_data)} variants')
+        if i and i % 100000 == 0:
+            logger.info(f'Processed {i} records, collected {stats["repeat_expansion"] + stats["no_complete_coords"]} '
+                        f'repeat expansion variants')
         if number_of_records and i > number_of_records:
             break
         # Skip the record unless it contains a Microsatellite event
-        if not clinvar_record.measure or clinvar_record.measure.variant_type != 'Microsatellite':
+        if not (clinvar_record.measure and clinvar_record.measure.variant_type == 'Microsatellite'):
             continue
 
         # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
@@ -80,6 +81,8 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
                 gene_symbol,
                 hgnc_id
             ])
+    logger.info(f'Done. A total of {i} records, {stats["repeat_expansion"] + stats["no_complete_coords"]} repeat '
+                f'expansion variants')
 
     variants = pd.DataFrame(
         variant_data, columns=('Name', 'RCVaccession', 'ExplicitInsertionLength', 'GeneSymbol', 'HGNC_ID')
@@ -251,11 +254,9 @@ def main(clinvar_xml, output_consequences, output_dataframe):
     variants, s = load_clinvar_data(clinvar_xml)
 
     # Output ClinVar record statistics
-    complete_coords = s['deletion'] + s['short_insertion'] + s['repeat_expansion']
-    total_microsatellite = complete_coords + s['no_complete_coords']
     logger.info(f'''
-        Microsatellite records: {total_microsatellite}
-            With complete coordinates: {complete_coords}
+        Microsatellite records: {sum(s.values())}
+            With complete coordinates: {s['deletion'] + s['short_insertion'] + s['repeat_expansion']}
                 Deletions: {s['deletion']}
                 Short insertions: {s['short_insertion']}
                 Repeat expansions: {s['repeat_expansion']}
