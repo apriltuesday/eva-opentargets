@@ -251,6 +251,10 @@ def main(clinvar_xml, output_consequences, output_dataframe):
             No complete coordinates: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]}
     '''.replace('\n' + ' ' * 8, '\n'))
 
+    if variants.empty:
+        logger.info('No variants to process')
+        return
+
     logger.info('Parse variant names and extract information about transcript ID and repeat length')
     variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
 

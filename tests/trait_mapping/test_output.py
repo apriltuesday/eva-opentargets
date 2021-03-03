@@ -108,7 +108,7 @@ class TestOutputForCuration(unittest.TestCase):
         with open(tempfile_path, "rt") as curation_file:
             curation_reader = csv.reader(curation_file, delimiter="\t")
             expected_record = [
-                "transitional cell carcinoma of the bladder", "276",
+                "transitional cell carcinoma of the bladder", "276", '',
                 "http://www.ebi.ac.uk/efo/EFO_0006544|bladder transitional cell carcinoma|2|HP:0006740|EFO_CURRENT"
             ]
             self.assertEqual(expected_record, next(curation_reader))

@@ -17,27 +17,24 @@ from repeat_expansion_variants import pipeline
 def get_test_resource(resource_name):
     """Gets full path to the test resource located in the same directory as the test module."""
 
-    # E. g. repeat_expansion_variants/test/repeat_expansion_pipeline_test.py::test_pipeline (call)
-    pytest_current_test = os.getenv('PYTEST_CURRENT_TEST')
+    # Full path to this module
+    this_module = os.path.abspath(__file__)
 
-    # E.g. repeat_expansion_variants/test/repeat_expansion_pipeline_test.py
-    test_module_path = pytest_current_test.split(':')[0]
-
-    # E. g. repeat_expansion_variants/test/
-    test_module_dir = os.path.split(test_module_path)[0]
+    # Full path to the directory where it is contained
+    module_directory = os.path.dirname(this_module)
 
     # E. g.  repeat_expansion_variants/test/input_variant_summary.tsv
-    return os.path.join(test_module_dir, 'resources', resource_name)
+    return os.path.join(module_directory, 'resources', resource_name)
 
 
 def run_pipeline(resource_name):
     """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
     input_filename = get_test_resource(resource_name)
     output_consequences, output_dataframe = [tempfile.NamedTemporaryFile(delete=False) for _ in range(2)]
-    main.pipeline(input_filename, output_consequences.name, output_dataframe.name)
-    consequences = [line.rstrip().split('\t') for line in open(output_consequences).read().splitlines()]
-    output_consequences.cleanup()
-    output_dataframe.cleanup()
+    pipeline.main(input_filename, output_consequences.name, output_dataframe.name)
+    consequences = [line.rstrip().split('\t') for line in open(output_consequences.name).read().splitlines()]
+    for temp_file in (output_consequences, output_dataframe):
+        os.remove(temp_file.name)
     return consequences
 
 
