@@ -217,6 +217,19 @@ class ClinVarRecordMeasure:
     be combined into either MeasureSets (include one or more Measures) or GenotypeSets. For a detailed description of
     ClinVar data model, see /clinvar-variant-types/."""
 
+    # For ClinVar Microsatellite events with complete coordinates, require the event to be at list this number of bases
+    # long in order for it to be considered a repeat expansion event. Smaller events will be processed as regular
+    # insertions. The current value was chosen as a reasonable threshold to separate thousands of very small insertions
+    # which are technically microsatellite expansion events but are not long enough to be considered clinically
+    # significant repeat expansion variants.
+    REPEAT_EXPANSION_THRESHOLD = 12
+
+    # Microsatellite variant types
+    MS_DELETION = 'deletion'
+    MS_SHORT_EXPANSION = 'short_expansion'
+    MS_REPEAT_EXPANSION = 'repeat_expansion'
+    MS_NO_COMPLETE_COORDS = 'no_complete_coords'
+
     def __init__(self, measure_xml, clinvar_record):
         self.measure_xml = measure_xml
         self.clinvar_record = clinvar_record
@@ -270,6 +283,23 @@ class ClinVarRecordMeasure:
     @property
     def variant_type(self):
         return self.measure_xml.attrib['Type']
+
+    @property
+    def microsatellite_category(self):
+        if self.has_complete_coordinates:
+            explicit_insertion_length = len(self.vcf_alt) - len(self.vcf_ref)
+            if explicit_insertion_length < 0:
+                return self.MS_DELETION
+            elif explicit_insertion_length < self.REPEAT_EXPANSION_THRESHOLD:
+                return self.MS_SHORT_EXPANSION
+            else:
+                return self.MS_REPEAT_EXPANSION
+        else:
+            return self.MS_NO_COMPLETE_COORDS
+
+    @property
+    def is_repeat_expansion_variant(self):
+        return self.microsatellite_category in (self.MS_REPEAT_EXPANSION, self.MS_NO_COMPLETE_COORDS)
 
     @property
     def pubmed_refs(self):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """A pipeline to extract repeat expansion variants from ClinVar TSV dump. For documentation refer to README.md"""
 
+from collections import defaultdict
 import logging
 
 import numpy as np
@@ -14,12 +15,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-# For ClinVar Microsatellite events with complete coordinates, require the event to be at list this number of bases long
-# in order for it to be considered a repeat expansion event. Smaller events will be processed as regular insertions. The
-# current value was chosen as a reasonable threshold to separate thousands of very small insertions which are
-# technically microsatellite expansion events but are not long enough to be considered clinically significant repeat
-# expansion variants.
-REPEAT_EXPANSION_THRESHOLD = 12
 STANDARD_CHROMOSOME_NAMES = {str(c) for c in range(1, 23)} | {'X', 'Y', 'M', 'MT'}
 
 
@@ -47,20 +42,11 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
         # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
         # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
         explicit_insertion_length = None
-        if clinvar_record.measure.has_complete_coordinates:
-            explicit_insertion_length = len(clinvar_record.measure.vcf_alt) - len(clinvar_record.measure.vcf_ref)
-            if explicit_insertion_length < 0:
-                # Not processing microsatellite contraction (deletion) events
-                stats['deletion'] += 1
-                continue
-            elif explicit_insertion_length < REPEAT_EXPANSION_THRESHOLD:
-                # Not processing very short insertions
-                stats['short_insertion'] += 1
-                continue
-            else:
-                stats['repeat_expansion'] += 1
-        else:
-            stats['no_complete_coords'] += 1
+        microsatellite_category = clinvar_record.measure.microsatellite_category
+        stats[microsatellite_category] += 1
+        # Skip the record if it's a deletion or a short insertion
+        if not clinvar_record.measure.is_repeat_expansion_variant:
+            continue
 
         # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
         # summary format which was used previously.
@@ -256,11 +242,13 @@ def main(clinvar_xml, output_consequences, output_dataframe):
     # Output ClinVar record statistics
     logger.info(f'''
         Microsatellite records: {sum(s.values())}
-            With complete coordinates: {s['deletion'] + s['short_insertion'] + s['repeat_expansion']}
-                Deletions: {s['deletion']}
-                Short insertions: {s['short_insertion']}
-                Repeat expansions: {s['repeat_expansion']}
-            No complete coordinates: {s['no_complete_coords']}
+            With complete coordinates: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_DELETION] +
+                                        s[clinvar_xml_utils.ClinVarRecordMeasure.MS_SHORT_EXPANSION] +
+                                        s[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
+                Deletions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_DELETION]}
+                Short insertions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_SHORT_EXPANSION]}
+                Repeat expansions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
+            No complete coordinates: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]}
     '''.replace('\n' + ' ' * 8, '\n'))
 
     logger.info('Parse variant names and extract information about transcript ID and repeat length')
