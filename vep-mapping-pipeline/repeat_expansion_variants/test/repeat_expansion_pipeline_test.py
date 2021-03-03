@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""Tests for the repeat expansion pipeline. Test resources are compressed XML files which contain one or a few records
+manually extracted from the main ClinVar XML to check specific cases."""
+
 
 import gzip
 from io import BytesIO
@@ -14,10 +17,10 @@ from repeat_expansion_variants import pipeline
 def get_test_resource(resource_name):
     """Gets full path to the test resource located in the same directory as the test module."""
 
-    # E. g. repeat_expansion_variants/test/integration_test.py::test_pipeline (call)
+    # E. g. repeat_expansion_variants/test/repeat_expansion_pipeline_test.py::test_pipeline (call)
     pytest_current_test = os.getenv('PYTEST_CURRENT_TEST')
 
-    # E.g. repeat_expansion_variants/test/integration_test.py
+    # E.g. repeat_expansion_variants/test/repeat_expansion_pipeline_test.py
     test_module_path = pytest_current_test.split(':')[0]
 
     # E. g. repeat_expansion_variants/test/
