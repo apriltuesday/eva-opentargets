@@ -23,79 +23,49 @@ def get_test_resource(resource_name):
     # E. g. repeat_expansion_variants/test/
     test_module_dir = os.path.split(test_module_path)[0]
 
-    print(os.path.join(test_module_dir, resource_name))
-
     # E. g.  repeat_expansion_variants/test/input_variant_summary.tsv
-    return os.path.join(test_module_dir, resource_name)
+    return os.path.join(test_module_dir, 'resources', resource_name)
 
 
-def load_annotated_dataframe(dataframe_path, column_names=None):
-    """
-    Loads the dataframe from a TSV dump and prepares it for comparison:
-        * Removes annotations (comments) and empty lines
-        * Sorts rows by the values of all columns
-        * Resets the index
-
-    See example of an annotated dataframe in input_variant_summary.tsv.
-    """
-
-    # Load, remove annotations and blank lines
-    df = pandas.read_table(dataframe_path, delimiter='\t', comment='#', skip_blank_lines=True, names=column_names)
-
-    # Sort all rows using all columns
-    df = df.sort_values(by=list(df.columns))
-
-    # Reset index
-    df = df.reset_index(drop=True)
-
-    return df
+def run_pipeline(resource_name):
+    """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
+    input_filename = get_test_resource(resource_name)
+    output_consequences, output_dataframe = [tempfile.NamedTemporaryFile(delete=False) for _ in range(2)]
+    main.pipeline(input_filename, output_consequences.name, output_dataframe.name)
+    consequences = [line.rstrip().split('\t') for line in open(output_consequences).read().splitlines()]
+    output_consequences.cleanup()
+    output_dataframe.cleanup()
+    return consequences
 
 
-@pytest.mark.skip(reason='Repeat expansion pipeline is not fully refactored yet')
-def test_pipeline():
-    """
-    This is the integration test for the repeat expansion pipeline. It includes running the pipeline on a test dataset.
-    The dataset (input_variant_summary.tsv) includes all ClinVar's "NT expansion" records as of 2020-04-08. The records
-    of special interest are annotated and listed on top of that file. They include examples of all data peculiarities
-    known to date:
-        * All types of identifiers: HGVS-like coding/genomic; HGVS-like protein; Free text; non-standard; empty
-        * Some variants having two records for coordinates in different genomic builds
-        * Multiple associations with RCV; with GeneSymbol; and with both
-        * Presence of different fields to determine repeat length: only sequence; only span; or both
-        * Different repeat length: trinucleotide and non-trinucleotide
-        * Repeat unit sequence including a N
+def test_not_microsatellite():
+    """Records which are not Microsatellite records should not result in any consequences."""
+    assert run_pipeline('not_microsatellite.xml.gz') == []
 
-    After running the pipeline, files produced by it are compared to the expected ones, which were manually examined
-    for correctness.
-    """
 
-    # Load test dataset and remove annotations
-    annotated_input_data = get_test_resource('input_variant_summary.tsv')
-    input_data = ''.join([
-         line
-         for line in open(annotated_input_data)
-         if line.strip() and not line.startswith('#')
-    ])
+def test_deletion():
+    """Microsatellite deletion (contraction) events should not result in any consequences."""
+    assert run_pipeline('deletion.xml.gz') == []
 
-    # Prepare input data, output paths, and run the pipeline
-    input_file = BytesIO(gzip.compress(input_data.encode()))
-    output_consequences, output_dataframe = [tempfile.NamedTemporaryFile(delete=False).name for _ in range(2)]
-    pipeline.main(
-        clinvar_xml=input_file,
-        output_consequences=output_consequences,
-        output_dataframe=output_dataframe
-    )
 
-    # Compare the dataframe outputs
-    df_expected = load_annotated_dataframe(get_test_resource('output_dataframe.tsv'))
-    df_actual = load_annotated_dataframe(output_dataframe)
-    pandas.testing.assert_frame_equal(df_expected, df_actual)
+def test_short_insertion():
+    """Short insertion events should not be treated as proper repeat expansion variants."""
+    assert run_pipeline('short_insertion.xml.gz') == []
 
-    # Compare the consequence outputs. Since the actual output files do not contain headers, we specify the names
-    # explicitly here
-    consequences_column_names = ('RCVaccession', 'PlaceholderOnes', 'EnsemblGeneID',
-                                 'EnsemblGeneName', 'RepeatType', 'PlaceholderZeroes')
-    consequences_expected = load_annotated_dataframe(get_test_resource('output_consequences.tsv'),
-                                                     consequences_column_names)
-    consequences_actual = load_annotated_dataframe(output_consequences, consequences_column_names)
-    pandas.testing.assert_frame_equal(consequences_expected, consequences_actual)
+
+def test_explicit_coordinates():
+    """Repeat expansion events with complete coordinates must be processed with the correct type."""
+    assert run_pipeline('explicit_coords.xml.gz') == [
+        # CT expansion — non-trinucleotide
+        ['RCV000292700', '1', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion', '0'],
+        # CGC expansion — trinucleotide
+        ['RCV001051772', '1', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion', '0'],
+    ]
+
+
+def test_no_explicit_coordinates():
+    """Repeat expansion events without complete coordinates must also be processed and parsed."""
+    assert run_pipeline('no_explicit_coords.xml.gz') == [
+        # NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)]) should be parsed as a trinucleotide expansion
+        ['RCV000192035', '1', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion', '0']
+    ]
