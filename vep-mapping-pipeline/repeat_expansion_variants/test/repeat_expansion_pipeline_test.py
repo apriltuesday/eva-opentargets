@@ -17,13 +17,13 @@ from repeat_expansion_variants import pipeline
 def get_test_resource(resource_name):
     """Gets full path to the test resource located in the same directory as the test module."""
 
-    # Full path to this module
+    # Full path to this module.
     this_module = os.path.abspath(__file__)
 
-    # Full path to the directory where it is contained
+    # Full path to the directory where it is contained.
     module_directory = os.path.dirname(this_module)
 
-    # E. g.  repeat_expansion_variants/test/input_variant_summary.tsv
+    # Full path to the requested resource.
     return os.path.join(module_directory, 'resources', resource_name)
 
 
@@ -59,13 +59,13 @@ def test_short_insertion():
 def test_explicit_coordinates():
     """Repeat expansion events with complete coordinates must be processed with the correct type."""
     assert sorted(run_pipeline('explicit_coords.xml.gz')) == sorted([
-        # CGC expansion — trinucleotide
+        # CGC expansion, trinucleotide.
         ['RCV001051772', '1', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion', '0'],
-        # CCGGGACCGAGA (12 base unit) expansion - also to be considered a trinucleotide expansion
+        # CCGGGACCGAGA (12 base unit) expansion, also to be considered a trinucleotide expansion.
         ['RCV000722291', '1', 'ENSG00000142599', 'RERE', 'trinucleotide_repeat_expansion', '0'],
-        # CT expansion — non-trinucleotide
+        # CT expansion, non-trinucleotide.
         ['RCV000292700', '1', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion', '0'],
-        # TCAT expansion - non-trinucleotide but could be mistaken for one (3 units of 4 = 12, divisible by 3)
+        # TCAT expansion, non-trinucleotide but could be mistaken for one (3 units of 4 = 12, divisible by 3).
         ['RCV000122358', '1', 'ENSG00000135100', 'HNF1A', 'short_tandem_repeat_expansion', '0'],
     ])
 

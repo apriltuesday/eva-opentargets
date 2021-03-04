@@ -23,17 +23,16 @@ def none_to_nan(*args):
     return [np.nan if a is None else a for a in args]
 
 
-def load_clinvar_data(clinvar_xml, number_of_records=None):
+def load_clinvar_data(clinvar_xml):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
     # Iterate through ClinVar XML records
     variant_data = []  # To populate the return dataframe (see columns below)
     stats = defaultdict(int)
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i and i % 100000 == 0:
-            logger.info(f'Processed {i} records, collected {stats["repeat_expansion"] + stats["no_complete_coords"]} '
-                        f'repeat expansion variants')
-        if number_of_records and i > number_of_records:
-            break
+            total_repeat_expansion_variants = clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION + \
+                                              clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS
+            logger.info(f'Processed {i} records, collected {total_repeat_expansion_variants} repeat expansion variants')
 
         # Skip a record if it does not contain variant information
         if not clinvar_record.measure:
@@ -66,8 +65,9 @@ def load_clinvar_data(clinvar_xml, number_of_records=None):
                 gene_symbol,
                 hgnc_id
             ])
-    logger.info(f'Done. A total of {i} records, {stats["repeat_expansion"] + stats["no_complete_coords"]} repeat '
-                f'expansion variants')
+    total_repeat_expansion_variants = clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION + \
+                                      clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS
+    logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variants')
 
     variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
@@ -167,7 +167,7 @@ def determine_repeat_type(row):
         # If not available, fall back to using and end coordinate difference
         if pd.isnull(repeat_unit_length):
             repeat_unit_length = row['CoordinateSpan']
-        # Determine repeat type based on repeat length
+        # Determine repeat type based on repeat unit length
         if pd.notnull(repeat_unit_length):
             if repeat_unit_length % 3 == 0:
                 repeat_type = 'trinucleotide_repeat_expansion'
