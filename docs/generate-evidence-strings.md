@@ -2,13 +2,15 @@
 
 ## 1. Preparation steps
 
-### Update the code to reflect version changes on the Open Targets side
-A few weeks before the release, there will be an email from Open Targets which will specify the versions of JSON schema to use. The pipeline currently uses [JSON schema](https://github.com/opentargets/json_schema) version **1.7.5.** When this changes, all references throughout the code must be updated using a global search, as well as the test files in [`tests/evidence_string_generation/resources`](/tests/evidence_string_generation/resources).
+### Check if the pipeline needs to be updated
+Open Targets will circulate an email several weeks before the data submission deadline which will contain the version of [JSON schema](https://github.com/opentargets/json_schema) to be used. Examine the changes and modify this pipeline to accommodate them, if necessary.
+
+Regardless of whether any changes were made, update the `OT_SCHEMA_VERSION` value both in this document and in the [test files](/tests/evidence_string_generation/config.py).
 
 ### Set up the environment
 First, [set up the common environment.](environment.md)
 
-Next, set up the protocol-specific environment. The variables in it are specific to each Open Targets release. They are announced the e-mail which they send a few weeks before the data submission deadline:
+Next, set up the protocol-specific environment:
 
 ```bash
 # Year and month for the upcoming Open Targets release.
@@ -16,7 +18,7 @@ Next, set up the protocol-specific environment. The variables in it are specific
 export OT_RELEASE=YYYY-MM
 
 # Open Targets JSON schema version.
-export OT_SCHEMA_VERSION=1.7.5
+export OT_SCHEMA_VERSION=2.0.5
 ```
 
 ### Check and correct known problematic mappings

@@ -1,19 +1,18 @@
 """Contains utilities and classes to parse the ClinVar XML and convert the records into internal representation via
 ClinVarDataset, ClinVarRecord, and ClinVarRecordMeasure classes."""
 
+import gzip
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
-
-from eva_cttv_pipeline.file_utils import open_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 def iterate_rcv_from_xml(clinvar_xml):
-    """Iterates through ClinVar XML (possibly gzipped) and yields complete <ReferenceClinVarAssertion> records."""
-    with open_file(clinvar_xml, 'rt') as fh:
+    """Iterates through the gzipped ClinVar XML and yields complete <ReferenceClinVarAssertion> records."""
+    with gzip.open(clinvar_xml, 'rt') as fh:
         for event, elem in ElementTree.iterparse(fh):
             # Wait until we have built a complete ClinVarSet element
             if elem.tag != 'ClinVarSet':
@@ -195,6 +194,23 @@ class ClinVarTrait:
         return [(elem.attrib['DB'], elem.attrib['ID'], elem.attrib.get('Status', 'current').lower())
                 for elem in find_elements(self.trait_xml, './XRef')]
 
+    @property
+    def medgen_id(self):
+        """Attempts to resolve a single MedGen ID for a trait. If not present, returns None. If multiple are present,
+        returns the first one lexicographically."""
+        medgen_ids = []
+        for db, id_, status in self.xrefs:
+            if db == 'MedGen' and status == 'current':
+                medgen_ids.append(id_)
+        medgen_ids.sort()
+        if len(medgen_ids) == 0:
+            logger.warning(f'No MedGen ID for {self}')
+        elif len(medgen_ids) == 1:
+            return medgen_ids[0]
+        else:
+            logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
+            return medgen_ids[0]
+
 
 class ClinVarRecordMeasure:
     """This class represents individual ClinVar record "measures". Measures are essentially isolated variants, which can
@@ -280,6 +296,12 @@ class ClinVarRecordMeasure:
     @property
     def has_complete_coordinates(self):
         return self.chr and self.vcf_pos and self.vcf_ref and self.vcf_alt
+
+    @property
+    def vcf_full_coords(self):
+        """Returns complete variant coordinates in CHROM_POS_REF_ALT format, if present, otherwise None."""
+        if self.has_complete_coordinates:
+            return '_'.join([self.chr, self.vcf_pos, self.vcf_ref, self.vcf_alt])
 
     def sequence_location_helper(self, attr):
         if self.variant_type == 'Translocation':

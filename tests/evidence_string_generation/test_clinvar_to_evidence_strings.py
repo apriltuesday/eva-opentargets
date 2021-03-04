@@ -1,6 +1,8 @@
 import unittest
 
+import json
 import os
+import requests
 
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
@@ -64,84 +66,46 @@ class GetTermsFromFileTest(unittest.TestCase):
 
 class TestConvertAlleleOrigins(unittest.TestCase):
     def test_just_germline(self):
-        orig_allele_origins = ["germline"]
+        orig_allele_origins = ['germline']
         converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-        self.assertListEqual(["germline"], converted_allele_origins)
+        self.assertListEqual([['germline']], converted_allele_origins)
 
     def test_just_somatic(self):
-        orig_allele_origins = ["somatic"]
+        orig_allele_origins = ['somatic']
         converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-        self.assertListEqual(["somatic"], converted_allele_origins)
-
-    def test_just_tested_inconclusive(self):
-        orig_allele_origins = ["tested-inconclusive"]
-        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-        self.assertListEqual([], converted_allele_origins)
-
-    def test_just_other_germline(self):
-        orig_allele_origins_list = [["unknown"],
-                                    ["inherited"],
-                                    ["maternal"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-            self.assertListEqual(["germline"], converted_allele_origins)
-
-    def test_nonsense(self):
-        orig_allele_origins_list = [["fgdsgfgs"],
-                                    ["notarealorigin"],
-                                    ["134312432:dasdfd"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-            self.assertListEqual([], converted_allele_origins)
-        orig_allele_origins = ["fgdsgfgs", "germline"]
-        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-        self.assertListEqual(["germline"], converted_allele_origins)
+        self.assertListEqual([['somatic']], converted_allele_origins)
 
     def test_mixed_germline(self):
-        orig_allele_origins_list = [["germline", "de novo"],
-                                    ["germline", "inherited", "not applicable"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-            self.assertListEqual(["germline"], converted_allele_origins)
+        orig_allele_origins = ['germline', 'inherited', 'not applicable']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['germline', 'inherited', 'not applicable']], converted_allele_origins)
 
     def test_duplicate(self):
-        orig_allele_origins = ["germline", "germline"]
-        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(
-            orig_allele_origins)
-        self.assertListEqual(["germline"], converted_allele_origins)
-        orig_allele_origins = ["inherited", "inherited", "germline"]
-        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(
-            orig_allele_origins)
-        self.assertListEqual(["germline"], converted_allele_origins)
-        orig_allele_origins = ["somatic", "somatic", "somatic"]
-        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(
-            orig_allele_origins)
-        self.assertListEqual(["somatic"], converted_allele_origins)
-
+        orig_allele_origins = ['germline', 'germline']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['germline']], converted_allele_origins)
+        orig_allele_origins = ['inherited', 'inherited', 'germline']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['germline', 'inherited']], converted_allele_origins)
+        orig_allele_origins = ['somatic', 'somatic', 'somatic']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['somatic']], converted_allele_origins)
 
     def test_stringcase(self):
-        orig_allele_origins_list = [["Germline"],
-                               ["InHerIted"],
-                               ["UNKNOWN"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
-            self.assertListEqual(["germline"], converted_allele_origins)
-        orig_allele_origins_list = [["Somatic"],
-                                    ["SOMATIC"],
-                                    ["sOMatIc"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(
-                orig_allele_origins)
-            self.assertListEqual(["somatic"], converted_allele_origins)
+        orig_allele_origins = ['Germline']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['germline']], converted_allele_origins)
+        orig_allele_origins = ['SOMATIC']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['somatic']], converted_allele_origins)
 
     def test_mixed(self):
-        orig_allele_origins_list = [["germline", "somatic"],
-                                    ["somatic", "inherited", "not applicable"],
-                                    ["somatic", "unknown"]]
-        for orig_allele_origins in orig_allele_origins_list:
-            converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(
-                orig_allele_origins)
-            self.assertListEqual(["somatic", "germline"], converted_allele_origins)
+        orig_allele_origins = ['germline', 'somatic']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['somatic'], ['germline']], converted_allele_origins)
+        orig_allele_origins = ['somatic', 'inherited', 'not applicable']
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([['somatic'], ['inherited', 'not applicable']], converted_allele_origins)
 
 
 class TestGetConsequenceTypes(unittest.TestCase):
@@ -161,5 +125,56 @@ class TestGetConsequenceTypes(unittest.TestCase):
         )
         self.assertEqual(
             clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}),
-            [None]
+            []
         )
+
+
+class GenerateEvidenceStringTest(unittest.TestCase):
+    """Verifies that the evidence strings generated from a test ClinVar record matches the expectation."""
+
+    def setUp(self):
+        # This is required to display evidence string diffs (if any)
+        self.maxDiff = None
+        # Attributes for the evidence string generation
+        self.clinvar_record = config.get_test_clinvar_record()
+        self.disease_name = 'Rare congenital non-syndromic heart malformation'
+        self.disease_source_id = 'C4017284'
+        self.disease_mapped_efo_id = 'Orphanet_88991'
+        self.consequence_attributes = GENE_MAPPINGS['14:67729209:A:G'][0]
+        # Open Targets JSON schema
+        schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{OT_SCHEMA_VERSION}/opentargets.json'
+        self.ot_schema_contents = requests.get(schema_url).json()
+
+    def test_genetics_evidence_string(self):
+        """Verifies expected genetics evidence string generation."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=['germline'],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id=self.disease_mapped_efo_id,
+            consequence_attributes=self.consequence_attributes
+        )
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
+        # Check that the evidence string contents are as expected
+        evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
+        expected_evidence_string = open(config.expected_genetics_evidence_string).read()
+        self.assertEqual(evidence_string, expected_evidence_string)
+
+    def test_somatic_evidence_string(self):
+        """Verifies expected somatic evidence string generation."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=['somatic'],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id=self.disease_mapped_efo_id,
+            consequence_attributes=self.consequence_attributes
+        )
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
+        # Check that the evidence string contents are as expected
+        evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
+        expected_evidence_string = open(config.expected_somatic_evidence_string).read()
+        self.assertEqual(evidence_string, expected_evidence_string)

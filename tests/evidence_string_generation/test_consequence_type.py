@@ -1,6 +1,5 @@
 import unittest
 
-import os
 from collections import defaultdict
 
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
@@ -35,7 +34,7 @@ class SoTermTest(unittest.TestCase):
         cls.test_so_term_b = CT.SoTerm("not_real_term")
 
     def test_accession(self):
-        self.assertEqual(self.test_so_term_a.accession, "SO:0001587")
+        self.assertEqual(self.test_so_term_a.accession, "SO_0001587")
         self.assertIsNone(self.test_so_term_b.accession)
 
     def test_rank(self):

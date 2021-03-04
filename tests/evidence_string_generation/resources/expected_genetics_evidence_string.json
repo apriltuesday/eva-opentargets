@@ -1,139 +1,27 @@
 {
-  "access_level": "public",
-  "disease": {
-    "id": "http://www.orpha.net/ORDO/Orphanet_88991",
-    "name": "Rare congenital non-syndromic heart malformation",
-    "source_name": "Leber congenital amaurosis 13"
-  },
-  "evidence": {
-    "gene2variant": {
-      "evidence_codes": [
-        "http://identifiers.org/eco/cttv_mapping_pipeline"
-      ],
-      "functional_consequence": "http://purl.obolibrary.org/obo/SO_0001583",
-      "is_associated": true,
-      "provenance_type": {
-        "database": {
-          "dbxref": {
-            "id": "http://identifiers.org/clinvar",
-            "url": "http://identifiers.org/clinvar.record/RCV000002127",
-            "version": "2017-08"
-          },
-          "id": "EVA",
-          "version": "1.0"
-        },
-        "expert": {
-          "statement": "Primary submitter of data",
-          "status": true
-        }
-      },
-      "urls": [
-        {
-          "nice_name": "Further details in ClinVar database",
-          "url": "http://www.ncbi.nlm.nih.gov/clinvar/RCV000002127"
-        }
-      ]
-    },
-    "variant2disease": {
-      "clinical_significance": [
-        "likely pathogenic",
-        "pathogenic"
-      ],
-      "clinvar_rating": {
-        "review_status": "criteria provided, multiple submitters, no conflicts",
-        "star_rating": 2
-      },
-      "date_asserted": "2020-09-16",
-      "evidence_codes": [
-        "http://purl.obolibrary.org/obo/ECO_0000205"
-      ],
-      "is_associated": true,
-      "last_evaluated_date": "2019-11-18",
-      "provenance_type": {
-        "database": {
-          "dbxref": {
-            "id": "http://identifiers.org/clinvar",
-            "url": "http://identifiers.org/clinvar.record/RCV000002127",
-            "version": "2017-08"
-          },
-          "id": "EVA",
-          "version": "1.0"
-        },
-        "expert": {
-          "statement": "Primary submitter of data",
-          "status": true
-        },
-        "literature": {
-          "references": [
-            {
-              "lit_id": "http://europepmc.org/abstract/MED/15258582"
-            },
-            {
-              "lit_id": "http://europepmc.org/abstract/MED/15322982"
-            },
-            {
-              "lit_id": "http://europepmc.org/abstract/MED/20301475"
-            },
-            {
-              "lit_id": "http://europepmc.org/abstract/MED/20301590"
-            },
-            {
-              "lit_id": "http://europepmc.org/abstract/MED/30285347"
-            }
-          ]
-        }
-      },
-      "resource_score": {
-        "method": {
-          "description": "Not provided by data supplier"
-        },
-        "type": "pvalue",
-        "value": 1e-07
-      },
-      "unique_experiment_reference": "http://europepmc.org/abstract/MED/15258582",
-      "urls": [
-        {
-          "nice_name": "Further details in ClinVar database",
-          "url": "http://www.ncbi.nlm.nih.gov/clinvar/RCV000002127"
-        }
-      ]
-    }
-  },
-  "literature": {
-    "references": [
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/15258582"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/15322982"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/20301475"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/20301590"
-      },
-      {
-        "lit_id": "http://europepmc.org/abstract/MED/30285347"
-      }
-    ]
-  },
-  "sourceID": "eva",
-  "target": {
-    "id": "http://identifiers.org/ensembl/ENSG00000139988",
-    "target_type": "http://identifiers.org/cttv.target/gene_variant"
-  },
-  "type": "genetic_association",
-  "unique_association_fields": {
-    "alleleOrigin": "germline",
-    "clinvarAccession": "RCV000002127",
-    "gene": "ENSG00000139988",
-    "phenotype": "http://www.orpha.net/ORDO/Orphanet_88991",
-    "variant_id": "rs28940313"
-  },
-  "validated_against_schema_version": "1.7.5",
-  "variant": {
-    "id": "http://identifiers.org/dbsnp/rs28940313",
-    "type": "snp single"
-  }
+  "alleleOrigins": [
+    "germline"
+  ],
+  "clinicalSignificances": [
+    "likely pathogenic",
+    "pathogenic"
+  ],
+  "cohortPhenotypes": [
+    "Leber congenital amaurosis 13"
+  ],
+  "confidence": "criteria provided, multiple submitters, no conflicts",
+  "datasourceId": "eva",
+  "datatypeId": "genetic_association",
+  "diseaseFromSource": "Rare congenital non-syndromic heart malformation",
+  "diseaseFromSourceId": "C4017284",
+  "diseaseFromSourceMappedId": "Orphanet_88991",
+  "literature": [
+    "15258582",
+    "15322982"
+  ],
+  "studyId": "RCV000002127",
+  "targetFromSourceId": "ENSG00000139988",
+  "variantFunctionalConsequenceId": "SO_0001583",
+  "variantId": "14_67729209_A_G",
+  "variantRsId": "rs28940313"
 }
