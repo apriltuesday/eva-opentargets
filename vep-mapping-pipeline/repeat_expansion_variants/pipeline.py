@@ -173,13 +173,13 @@ def determine_repeat_type(row):
                 repeat_type = 'trinucleotide_repeat_expansion'
             else:
                 repeat_type = 'short_tandem_repeat_expansion'
-    row['RepeatType'] = repeat_type
     # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be processed
     # as a repeat *expansion* variant. The reason such records are present at this stage is that for records without
     # explicit allele sequences we cannot verify whether they definitely represent expansions.
     if row['Name'].endswith('del') or row['Name'].endswith('del)'):
         repeat_type = np.nan
     # Based on the information which we have, determine whether the record is complete
+    row['RepeatType'] = repeat_type
     row['RecordIsComplete'] = (
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
@@ -207,6 +207,9 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     consequences = variants[variants['RecordIsComplete']] \
         .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'])['RepeatType'] \
         .apply(set).reset_index(name='RepeatType')
+    if consequences.empty:
+        logger.info('There are no records ready for output')
+        return
     # Check that for every (RCV, gene) pair there is only one consequence type
     assert consequences['RepeatType'].str.len().dropna().max() == 1, 'Multiple (RCV, gene) → variant type mappings!'
     # Get rid of sets

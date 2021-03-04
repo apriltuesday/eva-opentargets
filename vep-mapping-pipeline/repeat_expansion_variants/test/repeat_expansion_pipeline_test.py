@@ -45,6 +45,9 @@ def test_not_microsatellite():
 
 def test_deletion():
     """Microsatellite deletion (contraction) events should not result in any consequences."""
+    # Contains two deletions:
+    # 1. With explicit coordinates: RCV000000275, delCTC
+    # 2. Without explicit coordinates: RCV000481576, NM_000044.4(AR):c.172_174CAG(7_34) (p.Gln66_Gln80del)
     assert run_pipeline('deletion.xml.gz') == []
 
 
