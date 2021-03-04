@@ -104,7 +104,7 @@ class Report:
     def write_output(self, dir_out):
         write_string_list_to_file(self.nsv_list, dir_out + '/' + NSV_LIST_FILE)
 
-        # Contains traits without a mapping in Gary's xls
+        # Contains traits without an ontology mapping
         with open(dir_out + '/' + UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
             fdw.write('Trait\tCount\n')
             for trait_list in self.unmapped_traits:
@@ -394,14 +394,14 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
         * (E, MedGen_E, EFO_5)"""
 
     # Group traits by their EFO mappings and explode multiple mappings
-    efo_to_traits = dict()  # Key: EFO ID, value: list of traits mapped to that ID
+    efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID
     for trait in clinvar_record_traits:
         trait_name = trait.name.lower()
         if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
             report.counters['n_missed_strings_unmapped_traits'] += 1
             continue
         for efo_id, efo_label in string_to_efo_mappings[trait_name]:
-            efo_to_traits.setdefault(efo_id, []).append(trait)
+            efo_to_traits[efo_id].append(trait)
 
     # Generate tuples by keeping only one disease from each group
     grouped_tuples = []

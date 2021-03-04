@@ -209,6 +209,7 @@ class ClinVarTrait:
             return medgen_ids[0]
         else:
             logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
+            return medgen_ids[0]
 
 
 class ClinVarRecordMeasure:
