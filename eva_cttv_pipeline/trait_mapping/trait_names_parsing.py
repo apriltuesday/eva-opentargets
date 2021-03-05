@@ -28,7 +28,7 @@ def parse_trait_names(filepath: str) -> list:
     nt_expansion_traits = set()
 
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
-        traits = set(trait.name for trait in clinvar_record.traits)
+        traits = set(trait.name for trait in clinvar_record.traits if trait.name is not None)
         unique_association_tuples |= {(clinvar_record.accession, trait) for trait in traits}
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
             nt_expansion_traits |= traits

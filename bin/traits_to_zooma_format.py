@@ -46,7 +46,7 @@ def process_clinvar_record(clinvar_record, outfile):
                    if variant_id is not None]
     traits = clinvar_record.traits
     for variant_id, trait in itertools.product(variant_ids, traits):
-        if trait.name.lower() == 'not provided':
+        if (trait.name is None) or (trait.name.lower() == 'not provided'):
             continue
         for db, identifier, status in trait.xrefs:
             if status != 'current' or db.lower() not in OntologyUri.db_to_uri_dict:

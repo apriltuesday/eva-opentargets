@@ -182,7 +182,8 @@ class ClinVarTrait:
 
     @property
     def name(self):
-        return find_mandatory_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]').text
+        name = find_optional_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]')
+        return None if name is None else name.text
 
     @property
     def pubmed_refs(self):

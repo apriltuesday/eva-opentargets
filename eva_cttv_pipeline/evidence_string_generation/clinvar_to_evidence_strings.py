@@ -186,7 +186,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # 1. Allele origins
         grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
         # 2. EFO mappings
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings, report)
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings, report,
+                                                         clinvar_record.accession)
         # 3. Genes where the variant has effect
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
         if not consequence_types:
@@ -256,7 +257,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* disease names from that ClinVar record
-        'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits]),
+        'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits if trait.name is not None]),
 
         # One disease name for this evidence string (see group_diseases_by_efo_mapping)
         'diseaseFromSource': disease_name,
@@ -386,7 +387,7 @@ def convert_allele_origins(orig_allele_origins):
     return converted_allele_origins
 
 
-def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings, report):
+def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings, report, clinvar_rcv):
     """Processes and groups diseases from a ClinVar record in two ways. First, diseases mapping to the same EFO term are
     grouped together. Second, if a group of diseases has multiple EFO mappings, they are split into separate groups.
     For each group, the tuple of the following values is returned: (1) the original name of the disease which comes
@@ -409,6 +410,9 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
     # Group traits by their EFO mappings and explode multiple mappings
     efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID
     for trait in clinvar_record_traits:
+        if trait.name is None:
+            logger.warning(f'Skipping a trait without a preferred name in RCV {clinvar_rcv}')
+            continue
         trait_name = trait.name.lower()
         if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
             report.counters['n_missed_strings_unmapped_traits'] += 1
