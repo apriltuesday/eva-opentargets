@@ -32,7 +32,8 @@ def load_clinvar_data(clinvar_xml):
         if i and i % 100000 == 0:
             total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                               stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
-            logger.info(f'Processed {i} records, collected {total_repeat_expansion_variants} repeat expansion variants')
+            logger.info(f'Processed {i} records, collected {total_repeat_expansion_variants} repeat expansion variant '
+                        f'candidates')
 
         # Skip a record if it does not contain variant information
         if not clinvar_record.measure:
@@ -65,9 +66,9 @@ def load_clinvar_data(clinvar_xml):
                 gene_symbol,
                 hgnc_id
             ])
-    total_repeat_expansion_variants = clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION + \
-                                      clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS
-    logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variants')
+    total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
+                                      stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
+    logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variant candidates')
 
     variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
