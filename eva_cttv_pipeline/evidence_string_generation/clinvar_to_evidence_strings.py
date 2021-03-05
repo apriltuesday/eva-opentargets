@@ -305,6 +305,10 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         # Example of such an identifier: 14:23423715:G:A
         coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
+        # FIXME: Open Targets schema 2.0.5 does not support mitochondrial variants, so they are not being processed
+        if clinvar_record_measure.chr == 'MT':
+            logger.warning(f'Skipping mitochondrial variant: {coord_id}')
+            return []
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
 
