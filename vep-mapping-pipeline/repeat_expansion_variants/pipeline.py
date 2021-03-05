@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""A pipeline to extract repeat expansion variants from ClinVar TSV dump. For documentation refer to README.md"""
+"""A pipeline to extract repeat expansion variants from ClinVar XML dump. For documentation refer to README.md"""
 
-from collections import defaultdict
+from collections import Counter
 import logging
 
 import numpy as np
@@ -27,7 +27,7 @@ def load_clinvar_data(clinvar_xml):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
     # Iterate through ClinVar XML records
     variant_data = []  # To populate the return dataframe (see columns below)
-    stats = defaultdict(int)
+    stats = Counter()
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i and i % 100000 == 0:
             total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
@@ -42,8 +42,7 @@ def load_clinvar_data(clinvar_xml):
         # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
         # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
         # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
-        microsatellite_category = clinvar_record.measure.microsatellite_category
-        stats[microsatellite_category] += 1
+        stats[clinvar_record.measure.microsatellite_category] += 1
         # Skip the record if it's a deletion or a short insertion
         if not clinvar_record.measure.is_repeat_expansion_variant:
             continue
