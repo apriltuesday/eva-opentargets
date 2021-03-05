@@ -217,7 +217,7 @@ class ClinVarRecordMeasure:
     be combined into either MeasureSets (include one or more Measures) or GenotypeSets. For a detailed description of
     ClinVar data model, see /clinvar-variant-types/."""
 
-    # For ClinVar Microsatellite events with complete coordinates, require the event to be at list this number of bases
+    # For ClinVar Microsatellite events with complete coordinates, require the event to be at least this number of bases
     # long in order for it to be considered a repeat expansion event. Smaller events will be processed as regular
     # insertions. The current value was chosen as a reasonable threshold to separate thousands of very small insertions
     # which are technically microsatellite expansion events but are not long enough to be considered clinically

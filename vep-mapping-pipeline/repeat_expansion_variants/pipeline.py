@@ -30,8 +30,8 @@ def load_clinvar_data(clinvar_xml):
     stats = defaultdict(int)
     for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
         if i and i % 100000 == 0:
-            total_repeat_expansion_variants = clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION + \
-                                              clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS
+            total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
+                                              stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
             logger.info(f'Processed {i} records, collected {total_repeat_expansion_variants} repeat expansion variants')
 
         # Skip a record if it does not contain variant information
