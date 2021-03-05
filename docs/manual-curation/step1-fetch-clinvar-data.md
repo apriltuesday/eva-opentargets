@@ -29,9 +29,11 @@ cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py
   --previous-mappings ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
   --output ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv
 
-# Sort and export to Google Sheets. The sort is first by column 3 (notes), to prioritise the variants with special
-# notes, and then by column 2 (frequency). Note that the number of columns in the output table is limited to 50, because only a few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful. However,
-# having a very large table degrades the performance of Google Sheets substantially.
+# Sort and export to Google Sheets. The first sort key is reverse column 3 (notes), to prioritise the variants with
+# special notes. The second sort key is column 2 (frequency), also in reverse. Note that the number of columns in the
+# output table is limited to 50, because only a few traits have that many mappings, and in virtually all cases these
+# extra mappings are not meaningful. However, having a very large table degrades the performance of Google Sheets
+# substantially.
 cut -f-50 ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv \
   | sort -t$'\t' -k3,3r -k2,2rn > ${CURATION_RELEASE_ROOT}/google_sheets_table.tsv
 ```

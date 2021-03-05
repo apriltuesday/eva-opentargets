@@ -3,7 +3,7 @@
 ## 1. Preparation steps
 
 ### Check if the pipeline needs to be updated
-Open Targets will circulate an email several weeks before the data submission deadline which will contain the version of [JSON schema](https://github.com/opentargets/json_schema) to be used. Examine the changes and modify this pipeline to accommodate them, if necessary.
+Open Targets will circulate an email several weeks before the data submission deadline which will contain the version of the [JSON schema](https://github.com/opentargets/json_schema) to be used. Examine the changes, and modify this pipeline to accommodate them if necessary.
 
 Regardless of whether any changes were made, update the `OT_SCHEMA_VERSION` value both in this document and in the [test files](/tests/evidence_string_generation/config.py).
 
