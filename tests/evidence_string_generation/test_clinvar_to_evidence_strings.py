@@ -142,7 +142,8 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         self.disease_mapped_efo_id = 'Orphanet_88991'
         self.consequence_attributes = GENE_MAPPINGS['14:67729209:A:G'][0]
         # Open Targets JSON schema
-        schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{OT_SCHEMA_VERSION}/opentargets.json'
+        schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{config.OT_SCHEMA_VERSION}/' \
+                     f'opentargets.json'
         self.ot_schema_contents = requests.get(schema_url).json()
 
     def test_genetics_evidence_string(self):

@@ -7,7 +7,7 @@ This pipeline is a companion to the main [functional consequence & gene mapping 
 The pipeline has one input file and two output files.
 
 ### Input file
-The input file is ClinVar's [TSV summary file](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz).
+The input file is ClinVar's [compressed XML data dump](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz).
 
 ### Consequences table
 The first output file, in TSV format, is the consequences table. It uses the same six-column format as the main pipeline. Example (tabs are replaced with spaces for readability):
@@ -44,6 +44,13 @@ The information which the pipeline needs to determine for each variant is fairly
 This is made quite complicated by various systemic peculiarities in ClinVar data. In this section, the pipeline operation is explained step by step along with how those peculiarities are addressed.
 
 ### Step 1. Load and preprocess data
+Repeat expansion variants are represented as **Microsatellite** events in ClinVar data. The first level of processing is to classify them according to their attributes:
+* If the Microsatellite event has explicit coordinates and allelic sequences (CHROM/POS/REF/ALT), we can determine its type easily:
+  + If len(REF) > len(ALT), this is a deletion (repeat contraction) event, which we're not interested in.
+  + If len(REF) < len(ALT), but the difference is less than a certain threshold (see the current value in code as `REPEAT_EXPANSION_THRESHOLD`), it will be treated as a normal short insertion and not processed by this pipeline. This is done in this way to filter out a few thousands of events which constitute very short repeat expansions and are unlikely to be clinically relevant.
+  + If the event passes the threshold, it is considered a repeat expansion variant with an explicit sequence. For it, we can easily calculate the length and see if it is a trinucleotide expansion or not.
+* A small number of Microsatellite records do not have complete coordinates, and we have to guess their type by parsing their name, which is usually a HGVS-like expression. The rest of the pipeline, described below, deals mostly with those cases.
+
 As input data from Clinvar, we get four useful columns:
 * **Name:** variant identifier, which can be in three possible formats, explained below.
 * **RCVaccession:** accession of a ClinVar record associating this variant with a phenotype.
