@@ -226,6 +226,10 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     assert consequences.isnull().to_numpy().sum() == 0
     # Write the consequences table. This is used by the main evidence string generation pipeline.
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
+    # Output statistics
+    logger.info(f'Generated {len(consequences)} consequences in total:')
+    logger.info(f'  {sum(consequences.RepeatType == "trinucleotide_repeat_expansion")} trinucleotide repeat expansion')
+    logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
 
 
 def main(clinvar_xml, output_consequences, output_dataframe):
