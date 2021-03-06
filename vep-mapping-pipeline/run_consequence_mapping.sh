@@ -6,6 +6,9 @@ set -euxo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+echo "Note that variant extraction and deduplication can take up to an hour," >&2
+echo "and during this time no output will be produced." >&2
+
 # If you're running on VCF, substitute the first line with: bcftools query "$1" -f '%CHROM:%POS:%REF:%ALT\n'
 python3 "${DIR}/extract_variants_for_vep.py" --clinvar-xml "$1" \
   | sort -u \
