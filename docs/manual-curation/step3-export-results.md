@@ -28,7 +28,7 @@ export NEW_MAPPINGS=${CURATION_RELEASE_ROOT}/trait_names_to_ontology_mappings.ts
 cat \
   ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   ${CURATION_RELEASE_ROOT}/finished_mappings_curation.tsv \
-> ${NEW_MAPPINGS}
+| sort -u > ${NEW_MAPPINGS}
 
 # Add all mappings from the database which are *not* present in the results of the current curation iteration (automated
 # + manually curated). This is done in order to never lose mappings, even if they are not present in ClinVar during the
@@ -61,8 +61,8 @@ ln -s -f ${NEW_MAPPINGS} ${EXISTING_MAPPINGS}
 ln -s -f ${CURATION_RELEASE_ROOT}/eva_clinvar.txt ${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt
 ```
 
-## Check that the resulting file has no duplicates
-The resulting list of text-to-ontology mappings should include any complete duplicates. Check that this is the case by using the following command. If everything is correct, it should not output anything:
+## Check that the resulting file contains no duplicates
+The resulting list of text-to-ontology mappings should containq1 any complete duplicates. Check that this is the case by using the following command. If everything is correct, it should not output anything:
 
 ```bash
 sort ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv | uniq -c | awk '$1 > 1'

@@ -79,6 +79,10 @@ ${BSUB_CMDLINE} -K -M 10G \
     --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
     --out          ${BATCH_ROOT}/evidence_strings/
 
+# Check that the generated evidence strings do not contain any duplicates
+sort ${BATCH_ROOT}/evidence_strings/evidence_strings.json | uniq -c | awk '$1 > 1' > \
+  ${BATCH_ROOT}/evidence_strings/duplicates.json
+
 # Convert MedGen and OMIM cross-references into ZOOMA format.
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
@@ -89,6 +93,9 @@ ${BSUB_CMDLINE} -K \
 ```
 
 ## 3. Manual follow-up actions
+
+### Check that generated evidence strings do not contain any duplicates
+The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the file `${BATCH_ROOT}/evidence_strings/duplicates.json` should be empty. Check that this is the case.
 
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
@@ -149,6 +156,7 @@ If everything has been done correctly, hash sums will be the same. Note that the
   + Evidence stringts
     - Version of JSON schema is the same as specified in the Open Targets e-mail
     - All traits mentioned in the [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
+    - The file `${BATCH_ROOT}/evidence_strings/duplicates.json` is empty, meaning there are no duplicates in the generated evidence strings.
 * Step 5 “Manual follow-up actions”
   + The summary metrics
     - Are present in the [spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/)
