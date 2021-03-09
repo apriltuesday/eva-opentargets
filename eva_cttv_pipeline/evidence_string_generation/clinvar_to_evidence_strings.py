@@ -244,7 +244,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
         # "observed in" references. Open Targets are interested only in that last category.
-        'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
+        'literature': sorted(set([str(r) for r in clinvar_record.evidence_support_pubmed_refs])),
 
         # RCV identifier.
         'studyId': clinvar_record.accession,

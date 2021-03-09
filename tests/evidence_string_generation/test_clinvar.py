@@ -30,7 +30,7 @@ class TestClinvarRecord(unittest.TestCase):
         self.assertEqual(self.test_clinvar_record.traits[0].pubmed_refs, [20301475, 20301590, 30285347])
 
     def test_observed_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [15258582, 15322982])
+        self.assertEqual(self.test_clinvar_record.evidence_support_pubmed_refs, [15258582, 15322982])
 
     def test_clinical_significance(self):
         self.assertEqual(self.test_clinvar_record.clinical_significance_list, ['likely pathogenic', 'pathogenic'])
