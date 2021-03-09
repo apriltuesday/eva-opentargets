@@ -416,6 +416,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
         trait_name = trait.name.lower()
         if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
             report.counters['n_missed_strings_unmapped_traits'] += 1
+            report.unmapped_traits[trait_name] += 1
             continue
         for efo_id, efo_label in string_to_efo_mappings[trait_name]:
             efo_to_traits[efo_id].append(trait)

@@ -1,4 +1,3 @@
-from collections import Counter
 import csv
 import logging
 import multiprocessing
@@ -12,6 +11,10 @@ from eva_cttv_pipeline.trait_mapping.zooma import get_zooma_results
 
 
 logger = logging.getLogger(__package__)
+
+# These ambiguous trait names cannot be resolved to a specific disease and must not be output
+# TODO: Also use this in the future refactor of the quality control system (see issue #114)
+NONSPECIFIC_TRAITS = {'disease', 'not provided', 'not specified', 'see cases'}
 
 
 def get_uris_for_oxo(zooma_result_list: list) -> set:
@@ -91,6 +94,8 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
 
         logger.info('Writing output with the processed traits')
         for trait in processed_trait_list:
-            output_trait(trait, mapping_writer, curation_writer)
+            # Remove non-specific trait names which should never be output
+            if trait.name.lower() not in NONSPECIFIC_TRAITS:
+                output_trait(trait, mapping_writer, curation_writer)
 
     logger.info('Finished processing trait names')
