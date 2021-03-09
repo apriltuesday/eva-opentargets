@@ -8,19 +8,22 @@ from eva_cttv_pipeline import clinvar_xml_utils
 
 
 class OntologyUri:
-    db_to_uri_dict = {
-        'orphanet': 'http://www.orpha.net/ORDO/Orphanet_{}',
-        'omim':     'http://identifiers.org/omim/{}',
-        'efo':      'http://www.ebi.ac.uk/efo/{}',
-        'mesh':     'http://identifiers.org/mesh/{}',
-        'medgen':   'http://identifiers.org/medgen/{}',
-        'mondo':    'http://purl.obolibrary.org/obo/MONDO_{}',
+    # ClinVar stores cross-references in very different formats. This provides their conversion to full IRIs, along with
+    # some examples of how this looks like in ClinVar data.
+    db_to_uri_conversion = {
+        'orphanet': lambda x: f'http://www.orpha.net/ORDO/Orphanet_{x}',  # <XRef ID="1756" DB="Orphanet"/>
+        'omim': lambda x: f'https://www.omim.org/entry/{x}',  # <XRef Type="MIM" ID="612773" DB="OMIM"/>
+        'efo': lambda x: f'http://www.ebi.ac.uk/efo/{x}',  # <XRef ID="EFO_0005137" DB="EFO"/>
+        'mesh': lambda x: f'http://identifiers.org/mesh/{x}',  # <XRef ID="D065630" DB="MeSH"/>
+        'medgen': lambda x: f'http://identifiers.org/medgen/{x}',  # <XRef ID="C0235833" DB="MedGen"/>
+        # <XRef ID="MONDO:0013353" DB="MONDO"/>
+        'mondo': lambda x: 'http://purl.obolibrary.org/obo/{}'.format(x.replace(':', '_')),
     }
 
     def __init__(self, id_, db):
         self.id_ = id_
         self.db = db
-        self.uri = self.db_to_uri_dict[self.db.lower()].format(self.id_)
+        self.uri = self.db_to_uri_conversion[self.db.lower()](self.id_)
 
     def __str__(self):
         return self.uri
@@ -49,7 +52,7 @@ def process_clinvar_record(clinvar_record, outfile):
         if (trait.name is None) or (trait.name.lower() == 'not provided'):
             continue
         for db, identifier, status in trait.xrefs:
-            if status != 'current' or db.lower() not in OntologyUri.db_to_uri_dict:
+            if status != 'current' or db.lower() not in OntologyUri.db_to_uri_conversion:
                 continue
             ontology_uri = OntologyUri(identifier, db)
             write_zooma_record(clinvar_record.accession, variant_id, trait.name, ontology_uri,
