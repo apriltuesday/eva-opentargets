@@ -36,8 +36,7 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath):
 
 def process_consequence_type_file(snp_2_gene_file):
     logger.info('Loading mapping rs -> ENSG/SOterms')
-    consequence_type_dict, one_rs_multiple_genes = \
-        process_consequence_type_file_tsv(snp_2_gene_file)
+    consequence_type_dict, one_rs_multiple_genes = process_consequence_type_file_tsv(snp_2_gene_file)
     logger.info('{} rs->ENSG/SOterms mappings loaded'.format(len(consequence_type_dict)))
     logger.info('{} rsIds with multiple gene associations'.format(len(one_rs_multiple_genes)))
     return consequence_type_dict

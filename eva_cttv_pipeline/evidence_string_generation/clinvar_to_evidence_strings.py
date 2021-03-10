@@ -343,21 +343,16 @@ def load_efo_mapping(efo_mapping_file):
     trait_2_efo = defaultdict(list)
     n_efo_mappings = 0
 
-    with open(efo_mapping_file, "rt") as f:
+    with open(efo_mapping_file, 'rt') as f:
         for line in f:
             line = line.rstrip()
-            if line.startswith("#") or not line:
+            if line.startswith('#') or not line:
                 continue
-            line_list = line.split("\t")
-            clinvar_name = line_list[0].lower()
-            if len(line_list) > 1:
-                ontology_id_list = line_list[1].split("|")
-                ontology_label_list = line_list[2].split("|") if len(line_list) > 2 else [None] * len(ontology_id_list)
-                for ontology_id, ontology_label in zip(ontology_id_list, ontology_label_list):
-                    trait_2_efo[clinvar_name].append((ontology_id, ontology_label))
-                n_efo_mappings += 1
-            else:
-                raise ValueError('No mapping provided for trait: {}'.format(clinvar_name))
+            line_list = line.split('\t')
+            assert len(line_list) == 3, f'Incorrect string to EFO mapping format for line {line}'
+            clinvar_name, ontology_id, ontology_label = line_list
+            trait_2_efo[clinvar_name.lower()].append((ontology_id, ontology_label))
+            n_efo_mappings += 1
     logger.info('{} EFO mappings loaded'.format(n_efo_mappings))
     return trait_2_efo
 
