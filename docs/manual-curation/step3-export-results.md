@@ -62,7 +62,7 @@ ln -s -f ${CURATION_RELEASE_ROOT}/eva_clinvar.txt ${BATCH_ROOT_BASE}/manual_cura
 ```
 
 ## Check that the resulting file contains no duplicates
-The resulting list of text-to-ontology mappings should containq1 any complete duplicates. Check that this is the case by using the following command. If everything is correct, it should not output anything:
+The resulting list of text-to-ontology mappings should not contain any complete duplicates. Check that this is the case by using the following command. If everything is correct, it should not output anything:
 
 ```bash
 sort ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv | uniq -c | awk '$1 > 1'
