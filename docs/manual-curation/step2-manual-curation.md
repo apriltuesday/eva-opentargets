@@ -1,7 +1,7 @@
 # Manual curation, part II, biological: perform manual curation
 
 The goals of the manual curation:
-* All traits which are linked to NT expansion (nucleotide repeat expansion) variants must be curated. Those are marked as "NT expansion" in the frequency column.
+* All traits which are linked to NT expansion (nucleotide repeat expansion) variants must be curated. Those are marked as "NT expansion" in the “Notes” column.
 * All traits with occurrence ≥ **10** must be curated. Additionally, if there are less than **200** such terms, then the top 200 terms must be curated.
 * For the rest of the traits, we curate as many as possible.
 
@@ -60,6 +60,11 @@ The “Status” column has the following acceptable values:
 * **UNSURE** — temporary status; traits to be discussed with reviewers/the team
 
 “Comment” field can contain arbitrary additional information.
+
+### Note on multiple mappings
+Sometimes it is necessary to map a single source string to two or more ontology terms to fully represent the concept. For example, “Coronary artery disease/myocardial infarction” should be mapped both to http://www.ebi.ac.uk/efo/EFO_0001645 “Coronary artery disease” and to http://www.ebi.ac.uk/efo/EFO_0000612 “Myocardial infarction”.
+
+To do this, **duplicate** the row containing the disease string, assign different mappings in each of the rows, and mark them both with an appropriate status. This will be handled downstream during export and evidence string generation.
 
 ### Note on spaces and line breaks
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
