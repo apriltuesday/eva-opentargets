@@ -14,7 +14,8 @@ logger = logging.getLogger(__package__)
 
 # These ambiguous trait names cannot be resolved to a specific disease and must not be output
 # TODO: Also use this in the future refactor of the quality control system (see issue #114)
-NONSPECIFIC_TRAITS = {'disease', 'not provided', 'not specified', 'see cases'}
+NONSPECIFIC_TRAITS = {'disease', 'not provided', 'not specified', 'reclassified - variant of unknown significance',
+                      'see cases', 'variant of unknown significance'}
 
 
 def get_uris_for_oxo(zooma_result_list: list) -> set:
