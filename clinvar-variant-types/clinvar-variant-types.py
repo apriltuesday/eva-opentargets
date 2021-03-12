@@ -108,6 +108,7 @@ def review_status_stars(review_status):
 sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
+sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
 
@@ -171,32 +172,39 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
             mode_of_inheritance = find_attribute(rcv, mode_of_inheritance_xpath, 'ModeOfInheritance')
+            mode_of_inheritance_category = None
+            if mode_of_inheritance.endswith('multiple'):
+                mode_of_inheritance_category = 'Multiple'
+            elif mode_of_inheritance.endswith('missing'):
+                mode_of_inheritance_category = 'Missing'
+            elif mode_of_inheritance == 'Somatic mutation':
+                mode_of_inheritance_category = 'Somatic'
+            else:
+                mode_of_inheritance_category = 'Non-somatic'
+            sankey_mode_of_inheritance.add_transitions('Variant', mode_of_inheritance_category)
+            if mode_of_inheritance_category == 'Non-somatic':
+                sankey_mode_of_inheritance.add_transitions(mode_of_inheritance_category, mode_of_inheritance)
+            # Log multiple ModeOfInheritance cases in a separate table
             if mode_of_inheritance.endswith('multiple'):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
-                all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
+                all_modes = ', '.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
                 table_multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
-            sankey_mode_of_inheritance.add_transitions(
-                'Variant',
-                mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
-            )
-            if not mode_of_inheritance.endswith('missing'):
-                sankey_mode_of_inheritance.add_transitions(
-                    'ModeOfInheritance present', mode_of_inheritance
-                )
+
+            # Allele origins
+            allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
+            if len(allele_origins) == 0:
+                sankey_allele_origin.add_transitions('RCV', 'No allele origin')
+            else:
+                allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
+                allele_origins_text = ','.join(sorted(allele_origins))
+                sankey_allele_origin.add_transitions('RCV', allele_origins_count, allele_origins_text)
+
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
         sankey_variant_types.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
     else:
         raise AssertionError('RCV must contain either exactly one measure set, or exactly one genotype set')
-
-    allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
-    if len(allele_origins) == 0:
-        sankey_allele_origin.add_transitions('RCV', 'No allele origin')
-    else:
-        allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
-        allele_origins_text = ','.join(sorted(allele_origins))
-        sankey_allele_origin.add_transitions('RCV', allele_origins_count, allele_origins_text)
 
     # Track the number of already processed elements
     elements_processed += 1
