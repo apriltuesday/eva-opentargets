@@ -2,10 +2,13 @@
 
 import argparse
 from collections import Counter
+import logging
 import re
-import sys
 
 import eva_cttv_pipeline.clinvar_xml_utils as clinvar_xml_utils
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 SIG_STARS = {
     'practice guideline': 4,
@@ -17,13 +20,23 @@ SIG_STARS = {
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--clinvar-xml', required=True)
+parser.add_argument('--process-items', type=int)
 args = parser.parse_args()
 
 
-def add_transitions(transitions_counter, transition_chain):
-    """Increments the count of a particular flow in Sankey diagram."""
-    for transition_from, transition_to in zip(transition_chain, transition_chain[1:]):
-        transitions_counter[(transition_from, transition_to)] += 1
+class SankeyDiagram(Counter):
+
+    def __init__(self, name=None, width=None, height=None):
+        super().__init__()
+        self.name = name
+        self.width = width
+        self.height = height
+
+    def add_transitions(self, *transition_chain):
+        """For example, if a transition chain is (RCV, MeasureSet, Variant), two transitions will be added to the Sankey
+        diagram: (RCV → MeasureSet) and (MeasureSet → Variant)."""
+        for t_from, t_to in zip(transition_chain, transition_chain[1:]):
+            self[(t_from, t_to)] += 1
 
 
 def find_attribute(rcv, xpath, attribute_name):
@@ -49,7 +62,7 @@ def review_status_stars(review_status):
 # The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
 # Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
 variant_type_transitions, clin_sig_transitions, review_status_transitions, inheritance_mode_transitions,\
-    allele_origin_transitions = Counter(), Counter(), Counter(), Counter(), Counter()
+    allele_origin_transitions = SankeyDiagram(), SankeyDiagram(), SankeyDiagram(), SankeyDiagram(), SankeyDiagram()
 all_clinical_significance_levels = set()
 
 
@@ -75,7 +88,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
         measure_set_type = measure_set.attrib['Type']
-        add_transitions(variant_type_transitions, ('RCV', 'MeasureSet', measure_set_type))
+        variant_type_transitions.add_transitions('RCV', 'MeasureSet', measure_set_type)
 
         if measure_set_type == 'Variant':
             # Most common case, accounting for >99.95% of all ClinVar records.. Here, we go into details on various
@@ -84,27 +97,27 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             # Variant type
             measures = measure_set.findall('Measure')
             assert len(measures) == 1, 'MeasureSet of type Variant must contain exactly one Measure'
-            add_transitions(variant_type_transitions, (measure_set_type, measures[0].attrib['Type']))
+            variant_type_transitions.add_transitions(measure_set_type, measures[0].attrib['Type'])
 
             # Clinical significance
             clinical_significance = find_attribute(
                 rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
             all_clinical_significance_levels.add(clinical_significance)
             significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
-            add_transitions(clin_sig_transitions, (
+            clin_sig_transitions.add_transitions(
                 'Variant',
                 significance_type,
                 clinical_significance,
-            ))
+            )
 
             # Review status
             review_status = find_attribute(
                 rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
-            add_transitions(review_status_transitions, (
+            review_status_transitions.add_transitions(
                 'Variant',
                 review_status_stars(review_status),
                 review_status,
-            ))
+            )
 
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
@@ -113,34 +126,39 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
                 all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
                 print(f'Multiple ModeOfInheritance\t{rcv_id}\t{all_modes}')
-            add_transitions(inheritance_mode_transitions, (
+            inheritance_mode_transitions.add_transitions(
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
-            ))
+            )
             if not mode_of_inheritance.endswith('missing'):
-                add_transitions(inheritance_mode_transitions, (
+                inheritance_mode_transitions.add_transitions(
                     'ModeOfInheritance present', mode_of_inheritance
-                ))
+                )
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
-        add_transitions(variant_type_transitions, ('RCV', 'GenotypeSet', genotype_set.attrib['Type']))
+        variant_type_transitions.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
     else:
         raise AssertionError('RCV must contain either exactly one measure set, or exactly one genotype set')
 
     allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
     if len(allele_origins) == 0:
-        add_transitions(allele_origin_transitions, ('RCV', 'No allele origin'))
+        allele_origin_transitions.add_transitions('RCV', 'No allele origin')
     else:
         allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
         allele_origins_text = ','.join(sorted(allele_origins))
-        add_transitions(allele_origin_transitions, ('RCV', allele_origins_count, allele_origins_text))
+        allele_origin_transitions.add_transitions('RCV', allele_origins_count, allele_origins_text)
 
     # Track the number of already processed elements
     elements_processed += 1
-    if elements_processed % 10000 == 0:
-        print('Processed {} elements'.format(elements_processed), file=sys.stderr)
+    if elements_processed % 100000 == 0:
+        logger.info(f'Processed {elements_processed} elements')
+    if args.process_items and elements_processed >= args.process_items:
+        break
+
+logger.info(f'Done. Processed {elements_processed} elements')
+
 
 # Output the code for Sankey diagram. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
