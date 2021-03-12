@@ -65,6 +65,23 @@ class SupplementaryTable:
         sorted_data = sorted(self.data, key=self.sort_lambda)
         for row in sorted_data:
             lines.append('|'.join([str(v) for v in row]))
+        return '\n'.join(lines)
+
+
+class SupplementaryTableCounter(SupplementaryTable):
+
+    def __init__(self, name, field_name):
+        super().__init__(name=name, fields=(field_name, 'Count'), sort_lambda=lambda x: -x[1])
+        self.counter = Counter()
+
+    def add_count(self, item):
+        self.counter[item] += 1
+
+    def __str__(self):
+        # On demand, tally the counter, add the rows, and return the standard string representation
+        for item, count in self.counter.items():
+            self.add_row([item, count])
+        return super().__str__()
 
 
 def find_attribute(rcv, xpath, attribute_name):
@@ -94,10 +111,10 @@ sankey_star_rating = SankeyDiagram('star-rating.png', 1000, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
 
-# Supplementary tables for the report
-multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
-
-all_clinical_significance_levels = set()
+# Supplementary tables and counters for the report
+counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
+counter_clin_sig_all = SupplementaryTableCounter('All clinical significance levels', 'Clinical significance')
+table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
 
 
 # ClinVar XML have the following top-level structure:
@@ -135,9 +152,14 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
 
             # Clinical significance
             clinical_significance = find_attribute(rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
-            all_clinical_significance_levels.add(clinical_significance)
-            significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
-            sankey_clinical_significance.add_transitions('Variant', significance_type, clinical_significance)
+            clin_sig_split = re.split(', |/', clinical_significance)
+            for clin_sig in clin_sig_split:  # Count all clinical significance levels after splitting
+                counter_clin_sig_all.add_count(clin_sig)
+            if len(clin_sig_split) == 1:
+                sankey_clinical_significance.add_transitions('Variant', 'Simple', clinical_significance)
+            else:
+                sankey_clinical_significance.add_transitions('Variant', 'Complex')
+                counter_clin_sig_complex.add_count(clinical_significance)
 
             # Review status
             review_status = find_attribute(rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
@@ -149,7 +171,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if mode_of_inheritance.endswith('multiple'):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
                 all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
-                multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
+                table_multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
             sankey_mode_of_inheritance.add_transitions(
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
@@ -192,11 +214,8 @@ for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sanke
     print(sankey_diagram)
 
 # Output the supplementary tables for the report.
-for supplementary_table in (multiple_mode_of_inheritance, ):
+for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, table_multiple_mode_of_inheritance):
     print('\n')
     print(supplementary_table)
 
 print('\n')
-print('All clinical significance levels:')
-for clin_sig in sorted(all_clinical_significance_levels):
-    print(clin_sig)
