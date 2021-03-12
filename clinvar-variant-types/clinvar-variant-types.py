@@ -110,7 +110,7 @@ sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
 sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1200, 500)
-sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
+sankey_allele_origin = SankeyDiagram('allele-origin.png', 1200, 600)
 
 # Supplementary tables and counters for the report
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
@@ -198,7 +198,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 allele_origin_category = 'Somatic'
             else:
                 allele_origin_category = 'Non-somatic'
-            sankey_allele_origin.add_transitions('RCV', allele_origin_category)
+            sankey_allele_origin.add_transitions('Variant', allele_origin_category)
             if allele_origin_category == 'Non-somatic':
                 sankey_allele_origin.add_transitions(allele_origin_category, allele_origins.pop())
             # Count multiple allele of origin values in a table

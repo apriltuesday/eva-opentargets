@@ -213,3 +213,150 @@ RCV001264819|Autosomal recessive inheritance, Unknown mechanism
 ![](allele-origin.png)
 
 All Variant records, save for a few, specify an allele origin. The values can be divided in the same broad categories as modes of inheritance.
+
+### Multiple allele origins
+
+Allele origins|Count
+:--|:--
+germline,unknown|18270
+germline,not provided|2649
+germline,inherited|756
+germline,not applicable|716
+de novo,germline|701
+germline,not provided,unknown|560
+germline,maternal|391
+germline,paternal|281
+not applicable,unknown|276
+inherited,unknown|248
+not provided,unknown|247
+germline,inherited,unknown|200
+germline,somatic|176
+de novo,germline,unknown|176
+de novo,unknown|174
+germline,maternal,unknown|155
+maternal,not provided|149
+germline,not applicable,unknown|126
+maternal,unknown|123
+germline,paternal,unknown|122
+not provided,paternal|100
+paternal,unknown|93
+inherited,maternal|63
+de novo,not provided|61
+maternal,paternal|58
+inherited,paternal|53
+somatic,unknown|41
+maternal,not provided,paternal|36
+inherited,not applicable|32
+biparental,germline|30
+de novo,not applicable|28
+germline,maternal,paternal,unknown|28
+germline,inherited,not provided,unknown|27
+de novo,maternal|23
+germline,inherited,not provided|21
+germline,somatic,unknown|20
+germline,maternal,paternal|16
+de novo,inherited|15
+germline,maternal,not provided,unknown|15
+de novo,paternal|14
+de novo,germline,maternal,unknown|14
+germline,inherited,paternal,unknown|13
+not applicable,somatic|12
+maternal,paternal,unknown|12
+inherited,not provided|12
+germline,inherited,paternal|12
+inherited,maternal,paternal|12
+maternal,not applicable|11
+de novo,maternal,not provided|11
+de novo,maternal,not provided,paternal|10
+de novo,germline,not applicable|10
+de novo,germline,not provided|9
+de novo,not provided,paternal|8
+biparental,germline,unknown|8
+germline,inherited,not applicable|7
+de novo,germline,paternal,unknown|7
+inherited,paternal,unknown|7
+germline,inherited,maternal|7
+not applicable,paternal|7
+germline,not provided,paternal,unknown|7
+de novo,germline,not provided,unknown|7
+germline,not provided,somatic,unknown|7
+germline,not applicable,not provided,unknown|7
+inherited,not provided,unknown|6
+not provided,somatic|6
+somatic,tested-inconclusive,unknown|6
+de novo,germline,inherited,unknown|6
+de novo,germline,maternal|6
+germline,maternal,not provided|5
+germline,not provided,paternal|5
+germline,inherited,maternal,unknown|5
+biparental,germline,inherited,unknown|5
+germline,inherited,maternal,not provided,unknown|5
+biparental,unknown|4
+not provided,tested-inconclusive|4
+germline,inherited,maternal,paternal|4
+germline,tested-inconclusive|4
+de novo,germline,somatic|4
+germline,not applicable,somatic|4
+germline,inherited,maternal,paternal,unknown|4
+de novo,inherited,unknown|4
+de novo,germline,inherited,maternal,unknown|3
+somatic,tested-inconclusive|3
+de novo,germline,paternal|3
+germline,maternal,not applicable|3
+maternal,somatic|2
+de novo,maternal,paternal|2
+inherited,not applicable,unknown|2
+biparental,inherited|2
+de novo,germline,inherited|2
+biparental,inherited,not applicable|2
+maternal,uniparental|2
+inherited,not provided,paternal|2
+not applicable,not provided|2
+germline,not provided,somatic|2
+de novo,germline,maternal,paternal,unknown|2
+biparental,germline,inherited|2
+germline,maternal,not provided,paternal,unknown|2
+germline,not applicable,somatic,unknown|2
+germline,not applicable,paternal,unknown|2
+germline,not applicable,not provided|2
+germline,inherited,not applicable,unknown|2
+germline,somatic,tested-inconclusive,unknown|2
+germline,inherited,somatic|1
+biparental,maternal,not provided,paternal|1
+biparental,not provided|1
+maternal,not provided,tested-inconclusive|1
+biparental,germline,not provided,unknown|1
+biparental,germline,not provided|1
+de novo,somatic|1
+de novo,maternal,paternal,unknown|1
+de novo,paternal,unknown|1
+de novo,germline,inherited,paternal,unknown|1
+biparental,maternal|1
+de novo,maternal,not applicable|1
+de novo,maternal,unknown|1
+inherited,maternal,paternal,unknown|1
+paternal,somatic|1
+biparental,not applicable|1
+inherited,maternal,not provided|1
+inherited,tested-inconclusive|1
+maternal,not applicable,unknown|1
+maternal,not provided,unknown|1
+de novo,germline,tested-inconclusive|1
+de novo,tested-inconclusive|1
+not provided,somatic,unknown|1
+de novo,not provided,somatic,unknown|1
+germline,maternal,not applicable,unknown|1
+germline,inherited,not provided,paternal,unknown|1
+biparental,germline,maternal,paternal,unknown|1
+biparental,germline,inherited,maternal,paternal,unknown|1
+de novo,germline,maternal,not provided|1
+germline,not applicable,not provided,somatic,unknown|1
+biparental,germline,maternal|1
+germline,inherited,somatic,unknown|1
+de novo,germline,not applicable,unknown|1
+germline,somatic,tested-inconclusive|1
+germline,maternal,somatic|1
+biparental,paternal,unknown|1
+inherited,maternal,unknown|1
+inherited,not applicable,paternal|1
+de novo,paternal,somatic|1
