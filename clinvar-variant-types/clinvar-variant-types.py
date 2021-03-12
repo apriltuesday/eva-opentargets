@@ -109,7 +109,7 @@ sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
 sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
-sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
+sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1200, 500)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
 
 # Supplementary tables and counters for the report

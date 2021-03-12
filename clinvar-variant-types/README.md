@@ -137,7 +137,74 @@ Star rating|Count
 
 ![](mode-of-inheritance.png)
 
-Only a small fraction of all records specify their mode of inheritance: 35,009 out of 1,114,689, or about 3%.
+Only a small fraction of all records specify their mode of inheritance: 41,270 out of 1,193,055, or about 3.5%. The possible scenarios can be broadly divided into four categories: missing values; single somatic; single non-somatic; and multiple values.
+
+### Multiple mode of inheritance values
+For a very small number of records multiple values for mode of inheritance are present:
+
+RCV|Modes of inheritance
+:--|:--
+RCV000005614|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000011232|X-linked inheritance, X-linked recessive inheritance
+RCV000011233|X-linked inheritance, X-linked recessive inheritance
+RCV000011237|X-linked inheritance, X-linked recessive inheritance
+RCV000012580|Autosomal dominant inheritance, X-linked dominant inheritance
+RCV000012590|Sporadic, X-linked inheritance
+RCV000012601|X-linked dominant inheritance, X-linked inheritance
+RCV000019333|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000020022|Autosomal recessive inheritance, Autosomal unknown
+RCV000023087|Autosomal dominant inheritance, Sporadic
+RCV000029316|Autosomal recessive inheritance, autosomal unknown
+RCV000029370|Autosomal recessive inheritance, autosomal unknown
+RCV000029440|Autosomal dominant inheritance, Autosomal unknown
+RCV000029850|Autosomal dominant inheritance, Autosomal unknown
+RCV000030055|X-linked inheritance, X-linked recessive inheritance
+RCV000030128|Autosomal dominant inheritance, Autosomal unknown
+RCV000030177|Autosomal recessive inheritance, autosomal unknown
+RCV000030518|Autosomal dominant inheritance, Autosomal unknown
+RCV000030535|Autosomal dominant inheritance, Autosomal unknown
+RCV000037676|Autosomal dominant inheritance, Somatic mutation
+RCV000054404|Autosomal dominant inheritance, Sporadic
+RCV000056231|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000056321|Sporadic, X-linked inheritance
+RCV000077045|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000116222|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000123070|Autosomal dominant inheritance, Somatic mutation
+RCV000145972|Autosomal dominant inheritance, Sporadic
+RCV000146115|Autosomal dominant inheritance, Autosomal unknown
+RCV000147730|Autosomal dominant inheritance, Sporadic
+RCV000149480|Autosomal unknown, Sporadic
+RCV000157426|Autosomal dominant inheritance, Somatic mutation
+RCV000169276|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000170103|X-linked dominant inheritance, X-linked inheritance
+RCV000177016|X-linked inheritance, X-linked recessive inheritance
+RCV000179363|X-linked inheritance, X-linked recessive inheritance
+RCV000180471|X-linked inheritance, X-linked recessive inheritance
+RCV000180473|X-linked inheritance, X-linked recessive inheritance
+RCV000180545|X-linked inheritance, X-linked recessive inheritance
+RCV000208873|Autosomal dominant inheritance, Autosomal unknown
+RCV000211849|Autosomal dominant inheritance, Somatic mutation
+RCV000211850|Autosomal dominant inheritance, Somatic mutation
+RCV000223722|X-linked inheritance, X-linked recessive inheritance
+RCV000256179|X-linked dominant inheritance, X-linked inheritance
+RCV000282708|X-linked inheritance, X-linked recessive inheritance
+RCV000379715|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000381002|Autosomal dominant inheritance, Sporadic
+RCV000408777|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000414819|Autosomal dominant inheritance, Sporadic
+RCV000416146|Autosomal dominant inheritance, Sporadic
+RCV000440827|Autosomal dominant inheritance, Somatic mutation
+RCV000475238|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000477948|Autosomal dominant inheritance, X-linked inheritance
+RCV000496159|Autosomal dominant inheritance, Sporadic
+RCV000496332|Autosomal dominant inheritance, Sporadic
+RCV000626481|Autosomal dominant inheritance, Sporadic
+RCV000714397|X-linked dominant inheritance, X-linked inheritance
+RCV000758715|Autosomal dominant inheritance, Sporadic
+RCV000760175|Autosomal dominant inheritance, Sporadic
+RCV000853199|Autosomal recessive inheritance, X-linked recessive inheritance
+RCV001199967|Autosomal dominant inheritance, Sporadic
+RCV001264819|Autosomal recessive inheritance, Unknown mechanism
 
 
 
@@ -145,4 +212,4 @@ Only a small fraction of all records specify their mode of inheritance: 35,009 o
 
 ![](allele-origin.png)
 
-All records specify an allele origin. It can be either a single value (the majority of them) or multiple ones.
+All Variant records, save for a few, specify an allele origin. The values can be divided in the same broad categories as modes of inheritance.
