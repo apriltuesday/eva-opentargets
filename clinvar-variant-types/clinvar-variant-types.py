@@ -107,17 +107,18 @@ def review_status_stars(review_status):
 # Sankey diagrams for visualisation
 sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
-sankey_star_rating = SankeyDiagram('star-rating.png', 1000, 600)
+sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
 
 # Supplementary tables and counters for the report
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
 counter_clin_sig_all = SupplementaryTableCounter('All clinical significance levels', 'Clinical significance')
+counter_star_rating = SupplementaryTableCounter('Distribuion of records by star rating', 'Star rating')
 table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
 
 
-# ClinVar XML have the following top-level structure:
+# ClinVar XML has the following top-level structure:
 #   <ReleaseSet>
 #     <ClinVarSet>...</ClinVarSet>
 #     <ClinVarSet>...</ClinVarSet>
@@ -142,7 +143,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
         sankey_variant_types.add_transitions('RCV', 'MeasureSet', measure_set_type)
 
         if measure_set_type == 'Variant':
-            # Most common case, accounting for >99.95% of all ClinVar records.. Here, we go into details on various
+            # Most common case, accounting for >99.97% of all ClinVar records. Here, we go into details on various
             # attribute distributions.
 
             # Variant type
@@ -163,7 +164,9 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
 
             # Review status
             review_status = find_attribute(rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
-            sankey_star_rating.add_transitions('Variant', review_status_stars(review_status), review_status)
+            star_rating = review_status_stars(review_status)
+            sankey_star_rating.add_transitions('Variant', star_rating, review_status)
+            counter_star_rating.add_count(star_rating)
 
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
@@ -180,7 +183,6 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 sankey_mode_of_inheritance.add_transitions(
                     'ModeOfInheritance present', mode_of_inheritance
                 )
-
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
@@ -214,7 +216,8 @@ for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sanke
     print(sankey_diagram)
 
 # Output the supplementary tables for the report.
-for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, table_multiple_mode_of_inheritance):
+for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, counter_star_rating,
+                            table_multiple_mode_of_inheritance):
     print('\n')
     print(supplementary_table)
 

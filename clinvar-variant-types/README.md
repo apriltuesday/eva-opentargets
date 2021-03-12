@@ -13,7 +13,7 @@ wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.x
 python3 clinvar-variant-types.py --clinvar-xml ClinVarFullRelease_00-latest.xml.gz
 ```
 
-The source code for diagrams will be printed to STDOUT. The diagrams can then be built using the website http://sankeymatic.com/build/. Parameters for rendering them will be indicated in the output as well.
+The source code for diagrams and tables will be printed to STDOUT. The diagrams can then be built using the website http://sankeymatic.com/build/. Parameters for rendering them will be indicated in the output as well. The tables should be copy-pasted in this Markdown report directly.
 
 
 
@@ -47,7 +47,7 @@ The source code for diagrams will be printed to STDOUT. The diagrams can then be
   - **CompoundHeterozygote.** Presumably this should include exactly two variants which are _trans_ phased and interpreted together.
   - **Diplotype.** Similar, but at least one of the _trans_ phased alleles includes a haplotype. An example of this would be three variants located on one copy of the gene, and one variant in the second one, all interpreted together.
 
-As of 2021-03-12, the most common case is the MeasureSet/Variant one, accounting for 1,193,055 out of 1,196,231 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.**
+As of 2021-03-12, the most common case is the MeasureSet/Variant one, accounting for 1,193,055 out of 1,196,231 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.** All following diagrams also examine distributions only within that record type.
 
 
 
@@ -59,7 +59,7 @@ Clinical significance can be either “Simple” (only one level present per a V
 
 ### Complex clinical significance levels
 
-This is the part not shown on the diagram for readability:
+This is simply the part of the distribution which is not shown on the diagram above for readability.
 
 Clinical significance|Count
 :--|:--
@@ -93,7 +93,7 @@ Likely pathogenic, Affects|1
 
 ### All clinical significance levels
 
-This is counted after splitting the complex clinical significance levels, so the total is higher than the number of records:
+For the purposes of this table, the complex clinical significance levels are split, and each component is counted. Because of this, the total will be higher than the total number of Variant records.
 
 Clinical significance|Count
 :--|:--
@@ -118,15 +118,18 @@ association not found|2
 
 ## Star rating and review status
 
+These fields reflect the strength of evidence supporting the assertion of variant/disease association contained in the ClinVar record.
+
 ![](star-rating.png)
 
-The distribution of records by star rating is:
-* ☆☆☆☆ 142,855 (13%)
-* ★☆☆☆ 894,109 (80%)
-* ★★☆☆ 66,107 (6%)
-* ★★★☆ 11,583 (1%)
-* ★★★★ 35 (< 0.01%)
-
+### Distribution of records by star rating
+Star rating|Count
+:--|:--
+☆☆☆☆|161196
+★☆☆☆|949515
+★★☆☆|70117
+★★★☆|12185
+★★★★|42
 
 
 ## Mode of inheritance
