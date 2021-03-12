@@ -133,11 +133,6 @@ Star rating|Count
 
 
 
-## Mode of inheritance and allele origin
-
-
-
-
 ## Mode of inheritance
 
 ![](mode-of-inheritance.png)

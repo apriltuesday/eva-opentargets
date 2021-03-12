@@ -117,7 +117,7 @@ counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significa
 counter_clin_sig_all = SupplementaryTableCounter('All clinical significance levels', 'Clinical significance')
 counter_star_rating = SupplementaryTableCounter('Distribuion of records by star rating', 'Star rating')
 table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
-
+counter_multiple_allele_origin = SupplementaryTableCounter('Multiple allele origins', 'Allele origins')
 
 # ClinVar XML has the following top-level structure:
 #   <ReleaseSet>
@@ -172,11 +172,10 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
             mode_of_inheritance = find_attribute(rcv, mode_of_inheritance_xpath, 'ModeOfInheritance')
-            mode_of_inheritance_category = None
-            if mode_of_inheritance.endswith('multiple'):
-                mode_of_inheritance_category = 'Multiple'
-            elif mode_of_inheritance.endswith('missing'):
+            if mode_of_inheritance.endswith('missing'):
                 mode_of_inheritance_category = 'Missing'
+            elif mode_of_inheritance.endswith('multiple'):
+                mode_of_inheritance_category = 'Multiple'
             elif mode_of_inheritance == 'Somatic mutation':
                 mode_of_inheritance_category = 'Somatic'
             else:
@@ -185,19 +184,27 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if mode_of_inheritance_category == 'Non-somatic':
                 sankey_mode_of_inheritance.add_transitions(mode_of_inheritance_category, mode_of_inheritance)
             # Log multiple ModeOfInheritance cases in a separate table
-            if mode_of_inheritance.endswith('multiple'):
-                # Having multiple ModeOfInheritance is rare. Log them for further investigation
+            if mode_of_inheritance_category == 'Multiple':
                 all_modes = ', '.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
                 table_multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
 
             # Allele origins
             allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
             if len(allele_origins) == 0:
-                sankey_allele_origin.add_transitions('RCV', 'No allele origin')
+                allele_origin_category = 'Missing'
+            elif len(allele_origins) > 1:
+                allele_origin_category = 'Multiple'
+            elif allele_origins == {'somatic'}:
+                allele_origin_category = 'Somatic'
             else:
-                allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
+                allele_origin_category = 'Non-somatic'
+            sankey_allele_origin.add_transitions('RCV', allele_origin_category)
+            if allele_origin_category == 'Non-somatic':
+                sankey_allele_origin.add_transitions(allele_origin_category, allele_origins.pop())
+            # Count multiple allele of origin values in a table
+            if allele_origin_category == 'Multiple':
                 allele_origins_text = ','.join(sorted(allele_origins))
-                sankey_allele_origin.add_transitions('RCV', allele_origins_count, allele_origins_text)
+                counter_multiple_allele_origin.add_count(allele_origins_text)
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
@@ -225,7 +232,7 @@ for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sanke
 
 # Output the supplementary tables for the report.
 for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, counter_star_rating,
-                            table_multiple_mode_of_inheritance):
+                            table_multiple_mode_of_inheritance, counter_multiple_allele_origin):
     print('\n')
     print(supplementary_table)
 
