@@ -68,11 +68,11 @@ def review_status_stars(review_status):
 
 # The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
 # Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
-variant_type_transitions = SankeyDiagram('variant-types.png', 1500, 750)
-clin_sig_transitions = SankeyDiagram('clinical-significance.png', 1000, 1000)
-review_status_transitions = SankeyDiagram('star-rating.png', 1000, 600)
-inheritance_mode_transitions = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
-allele_origin_transitions = SankeyDiagram('allele-origin.png', 400, 1500)
+sankey_variant_types = SankeyDiagram('variant-types.png', 1500, 750)
+sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1000, 1000)
+sankey_star_rating = SankeyDiagram('star-rating.png', 1000, 600)
+sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
+sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
 
 all_clinical_significance_levels = set()
 
@@ -99,7 +99,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
         measure_set_type = measure_set.attrib['Type']
-        variant_type_transitions.add_transitions('RCV', 'MeasureSet', measure_set_type)
+        sankey_variant_types.add_transitions('RCV', 'MeasureSet', measure_set_type)
 
         if measure_set_type == 'Variant':
             # Most common case, accounting for >99.95% of all ClinVar records.. Here, we go into details on various
@@ -108,18 +108,18 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             # Variant type
             measures = measure_set.findall('Measure')
             assert len(measures) == 1, 'MeasureSet of type Variant must contain exactly one Measure'
-            variant_type_transitions.add_transitions(measure_set_type, measures[0].attrib['Type'])
+            sankey_variant_types.add_transitions(measure_set_type, measures[0].attrib['Type'])
 
             # Clinical significance
             clinical_significance = find_attribute(
                 rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
             all_clinical_significance_levels.add(clinical_significance)
             significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
-            clin_sig_transitions.add_transitions('Variant', significance_type, clinical_significance)
+            sankey_clinical_significance.add_transitions('Variant', significance_type, clinical_significance)
 
             # Review status
             review_status = find_attribute(rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
-            review_status_transitions.add_transitions('Variant', review_status_stars(review_status), review_status)
+            sankey_star_rating.add_transitions('Variant', review_status_stars(review_status), review_status)
 
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
@@ -128,29 +128,29 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
                 all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
                 print(f'Multiple ModeOfInheritance\t{rcv_id}\t{all_modes}')
-            inheritance_mode_transitions.add_transitions(
+            sankey_mode_of_inheritance.add_transitions(
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
             )
             if not mode_of_inheritance.endswith('missing'):
-                inheritance_mode_transitions.add_transitions(
+                sankey_mode_of_inheritance.add_transitions(
                     'ModeOfInheritance present', mode_of_inheritance
                 )
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
-        variant_type_transitions.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
+        sankey_variant_types.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
     else:
         raise AssertionError('RCV must contain either exactly one measure set, or exactly one genotype set')
 
     allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
     if len(allele_origins) == 0:
-        allele_origin_transitions.add_transitions('RCV', 'No allele origin')
+        sankey_allele_origin.add_transitions('RCV', 'No allele origin')
     else:
         allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
         allele_origins_text = ','.join(sorted(allele_origins))
-        allele_origin_transitions.add_transitions('RCV', allele_origins_count, allele_origins_text)
+        sankey_allele_origin.add_transitions('RCV', allele_origins_count, allele_origins_text)
 
     # Track the number of already processed elements
     elements_processed += 1
@@ -162,12 +162,12 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
 logger.info(f'Done. Processed {elements_processed} elements')
 
 
-# Output the code for Sankey diagram. Transitions are sorted in decreasing number of counts, so that the most frequent
+# Output the code for Sankey diagrams. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
-for transitions_counter in (variant_type_transitions, clin_sig_transitions, review_status_transitions,
-                            inheritance_mode_transitions, allele_origin_transitions):
+for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sankey_star_rating,
+                       sankey_mode_of_inheritance, sankey_allele_origin):
     print('\n')
-    print(transitions_counter)
+    print(sankey_diagram)
 
 print('\n')
 print('All clinical significance levels:')
