@@ -38,6 +38,13 @@ class SankeyDiagram(Counter):
         for t_from, t_to in zip(transition_chain, transition_chain[1:]):
             self[(t_from, t_to)] += 1
 
+    def __str__(self):
+        lines = [f'========== SANKEY DIAGRAM: {self.name} ==========',
+                 f'Build using http://sankeymatic.com/build/ with width={self.width}, height={self.height}']
+        for (t_from, t_to), t_count in sorted(self.items(), key=lambda x: -x[1]):
+            lines.append(f'    {t_from} [{t_count}] {t_to}')
+        return '\n'.join(lines)
+
 
 def find_attribute(rcv, xpath, attribute_name):
     """Find an attribute in the RCV record which can have either zero or one occurrence. Return a textual representation
@@ -61,8 +68,12 @@ def review_status_stars(review_status):
 
 # The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
 # Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
-variant_type_transitions, clin_sig_transitions, review_status_transitions, inheritance_mode_transitions,\
-    allele_origin_transitions = SankeyDiagram(), SankeyDiagram(), SankeyDiagram(), SankeyDiagram(), SankeyDiagram()
+variant_type_transitions = SankeyDiagram('variant-types.png', 1500, 750)
+clin_sig_transitions = SankeyDiagram('clinical-significance.png', 1000, 1000)
+review_status_transitions = SankeyDiagram('star-rating.png', 1000, 600)
+inheritance_mode_transitions = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
+allele_origin_transitions = SankeyDiagram('allele-origin.png', 400, 1500)
+
 all_clinical_significance_levels = set()
 
 
@@ -104,20 +115,11 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
             all_clinical_significance_levels.add(clinical_significance)
             significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
-            clin_sig_transitions.add_transitions(
-                'Variant',
-                significance_type,
-                clinical_significance,
-            )
+            clin_sig_transitions.add_transitions('Variant', significance_type, clinical_significance)
 
             # Review status
-            review_status = find_attribute(
-                rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
-            review_status_transitions.add_transitions(
-                'Variant',
-                review_status_stars(review_status),
-                review_status,
-            )
+            review_status = find_attribute(rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
+            review_status_transitions.add_transitions('Variant', review_status_stars(review_status), review_status)
 
             # Mode of inheritance
             mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
@@ -164,10 +166,10 @@ logger.info(f'Done. Processed {elements_processed} elements')
 # cases are on top.
 for transitions_counter in (variant_type_transitions, clin_sig_transitions, review_status_transitions,
                             inheritance_mode_transitions, allele_origin_transitions):
-    print()
-    for (transition_from, transition_to), count in sorted(transitions_counter.items(), key=lambda x: -x[1]):
-        print('{transition_from} [{count}] {transition_to}'.format(**locals()))
+    print('\n')
+    print(transitions_counter)
 
-print('\n\nAll clinical significance levels:')
+print('\n')
+print('All clinical significance levels:')
 for clin_sig in sorted(all_clinical_significance_levels):
     print(clin_sig)
