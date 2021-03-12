@@ -7,6 +7,7 @@ import re
 
 import eva_cttv_pipeline.clinvar_xml_utils as clinvar_xml_utils
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -26,7 +27,7 @@ args = parser.parse_args()
 
 class SankeyDiagram(Counter):
 
-    def __init__(self, name=None, width=None, height=None):
+    def __init__(self, name, width, height):
         super().__init__()
         self.name = name
         self.width = width
@@ -44,6 +45,26 @@ class SankeyDiagram(Counter):
         for (t_from, t_to), t_count in sorted(self.items(), key=lambda x: -x[1]):
             lines.append(f'    {t_from} [{t_count}] {t_to}')
         return '\n'.join(lines)
+
+
+class SupplementaryTable:
+
+    def __init__(self, name, fields, sort_lambda=None):
+        self.name = name
+        self.fields = fields
+        self.data = []
+        self.sort_lambda = sort_lambda
+
+    def add_row(self, row):
+        assert len(row) == len(self.fields), 'Incorrect length of the row supplied'
+        self.data.append(row)
+
+    def __str__(self):
+        lines = [f'>>>>>>>>>> SUPPLEMENTARY TABLE: {self.name} <<<<<<<<<<',
+                 '|'.join(self.fields), '|'.join(':--' for _ in range(len(self.fields)))]
+        sorted_data = sorted(self.data, key=self.sort_lambda)
+        for row in sorted_data:
+            lines.append('|'.join([str(v) for v in row]))
 
 
 def find_attribute(rcv, xpath, attribute_name):
@@ -66,13 +87,15 @@ def review_status_stars(review_status):
     return '★' * black_stars + '☆' * white_stars
 
 
-# The dicts store transition counts for the Sankey diagrams. Keys are (from, to), values are transition counts.
-# Sankey diagrams can be visualised with SankeyMatic (see http://www.sankeymatic.com/build/).
-sankey_variant_types = SankeyDiagram('variant-types.png', 1500, 750)
+# Sankey diagrams for visualisation
+sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1000, 1000)
 sankey_star_rating = SankeyDiagram('star-rating.png', 1000, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1000, 1000)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 400, 1500)
+
+# Supplementary tables for the report
+multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
 
 all_clinical_significance_levels = set()
 
@@ -111,8 +134,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             sankey_variant_types.add_transitions(measure_set_type, measures[0].attrib['Type'])
 
             # Clinical significance
-            clinical_significance = find_attribute(
-                rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
+            clinical_significance = find_attribute(rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
             all_clinical_significance_levels.add(clinical_significance)
             significance_type = 'Complex' if re.search('[,/]', clinical_significance) else 'Simple'
             sankey_clinical_significance.add_transitions('Variant', significance_type, clinical_significance)
@@ -127,7 +149,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if mode_of_inheritance.endswith('multiple'):
                 # Having multiple ModeOfInheritance is rare. Log them for further investigation
                 all_modes = '|'.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
-                print(f'Multiple ModeOfInheritance\t{rcv_id}\t{all_modes}')
+                multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
             sankey_mode_of_inheritance.add_transitions(
                 'Variant',
                 mode_of_inheritance if mode_of_inheritance.endswith('missing') else 'ModeOfInheritance present',
@@ -168,6 +190,11 @@ for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sanke
                        sankey_mode_of_inheritance, sankey_allele_origin):
     print('\n')
     print(sankey_diagram)
+
+# Output the supplementary tables for the report.
+for supplementary_table in (multiple_mode_of_inheritance, ):
+    print('\n')
+    print(supplementary_table)
 
 print('\n')
 print('All clinical significance levels:')
