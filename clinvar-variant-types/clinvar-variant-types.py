@@ -118,6 +118,8 @@ counter_clin_sig_all = SupplementaryTableCounter('All clinical significance leve
 counter_star_rating = SupplementaryTableCounter('Distribuion of records by star rating', 'Star rating')
 table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
 counter_multiple_allele_origin = SupplementaryTableCounter('Multiple allele origins', 'Allele origins')
+table_inconsistent_moi_ao = SupplementaryTable('Inconsistent mode of inheritance and allele origin values',
+                                               ['RCV', 'Modes of inheritance', 'Allele origins'])
 
 # ClinVar XML has the following top-level structure:
 #   <ReleaseSet>
@@ -170,52 +172,56 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             counter_star_rating.add_count(star_rating)
 
             # Mode of inheritance
-            mode_of_inheritance_xpath = 'AttributeSet/Attribute[@Type="ModeOfInheritance"]'
-            mode_of_inheritance = find_attribute(rcv, mode_of_inheritance_xpath, 'ModeOfInheritance')
-            if mode_of_inheritance.endswith('missing'):
+            modes_of_inheritance = {moi.text for moi in rcv.findall(
+                'AttributeSet/Attribute[@Type="ModeOfInheritance"]')}
+            modes_of_inheritance_text = ', '.join(sorted(modes_of_inheritance))
+            if len(modes_of_inheritance) == 0:
                 mode_of_inheritance_category = 'Missing'
-            elif mode_of_inheritance.endswith('multiple'):
-                if 'Somatic mutation' in mode_of_inheritance:
-                    mode_of_inheritance_category = 'Multiple; germline and somatic'
+            elif 'Somatic mutation' in modes_of_inheritance:
+                if len(modes_of_inheritance) > 1:
+                    mode_of_inheritance_category = 'Germline & somatic'
                 else:
-                    mode_of_inheritance_category = 'Multiple; germline only'
-            elif mode_of_inheritance == 'Somatic mutation':
-                mode_of_inheritance_category = 'Somatic'
+                    mode_of_inheritance_category = 'Somatic'
             else:
-                mode_of_inheritance_category = 'Non-somatic'
+                mode_of_inheritance_category = 'Germline'
             sankey_mode_of_inheritance.add_transitions('Variant', mode_of_inheritance_category)
-            if mode_of_inheritance_category == 'Non-somatic':
-                sankey_mode_of_inheritance.add_transitions(mode_of_inheritance_category, mode_of_inheritance)
+            if mode_of_inheritance_category == 'Germline':
+                if len(modes_of_inheritance) == 1:
+                    sankey_mode_of_inheritance.add_transitions('Germline', 'Single', modes_of_inheritance_text)
+                else:
+                    sankey_mode_of_inheritance.add_transitions('Germline', 'Multiple')
             # Log multiple ModeOfInheritance cases in a separate table
-            if mode_of_inheritance_category.startswith('Multiple'):
-                all_modes = ', '.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
-                table_multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
+            if len(modes_of_inheritance) > 1:
+                table_multiple_mode_of_inheritance.add_row([rcv_id, modes_of_inheritance_text])
 
             # Allele origins
             allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
+            allele_origin_text = ', '.join(sorted(allele_origins))
             if len(allele_origins) == 0:
                 allele_origin_category = 'Missing'
-            elif len(allele_origins) > 1:
-                if 'somatic' in allele_origins:
-                    allele_origin_category = 'Multiple; germline and somatic'
+            elif 'somatic' in allele_origins:
+                if len(allele_origins) > 1:
+                    allele_origin_category = 'Germline & somatic'
                 else:
-                    allele_origin_category = 'Multiple; germline only'
-            elif allele_origins == {'somatic'}:
-                allele_origin_category = 'Somatic'
+                    allele_origin_category = 'Somatic'
             else:
-                allele_origin_category = 'Non-somatic'
+                allele_origin_category = 'Germline'
             sankey_allele_origin.add_transitions('Variant', allele_origin_category)
-            if allele_origin_category == 'Non-somatic':
-                sankey_allele_origin.add_transitions(allele_origin_category, allele_origins.pop())
-            # Count multiple allele of origin values in a table
-            if allele_origin_category.startswith('Multiple'):
-                allele_origins_text = ','.join(sorted(allele_origins))
-                counter_multiple_allele_origin.add_count(allele_origins_text)
+            if allele_origin_category == 'Germline':
+                if len(allele_origins) == 1:
+                    sankey_allele_origin.add_transitions(allele_origin_category, 'Single', allele_origin_text)
+                else:
+                    sankey_allele_origin.add_transitions(allele_origin_category, 'Multiple')
+            # Log multiple allele of origin values in a separate table
+            if len(allele_origins) > 1:
+                counter_multiple_allele_origin.add_count(allele_origin_text)
 
             # Mode of inheritance and allele origin mapping
             if mode_of_inheritance_category != 'Missing' and allele_origin_category != 'Missing':
                 sankey_inheritance_origin.add_transitions(
-                    'Variant', f'[MoI] {mode_of_inheritance_category}', f'{allele_origin_category} [AO]')
+                    f'[MoI] {mode_of_inheritance_category}', f'{allele_origin_category} [AO]')
+                if mode_of_inheritance_category != allele_origin_category:
+                    table_inconsistent_moi_ao.add_row([rcv_id, modes_of_inheritance_text, allele_origin_text])
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
