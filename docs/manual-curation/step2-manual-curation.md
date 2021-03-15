@@ -62,9 +62,11 @@ The “Status” column has the following acceptable values:
 “Comment” field can contain arbitrary additional information.
 
 ### Note on multiple mappings
-Sometimes it is necessary to map a single source string to two or more ontology terms to fully represent the concept. For example, “Coronary artery disease/myocardial infarction” should be mapped both to http://www.ebi.ac.uk/efo/EFO_0001645 “Coronary artery disease” and to http://www.ebi.ac.uk/efo/EFO_0000612 “Myocardial infarction”.
+Sometimes the source string contains two or more traits. In this case it is necessary to map that string to two or more ontology terms to fully represent its content. For example, “Coronary artery disease/myocardial infarction” should be mapped both to http://www.ebi.ac.uk/efo/EFO_0001645 “Coronary artery disease” and to http://www.ebi.ac.uk/efo/EFO_0000612 “Myocardial infarction”.
 
 To do this, **duplicate** the row containing the disease string, assign different mappings in each of the rows, and mark them both with an appropriate status. This will be handled downstream during export and evidence string generation.
+
+This provision does _not_ apply to cases where the source string contains additional semantic context, such as “susceptibility to...”, “resistance to...”, or drug response terms.
 
 ### Note on spaces and line breaks
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
