@@ -28,7 +28,7 @@ export NEW_MAPPINGS=${CURATION_RELEASE_ROOT}/trait_names_to_ontology_mappings.ts
 cat \
   ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   ${CURATION_RELEASE_ROOT}/finished_mappings_curation.tsv \
-> ${NEW_MAPPINGS}
+| sort -u > ${NEW_MAPPINGS}
 
 # Add all mappings from the database which are *not* present in the results of the current curation iteration (automated
 # + manually curated). This is done in order to never lose mappings, even if they are not present in ClinVar during the
@@ -36,9 +36,9 @@ cat \
 # The first file operand is the list of mappings in the current database; and the second is the list of trait names
 # which are only present in the existing database and not in the new mappings.
 export LC_ALL=C
-join -j 1 -t$'\t' \
-  <(sort -k1,1 ${EXISTING_MAPPINGS}) \
-  <(comm -23 <(cut -f1 ${EXISTING_MAPPINGS} | sort -u) <(cut -f1 ${NEW_MAPPINGS} | sort -u)) \
+join -j 1 -t $'\t' \
+  <(sort -t $'\t' -k 1,1 ${EXISTING_MAPPINGS}) \
+  <(comm -23 <(cut -d $'\t' -f 1 ${EXISTING_MAPPINGS} | sort -u) <(cut -d $'\t' -f 1 ${NEW_MAPPINGS} | sort -u)) \
 >> ${NEW_MAPPINGS}
 
 # Run the helper script to prepare the table for EFO import
@@ -60,6 +60,15 @@ tail -n+2 ${NEW_MAPPINGS} \
 ln -s -f ${NEW_MAPPINGS} ${EXISTING_MAPPINGS}
 ln -s -f ${CURATION_RELEASE_ROOT}/eva_clinvar.txt ${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt
 ```
+
+## Check that the resulting file contains no duplicates
+The resulting list of text-to-ontology mappings should not contain any complete duplicates. Check that this is the case by using the following command. If everything is correct, it should not output anything:
+
+```bash
+sort ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv | uniq -c | awk '$1 > 1'
+```
+
+If there are duplicates, resolve this by editing the `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv` file directly.
 
 ## Copy the table for EFO import
 The file `${CURATION_RELEASE_ROOT}/efo_import_table.tsv` will contain a partially ready table for EFO import. Copy its contents into the “Add EFO disease” sheet in the curation spreadsheet.

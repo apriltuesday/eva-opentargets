@@ -20,28 +20,28 @@ def parse_trait_names(filepath: str) -> list:
     :param filepath: Path to a gzipped file containing ClinVar XML dump.
     :return: A list of Trait objects."""
 
-    # Tracks unique (RCV, trait name) tuples
-    unique_association_tuples = set()
+    # Tracks how many times a trait name occurs in ClinVar
+    trait_name_counter = Counter()
 
     # Tracks all traits which are at least once implicated in "NT expansion", or nucleotide repeat expansion, variants.
     # Their curation is of highest importance regardless of how many records they are actually associated with.
     nt_expansion_traits = set()
 
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
-        traits = set(trait.name for trait in clinvar_record.traits if trait.name is not None)
-        unique_association_tuples |= {(clinvar_record.accession, trait) for trait in traits}
+        trait_names = set(trait.name.lower() for trait in clinvar_record.traits if trait.name is not None)
+        for trait_name in trait_names:
+            trait_name_counter[trait_name] += 1
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
-            nt_expansion_traits |= traits
+            nt_expansion_traits |= trait_names
 
     # Count trait occurrences
-    trait_names = [t[1] for t in unique_association_tuples]
     traits = []
-    for trait_name, trait_frequency in Counter(trait_names).items():
+    for trait_name, trait_frequency in trait_name_counter.items():
         if trait_name == '-':
             print('Skipped {} missing trait names'.format(trait_frequency))
             continue
         associated_with_nt_expansion = trait_name in nt_expansion_traits
-        traits.append(Trait(name=trait_name.lower(), frequency=trait_frequency,
+        traits.append(Trait(name=trait_name, frequency=trait_frequency,
                             associated_with_nt_expansion=associated_with_nt_expansion))
 
     return traits

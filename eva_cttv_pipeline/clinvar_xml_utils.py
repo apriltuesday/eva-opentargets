@@ -147,7 +147,10 @@ class ClinVarRecord:
         return self.trait_set
 
     @property
-    def observed_pubmed_refs(self):
+    def evidence_support_pubmed_refs(self):
+        """The references of this type represent evidence support for this specific variant being observed in this
+        specific disease. These are the references displayed on the ClinVar website in the "Assertion and evidence
+        details" section at the bottom of the page."""
         return [int(elem.text)
                 for elem in find_elements(self.rcv, './ObservedIn/ObservedData/Citation/ID[@Source="PubMed"]')]
 
@@ -187,7 +190,8 @@ class ClinVarTrait:
 
     @property
     def pubmed_refs(self):
-        """Trait-specific PubMed references, contained inside a Trait entity."""
+        """Trait-specific PubMed references, contained inside a Trait entity. These are usually reviews or practice
+        guidelines related to a disease or a group of diseases."""
         return [int(elem.text) for elem in find_elements(self.trait_xml, './Citation/ID[@Source="PubMed"]')]
 
     @property
@@ -307,7 +311,8 @@ class ClinVarRecordMeasure:
 
     @property
     def pubmed_refs(self):
-        """Variant-specific PubMed references, contained inside a Measure entity."""
+        """Variant-specific PubMed references, contained inside a Measure entity. These are usually large reviews which
+        focus on genetics of specific types of variants or genomic regions."""
         return [int(elem.text) for elem in find_elements(self.measure_xml, './Citation/ID[@Source="PubMed"]')]
 
     @property

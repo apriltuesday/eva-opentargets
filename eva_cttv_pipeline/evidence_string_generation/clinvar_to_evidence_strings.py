@@ -244,7 +244,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # Literature. ClinVar records provide three types of references: trait-specific; variant-specific; and
         # "observed in" references. Open Targets are interested only in that last category.
-        'literature': sorted(set([str(r) for r in clinvar_record.observed_pubmed_refs])),
+        'literature': sorted(set([str(r) for r in clinvar_record.evidence_support_pubmed_refs])),
 
         # RCV identifier.
         'studyId': clinvar_record.accession,
@@ -343,21 +343,16 @@ def load_efo_mapping(efo_mapping_file):
     trait_2_efo = defaultdict(list)
     n_efo_mappings = 0
 
-    with open(efo_mapping_file, "rt") as f:
+    with open(efo_mapping_file, 'rt') as f:
         for line in f:
             line = line.rstrip()
-            if line.startswith("#") or not line:
+            if line.startswith('#') or not line:
                 continue
-            line_list = line.split("\t")
-            clinvar_name = line_list[0].lower()
-            if len(line_list) > 1:
-                ontology_id_list = line_list[1].split("|")
-                ontology_label_list = line_list[2].split("|") if len(line_list) > 2 else [None] * len(ontology_id_list)
-                for ontology_id, ontology_label in zip(ontology_id_list, ontology_label_list):
-                    trait_2_efo[clinvar_name].append((ontology_id, ontology_label))
-                n_efo_mappings += 1
-            else:
-                raise ValueError('No mapping provided for trait: {}'.format(clinvar_name))
+            line_list = line.split('\t')
+            assert len(line_list) == 3, f'Incorrect string to EFO mapping format for line {line}'
+            clinvar_name, ontology_id, ontology_label = line_list
+            trait_2_efo[clinvar_name.lower()].append((ontology_id, ontology_label))
+            n_efo_mappings += 1
     logger.info('{} EFO mappings loaded'.format(n_efo_mappings))
     return trait_2_efo
 
@@ -416,6 +411,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
         trait_name = trait.name.lower()
         if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
             report.counters['n_missed_strings_unmapped_traits'] += 1
+            report.unmapped_traits[trait_name] += 1
             continue
         for efo_id, efo_label in string_to_efo_mappings[trait_name]:
             efo_to_traits[efo_id].append(trait)
