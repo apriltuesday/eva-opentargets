@@ -51,6 +51,18 @@ As of 2021-03-12, the most common case is the MeasureSet/Variant one, accounting
 
 
 
+## Trait representation
+
+The following diagram demonstrates two properties for each Variant record:
+* Whether it contains no trait records, one record, or multiple;
+* Whether at least one of the trait records contains more than one name.
+
+Only traits of type “Disease” are processed by the pipeline and demonstrated in this diagram.
+
+![](traits.png)
+
+
+
 ## Clinical significance
 
 ![](clinical-significance.png)

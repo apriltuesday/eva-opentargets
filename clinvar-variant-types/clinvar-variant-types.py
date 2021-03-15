@@ -100,7 +100,8 @@ def rcv_to_link(rcv_id):
 
 
 # Sankey diagrams for visualisation
-sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
+sankey_variation_representation = SankeyDiagram('variant-types.png', 1200, 600)
+sankey_trait_representation = SankeyDiagram('traits.png', 1200, 400)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1200, 500)
@@ -130,16 +131,30 @@ for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
         measure_set_type = measure_set.attrib['Type']
-        sankey_variant_types.add_transitions('RCV', 'MeasureSet', measure_set_type)
+        sankey_variation_representation.add_transitions('RCV', 'MeasureSet', measure_set_type)
 
         if measure_set_type == 'Variant':
             # Most common case, accounting for >99.97% of all ClinVar records. Here, we go into details on various
             # attribute distributions.
 
-            # Variant type
+            # Variation representation
             measures = measure_set.findall('Measure')
             assert len(measures) == 1, 'MeasureSet of type Variant must contain exactly one Measure'
-            sankey_variant_types.add_transitions(measure_set_type, measures[0].attrib['Type'])
+            sankey_variation_representation.add_transitions(measure_set_type, measures[0].attrib['Type'])
+
+            # Trait representation
+            traits = clinvar_record.traits
+            if len(traits) == 0:
+                traits_category = 'No traits'
+            elif len(traits) == 1:
+                traits_category = 'One trait'
+            else:
+                traits_category = 'Multiple traits'
+            names_category = 'One name per trait'
+            for trait in traits:
+                if len(trait.all_names) > 1:
+                    names_category = 'Multiple names per trait'
+            sankey_trait_representation.add_transitions('Variant', traits_category, names_category)
 
             # Clinical significance
             clinical_significance = clinvar_record.clinical_significance_raw
@@ -213,7 +228,7 @@ for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
-        sankey_variant_types.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
+        sankey_variation_representation.add_transitions('RCV', 'GenotypeSet', genotype_set.attrib['Type'])
     else:
         raise AssertionError('RCV must contain either exactly one measure set, or exactly one genotype set')
 
@@ -229,8 +244,8 @@ logger.info(f'Done. Processed {elements_processed} elements')
 
 # Output the code for Sankey diagrams. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
-for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sankey_star_rating,
-                       sankey_mode_of_inheritance, sankey_allele_origin, sankey_inheritance_origin):
+for sankey_diagram in (sankey_variation_representation, sankey_trait_representation, sankey_clinical_significance,
+                       sankey_star_rating, sankey_mode_of_inheritance, sankey_allele_origin, sankey_inheritance_origin):
     print('\n')
     print(sankey_diagram)
 
