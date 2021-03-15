@@ -116,10 +116,12 @@ sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 400)
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
 counter_clin_sig_all = SupplementaryTableCounter('All clinical significance levels', 'Clinical significance')
 counter_star_rating = SupplementaryTableCounter('Distribuion of records by star rating', 'Star rating')
-table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'])
+table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'],
+                                                        sort_lambda=lambda x: (x[1], x[0]))
 counter_multiple_allele_origin = SupplementaryTableCounter('Multiple allele origins', 'Allele origins')
-table_inconsistent_moi_ao = SupplementaryTable('Inconsistent mode of inheritance and allele origin values',
-                                               ['RCV', 'Modes of inheritance', 'Allele origins'])
+table_inconsistent_moi_ao = SupplementaryTable(
+    'Inconsistent mode of inheritance and allele origin values', ['RCV', 'Modes of inheritance', 'Allele origins'],
+    sort_lambda=lambda x: (x[1], x[2], x[0]))
 
 # ClinVar XML has the following top-level structure:
 #   <ReleaseSet>

@@ -145,66 +145,66 @@ For a very small number of records multiple values for mode of inheritance are p
 RCV|Modes of inheritance
 :--|:--
 RCV000005614|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000019333|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000056231|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000077045|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000116222|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000169276|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000379715|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000408777|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000475238|Autosomal dominant inheritance, Autosomal recessive inheritance
+RCV000029440|Autosomal dominant inheritance, Autosomal unknown
+RCV000029850|Autosomal dominant inheritance, Autosomal unknown
+RCV000030128|Autosomal dominant inheritance, Autosomal unknown
+RCV000030518|Autosomal dominant inheritance, Autosomal unknown
+RCV000030535|Autosomal dominant inheritance, Autosomal unknown
+RCV000146115|Autosomal dominant inheritance, Autosomal unknown
+RCV000208873|Autosomal dominant inheritance, Autosomal unknown
+RCV000037676|Autosomal dominant inheritance, Somatic mutation
+RCV000123070|Autosomal dominant inheritance, Somatic mutation
+RCV000157426|Autosomal dominant inheritance, Somatic mutation
+RCV000211849|Autosomal dominant inheritance, Somatic mutation
+RCV000211850|Autosomal dominant inheritance, Somatic mutation
+RCV000440827|Autosomal dominant inheritance, Somatic mutation
+RCV000023087|Autosomal dominant inheritance, Sporadic
+RCV000054404|Autosomal dominant inheritance, Sporadic
+RCV000145972|Autosomal dominant inheritance, Sporadic
+RCV000147730|Autosomal dominant inheritance, Sporadic
+RCV000381002|Autosomal dominant inheritance, Sporadic
+RCV000414819|Autosomal dominant inheritance, Sporadic
+RCV000416146|Autosomal dominant inheritance, Sporadic
+RCV000496159|Autosomal dominant inheritance, Sporadic
+RCV000496332|Autosomal dominant inheritance, Sporadic
+RCV000626481|Autosomal dominant inheritance, Sporadic
+RCV000758715|Autosomal dominant inheritance, Sporadic
+RCV000760175|Autosomal dominant inheritance, Sporadic
+RCV001199967|Autosomal dominant inheritance, Sporadic
+RCV000012580|Autosomal dominant inheritance, X-linked dominant inheritance
+RCV000477948|Autosomal dominant inheritance, X-linked inheritance
+RCV000020022|Autosomal recessive inheritance, Autosomal unknown
+RCV001264819|Autosomal recessive inheritance, Unknown mechanism
+RCV000853199|Autosomal recessive inheritance, X-linked recessive inheritance
+RCV000029316|Autosomal recessive inheritance, autosomal unknown
+RCV000029370|Autosomal recessive inheritance, autosomal unknown
+RCV000030177|Autosomal recessive inheritance, autosomal unknown
+RCV000149480|Autosomal unknown, Sporadic
+RCV000012590|Sporadic, X-linked inheritance
+RCV000056321|Sporadic, X-linked inheritance
+RCV000012601|X-linked dominant inheritance, X-linked inheritance
+RCV000170103|X-linked dominant inheritance, X-linked inheritance
+RCV000256179|X-linked dominant inheritance, X-linked inheritance
+RCV000714397|X-linked dominant inheritance, X-linked inheritance
 RCV000011232|X-linked inheritance, X-linked recessive inheritance
 RCV000011233|X-linked inheritance, X-linked recessive inheritance
 RCV000011237|X-linked inheritance, X-linked recessive inheritance
-RCV000012580|Autosomal dominant inheritance, X-linked dominant inheritance
-RCV000012590|Sporadic, X-linked inheritance
-RCV000012601|X-linked dominant inheritance, X-linked inheritance
-RCV000019333|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000020022|Autosomal recessive inheritance, Autosomal unknown
-RCV000023087|Autosomal dominant inheritance, Sporadic
-RCV000029316|Autosomal recessive inheritance, autosomal unknown
-RCV000029370|Autosomal recessive inheritance, autosomal unknown
-RCV000029440|Autosomal dominant inheritance, Autosomal unknown
-RCV000029850|Autosomal dominant inheritance, Autosomal unknown
 RCV000030055|X-linked inheritance, X-linked recessive inheritance
-RCV000030128|Autosomal dominant inheritance, Autosomal unknown
-RCV000030177|Autosomal recessive inheritance, autosomal unknown
-RCV000030518|Autosomal dominant inheritance, Autosomal unknown
-RCV000030535|Autosomal dominant inheritance, Autosomal unknown
-RCV000037676|Autosomal dominant inheritance, Somatic mutation
-RCV000054404|Autosomal dominant inheritance, Sporadic
-RCV000056231|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000056321|Sporadic, X-linked inheritance
-RCV000077045|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000116222|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000123070|Autosomal dominant inheritance, Somatic mutation
-RCV000145972|Autosomal dominant inheritance, Sporadic
-RCV000146115|Autosomal dominant inheritance, Autosomal unknown
-RCV000147730|Autosomal dominant inheritance, Sporadic
-RCV000149480|Autosomal unknown, Sporadic
-RCV000157426|Autosomal dominant inheritance, Somatic mutation
-RCV000169276|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000170103|X-linked dominant inheritance, X-linked inheritance
 RCV000177016|X-linked inheritance, X-linked recessive inheritance
 RCV000179363|X-linked inheritance, X-linked recessive inheritance
 RCV000180471|X-linked inheritance, X-linked recessive inheritance
 RCV000180473|X-linked inheritance, X-linked recessive inheritance
 RCV000180545|X-linked inheritance, X-linked recessive inheritance
-RCV000208873|Autosomal dominant inheritance, Autosomal unknown
-RCV000211849|Autosomal dominant inheritance, Somatic mutation
-RCV000211850|Autosomal dominant inheritance, Somatic mutation
 RCV000223722|X-linked inheritance, X-linked recessive inheritance
-RCV000256179|X-linked dominant inheritance, X-linked inheritance
 RCV000282708|X-linked inheritance, X-linked recessive inheritance
-RCV000379715|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000381002|Autosomal dominant inheritance, Sporadic
-RCV000408777|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000414819|Autosomal dominant inheritance, Sporadic
-RCV000416146|Autosomal dominant inheritance, Sporadic
-RCV000440827|Autosomal dominant inheritance, Somatic mutation
-RCV000475238|Autosomal dominant inheritance, Autosomal recessive inheritance
-RCV000477948|Autosomal dominant inheritance, X-linked inheritance
-RCV000496159|Autosomal dominant inheritance, Sporadic
-RCV000496332|Autosomal dominant inheritance, Sporadic
-RCV000626481|Autosomal dominant inheritance, Sporadic
-RCV000714397|X-linked dominant inheritance, X-linked inheritance
-RCV000758715|Autosomal dominant inheritance, Sporadic
-RCV000760175|Autosomal dominant inheritance, Sporadic
-RCV000853199|Autosomal recessive inheritance, X-linked recessive inheritance
-RCV001199967|Autosomal dominant inheritance, Sporadic
-RCV001264819|Autosomal recessive inheritance, Unknown mechanism
 
 
 
@@ -218,148 +218,148 @@ All Variant records, save for a few, specify an allele origin. The values can be
 
 Allele origins|Count
 :--|:--
-germline,unknown|18270
-germline,not provided|2649
-germline,inherited|756
-germline,not applicable|716
-de novo,germline|701
-germline,not provided,unknown|560
-germline,maternal|391
-germline,paternal|281
-not applicable,unknown|276
-inherited,unknown|248
-not provided,unknown|247
-germline,inherited,unknown|200
-germline,somatic|176
-de novo,germline,unknown|176
-de novo,unknown|174
-germline,maternal,unknown|155
-maternal,not provided|149
-germline,not applicable,unknown|126
-maternal,unknown|123
-germline,paternal,unknown|122
-not provided,paternal|100
-paternal,unknown|93
-inherited,maternal|63
-de novo,not provided|61
-maternal,paternal|58
-inherited,paternal|53
-somatic,unknown|41
-maternal,not provided,paternal|36
-inherited,not applicable|32
-biparental,germline|30
-de novo,not applicable|28
-germline,maternal,paternal,unknown|28
-germline,inherited,not provided,unknown|27
-de novo,maternal|23
-germline,inherited,not provided|21
-germline,somatic,unknown|20
-germline,maternal,paternal|16
-de novo,inherited|15
-germline,maternal,not provided,unknown|15
-de novo,paternal|14
-de novo,germline,maternal,unknown|14
-germline,inherited,paternal,unknown|13
-not applicable,somatic|12
-maternal,paternal,unknown|12
-inherited,not provided|12
-germline,inherited,paternal|12
-inherited,maternal,paternal|12
-maternal,not applicable|11
-de novo,maternal,not provided|11
-de novo,maternal,not provided,paternal|10
-de novo,germline,not applicable|10
-de novo,germline,not provided|9
-de novo,not provided,paternal|8
-biparental,germline,unknown|8
-germline,inherited,not applicable|7
-de novo,germline,paternal,unknown|7
-inherited,paternal,unknown|7
-germline,inherited,maternal|7
-not applicable,paternal|7
-germline,not provided,paternal,unknown|7
-de novo,germline,not provided,unknown|7
-germline,not provided,somatic,unknown|7
-germline,not applicable,not provided,unknown|7
-inherited,not provided,unknown|6
-not provided,somatic|6
-somatic,tested-inconclusive,unknown|6
-de novo,germline,inherited,unknown|6
-de novo,germline,maternal|6
-germline,maternal,not provided|5
-germline,not provided,paternal|5
-germline,inherited,maternal,unknown|5
-biparental,germline,inherited,unknown|5
-germline,inherited,maternal,not provided,unknown|5
-biparental,unknown|4
-not provided,tested-inconclusive|4
-germline,inherited,maternal,paternal|4
-germline,tested-inconclusive|4
-de novo,germline,somatic|4
-germline,not applicable,somatic|4
-germline,inherited,maternal,paternal,unknown|4
-de novo,inherited,unknown|4
-de novo,germline,inherited,maternal,unknown|3
-somatic,tested-inconclusive|3
-de novo,germline,paternal|3
-germline,maternal,not applicable|3
-maternal,somatic|2
-de novo,maternal,paternal|2
-inherited,not applicable,unknown|2
-biparental,inherited|2
-de novo,germline,inherited|2
-biparental,inherited,not applicable|2
-maternal,uniparental|2
-inherited,not provided,paternal|2
-not applicable,not provided|2
-germline,not provided,somatic|2
-de novo,germline,maternal,paternal,unknown|2
-biparental,germline,inherited|2
-germline,maternal,not provided,paternal,unknown|2
-germline,not applicable,somatic,unknown|2
-germline,not applicable,paternal,unknown|2
-germline,not applicable,not provided|2
-germline,inherited,not applicable,unknown|2
-germline,somatic,tested-inconclusive,unknown|2
-germline,inherited,somatic|1
-biparental,maternal,not provided,paternal|1
-biparental,not provided|1
-maternal,not provided,tested-inconclusive|1
-biparental,germline,not provided,unknown|1
-biparental,germline,not provided|1
-de novo,somatic|1
-de novo,maternal,paternal,unknown|1
-de novo,paternal,unknown|1
-de novo,germline,inherited,paternal,unknown|1
-biparental,maternal|1
-de novo,maternal,not applicable|1
-de novo,maternal,unknown|1
-inherited,maternal,paternal,unknown|1
-paternal,somatic|1
-biparental,not applicable|1
-inherited,maternal,not provided|1
-inherited,tested-inconclusive|1
-maternal,not applicable,unknown|1
-maternal,not provided,unknown|1
-de novo,germline,tested-inconclusive|1
-de novo,tested-inconclusive|1
-not provided,somatic,unknown|1
-de novo,not provided,somatic,unknown|1
-germline,maternal,not applicable,unknown|1
-germline,inherited,not provided,paternal,unknown|1
-biparental,germline,maternal,paternal,unknown|1
-biparental,germline,inherited,maternal,paternal,unknown|1
-de novo,germline,maternal,not provided|1
-germline,not applicable,not provided,somatic,unknown|1
-biparental,germline,maternal|1
-germline,inherited,somatic,unknown|1
-de novo,germline,not applicable,unknown|1
-germline,somatic,tested-inconclusive|1
-germline,maternal,somatic|1
-biparental,paternal,unknown|1
-inherited,maternal,unknown|1
-inherited,not applicable,paternal|1
-de novo,paternal,somatic|1
+germline, unknown|18270
+germline, not provided|2649
+germline, inherited|756
+germline, not applicable|716
+de novo, germline|701
+germline, not provided, unknown|560
+germline, maternal|391
+germline, paternal|281
+not applicable, unknown|276
+inherited, unknown|248
+not provided, unknown|247
+germline, inherited, unknown|200
+germline, somatic|176
+de novo, germline, unknown|176
+de novo, unknown|174
+germline, maternal, unknown|155
+maternal, not provided|149
+germline, not applicable, unknown|126
+maternal, unknown|123
+germline, paternal, unknown|122
+not provided, paternal|100
+paternal, unknown|93
+inherited, maternal|63
+de novo, not provided|61
+maternal, paternal|58
+inherited, paternal|53
+somatic, unknown|41
+maternal, not provided, paternal|36
+inherited, not applicable|32
+biparental, germline|30
+de novo, not applicable|28
+germline, maternal, paternal, unknown|28
+germline, inherited, not provided, unknown|27
+de novo, maternal|23
+germline, inherited, not provided|21
+germline, somatic, unknown|20
+germline, maternal, paternal|16
+de novo, inherited|15
+germline, maternal, not provided, unknown|15
+de novo, paternal|14
+de novo, germline, maternal, unknown|14
+germline, inherited, paternal, unknown|13
+not applicable, somatic|12
+maternal, paternal, unknown|12
+inherited, not provided|12
+germline, inherited, paternal|12
+inherited, maternal, paternal|12
+maternal, not applicable|11
+de novo, maternal, not provided|11
+de novo, maternal, not provided, paternal|10
+de novo, germline, not applicable|10
+de novo, germline, not provided|9
+de novo, not provided, paternal|8
+biparental, germline, unknown|8
+germline, inherited, not applicable|7
+de novo, germline, paternal, unknown|7
+inherited, paternal, unknown|7
+germline, inherited, maternal|7
+not applicable, paternal|7
+germline, not provided, paternal, unknown|7
+de novo, germline, not provided, unknown|7
+germline, not provided, somatic, unknown|7
+germline, not applicable, not provided, unknown|7
+inherited, not provided, unknown|6
+not provided, somatic|6
+somatic, tested-inconclusive, unknown|6
+de novo, germline, inherited, unknown|6
+de novo, germline, maternal|6
+germline, maternal, not provided|5
+germline, not provided, paternal|5
+germline, inherited, maternal, unknown|5
+biparental, germline, inherited, unknown|5
+germline, inherited, maternal, not provided, unknown|5
+biparental, unknown|4
+not provided, tested-inconclusive|4
+germline, inherited, maternal, paternal|4
+germline, tested-inconclusive|4
+de novo, germline, somatic|4
+germline, not applicable, somatic|4
+germline, inherited, maternal, paternal, unknown|4
+de novo, inherited, unknown|4
+de novo, germline, inherited, maternal, unknown|3
+somatic, tested-inconclusive|3
+de novo, germline, paternal|3
+germline, maternal, not applicable|3
+maternal, somatic|2
+de novo, maternal, paternal|2
+inherited, not applicable, unknown|2
+biparental, inherited|2
+de novo, germline, inherited|2
+biparental, inherited, not applicable|2
+maternal, uniparental|2
+inherited, not provided, paternal|2
+not applicable, not provided|2
+germline, not provided, somatic|2
+de novo, germline, maternal, paternal, unknown|2
+biparental, germline, inherited|2
+germline, maternal, not provided, paternal, unknown|2
+germline, not applicable, somatic, unknown|2
+germline, not applicable, paternal, unknown|2
+germline, not applicable, not provided|2
+germline, inherited, not applicable, unknown|2
+germline, somatic, tested-inconclusive, unknown|2
+germline, inherited, somatic|1
+biparental, maternal, not provided, paternal|1
+biparental, not provided|1
+maternal, not provided, tested-inconclusive|1
+biparental, germline, not provided, unknown|1
+biparental, germline, not provided|1
+de novo, somatic|1
+de novo, maternal, paternal, unknown|1
+de novo, paternal, unknown|1
+de novo, germline, inherited, paternal, unknown|1
+biparental, maternal|1
+de novo, maternal, not applicable|1
+de novo, maternal, unknown|1
+inherited, maternal, paternal, unknown|1
+paternal, somatic|1
+biparental, not applicable|1
+inherited, maternal, not provided|1
+inherited, tested-inconclusive|1
+maternal, not applicable, unknown|1
+maternal, not provided, unknown|1
+de novo, germline, tested-inconclusive|1
+de novo, tested-inconclusive|1
+not provided, somatic, unknown|1
+de novo, not provided, somatic, unknown|1
+germline, maternal, not applicable, unknown|1
+germline, inherited, not provided, paternal, unknown|1
+biparental, germline, maternal, paternal, unknown|1
+biparental, germline, inherited, maternal, paternal, unknown|1
+de novo, germline, maternal, not provided|1
+germline, not applicable, not provided, somatic, unknown|1
+biparental, germline, maternal|1
+germline, inherited, somatic, unknown|1
+de novo, germline, not applicable, unknown|1
+germline, somatic, tested-inconclusive|1
+germline, maternal, somatic|1
+biparental, paternal, unknown|1
+inherited, maternal, unknown|1
+inherited, not applicable, paternal|1
+de novo, paternal, somatic|1
 
 
 
@@ -369,7 +369,146 @@ In theory, for single values the categories of mode of inheritance and allele or
 
 ![](inheritance-origin.png)
 
+The majority of records can be seen to conform to the rules. The list of exceptions is provided below.
+
 ### Inconsistent records
 
 The following table lists all records from the diagram above where the categories do not match:
 
+RCV|Modes of inheritance|Allele origins
+:--|:--|:--
+RCV000032907|Autosomal dominant inheritance|de novo, germline, somatic
+RCV000031343|Autosomal dominant inheritance|germline, inherited, somatic, unknown
+RCV000240958|Autosomal dominant inheritance|germline, maternal, somatic
+RCV000019229|Autosomal dominant inheritance|germline, not applicable, not provided, somatic, unknown
+RCV000003925|Autosomal dominant inheritance|germline, not applicable, somatic
+RCV000019263|Autosomal dominant inheritance|germline, not applicable, somatic, unknown
+RCV000009905|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000009907|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000019243|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000111891|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000112410|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000113532|Autosomal dominant inheritance|germline, not provided, somatic, unknown
+RCV000000845|Autosomal dominant inheritance|germline, somatic
+RCV000024242|Autosomal dominant inheritance|germline, somatic
+RCV000031018|Autosomal dominant inheritance|germline, somatic
+RCV000074359|Autosomal dominant inheritance|germline, somatic
+RCV000075300|Autosomal dominant inheritance|germline, somatic
+RCV000076272|Autosomal dominant inheritance|germline, somatic
+RCV000077281|Autosomal dominant inheritance|germline, somatic
+RCV000111553|Autosomal dominant inheritance|germline, somatic
+RCV000114697|Autosomal dominant inheritance|germline, somatic
+RCV000114982|Autosomal dominant inheritance|germline, somatic
+RCV000114985|Autosomal dominant inheritance|germline, somatic
+RCV000114988|Autosomal dominant inheritance|germline, somatic
+RCV000237153|Autosomal dominant inheritance|germline, somatic
+RCV000237481|Autosomal dominant inheritance|germline, somatic
+RCV000237597|Autosomal dominant inheritance|germline, somatic
+RCV000237924|Autosomal dominant inheritance|germline, somatic
+RCV000238117|Autosomal dominant inheritance|germline, somatic
+RCV000238228|Autosomal dominant inheritance|germline, somatic
+RCV000609972|Autosomal dominant inheritance|germline, somatic
+RCV000787352|Autosomal dominant inheritance|germline, somatic
+RCV000003878|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000031535|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000077518|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000111758|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000148749|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000257639|Autosomal dominant inheritance|germline, somatic, unknown
+RCV000850247|Autosomal dominant inheritance|maternal, somatic
+RCV000210355|Autosomal dominant inheritance|somatic
+RCV000236033|Autosomal dominant inheritance|somatic
+RCV000560194|Autosomal dominant inheritance|somatic
+RCV000590930|Autosomal dominant inheritance|somatic
+RCV000590964|Autosomal dominant inheritance|somatic
+RCV000664310|Autosomal dominant inheritance|somatic
+RCV000722144|Autosomal dominant inheritance|somatic
+RCV000754837|Autosomal dominant inheritance|somatic
+RCV000853399|Autosomal dominant inheritance|somatic
+RCV000991329|Autosomal dominant inheritance|somatic
+RCV000993765|Autosomal dominant inheritance|somatic
+RCV000993766|Autosomal dominant inheritance|somatic
+RCV001172316|Autosomal dominant inheritance|somatic
+RCV001250663|Autosomal dominant inheritance|somatic
+RCV001270434|Autosomal dominant inheritance|somatic
+RCV001270435|Autosomal dominant inheritance|somatic
+RCV001270447|Autosomal dominant inheritance|somatic
+RCV001281670|Autosomal dominant inheritance|somatic
+RCV000680026|Autosomal dominant inheritance|somatic, unknown
+RCV000236291|Autosomal recessive inheritance|germline, somatic
+RCV000223734|Autosomal recessive inheritance|somatic
+RCV000735435|Autosomal recessive inheritance|somatic
+RCV000758079|Autosomal recessive inheritance|somatic
+RCV000855541|Autosomal recessive inheritance|somatic
+RCV001250665|Autosomal recessive inheritance|somatic
+RCV001250666|Autosomal recessive inheritance|somatic
+RCV001250667|Autosomal recessive inheritance|somatic
+RCV000495738|Mitochondrial inheritance|germline, somatic
+RCV000505667|Mitochondrial inheritance|somatic
+RCV000708565|Somatic mutation|de novo
+RCV000754629|Somatic mutation|de novo
+RCV001034608|Somatic mutation|de novo
+RCV001254923|Somatic mutation|de novo
+RCV000114677|Somatic mutation|de novo, germline, somatic
+RCV000007884|Somatic mutation|germline, somatic
+RCV000014173|Somatic mutation|germline, somatic
+RCV000014936|Somatic mutation|germline, somatic
+RCV000014937|Somatic mutation|germline, somatic
+RCV000014939|Somatic mutation|germline, somatic
+RCV000014978|Somatic mutation|germline, somatic
+RCV000015769|Somatic mutation|germline, somatic
+RCV000021873|Somatic mutation|germline, somatic
+RCV000114391|Somatic mutation|germline, somatic
+RCV000114716|Somatic mutation|germline, somatic
+RCV000114729|Somatic mutation|germline, somatic
+RCV000114733|Somatic mutation|germline, somatic
+RCV000154233|Somatic mutation|germline, somatic
+RCV000211848|Somatic mutation|germline, somatic
+RCV000417859|Somatic mutation|germline, somatic
+RCV000419670|Somatic mutation|germline, somatic
+RCV000420800|Somatic mutation|germline, somatic
+RCV000429467|Somatic mutation|germline, somatic
+RCV000431704|Somatic mutation|germline, somatic
+RCV000432558|Somatic mutation|germline, somatic
+RCV000433543|Somatic mutation|germline, somatic
+RCV000435642|Somatic mutation|germline, somatic
+RCV000438560|Somatic mutation|germline, somatic
+RCV000442350|Somatic mutation|germline, somatic
+RCV000589007|Somatic mutation|germline, somatic
+RCV000007871|Somatic mutation|germline, somatic, unknown
+RCV000013951|Somatic mutation|germline, somatic, unknown
+RCV000014924|Somatic mutation|germline, somatic, unknown
+RCV000014941|Somatic mutation|germline, somatic, unknown
+RCV000175096|Somatic mutation|germline, somatic, unknown
+RCV000206210|Somatic mutation|germline, somatic, unknown
+RCV000984546|Somatic mutation|not applicable
+RCV000454367|Somatic mutation|not applicable, somatic
+RCV000454368|Somatic mutation|not applicable, somatic
+RCV000454369|Somatic mutation|not applicable, somatic
+RCV000454371|Somatic mutation|not applicable, somatic
+RCV000454372|Somatic mutation|not applicable, somatic
+RCV000454373|Somatic mutation|not applicable, somatic
+RCV000598801|Somatic mutation|not applicable, somatic
+RCV000505630|Somatic mutation|paternal
+RCV000173889|Somatic mutation|somatic, unknown
+RCV000421625|Somatic mutation|somatic, unknown
+RCV000421755|Somatic mutation|somatic, unknown
+RCV000423448|Somatic mutation|somatic, unknown
+RCV000424592|Somatic mutation|somatic, unknown
+RCV000427081|Somatic mutation|somatic, unknown
+RCV000427260|Somatic mutation|somatic, unknown
+RCV000431156|Somatic mutation|somatic, unknown
+RCV000436831|Somatic mutation|somatic, unknown
+RCV000442220|Somatic mutation|somatic, unknown
+RCV001263488|Somatic mutation|unknown
+RCV001281344|Somatic mutation|unknown
+RCV000454370|Sporadic|not applicable, somatic
+RCV000515554|Sporadic|somatic
+RCV001252644|X-linked dominant inheritance|paternal, somatic
+RCV000145521|X-linked inheritance|germline, somatic, unknown
+RCV000680058|X-linked inheritance|somatic
+RCV000680061|X-linked inheritance|somatic
+RCV001250664|X-linked inheritance|somatic
+RCV000785880|X-linked recessive inheritance|somatic
+RCV000785881|X-linked recessive inheritance|somatic
+RCV001270620|X-linked recessive inheritance|somatic
