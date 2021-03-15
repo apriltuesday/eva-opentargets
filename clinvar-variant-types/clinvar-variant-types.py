@@ -61,8 +61,8 @@ class SupplementaryTable:
 
 class SupplementaryTableCounter(SupplementaryTable):
 
-    def __init__(self, name, field_name):
-        super().__init__(name=name, fields=(field_name, 'Count'), sort_lambda=lambda x: -x[1])
+    def __init__(self, name, field_name, sort_lambda=lambda x: -x[1]):
+        super().__init__(name=name, fields=(field_name, 'Count'), sort_lambda=sort_lambda)
         self.counter = Counter()
 
     def add_count(self, item):
@@ -110,9 +110,10 @@ sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 400)
 # Supplementary tables and counters for the report
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
 counter_clin_sig_all = SupplementaryTableCounter('All clinical significance levels', 'Clinical significance')
-counter_star_rating = SupplementaryTableCounter('Distribuion of records by star rating', 'Star rating')
-table_multiple_mode_of_inheritance = SupplementaryTable('Multiple mode of inheritance', ['RCV', 'Modes of inheritance'],
-                                                        sort_lambda=lambda x: (x[1], x[0]))
+counter_star_rating = SupplementaryTableCounter(
+    'Distribuion of records by star rating', 'Star rating', sort_lambda=lambda x: x[0])
+table_multiple_mode_of_inheritance = SupplementaryTable(
+    'Multiple mode of inheritance', ['RCV', 'Modes of inheritance'], sort_lambda=lambda x: (x[1], x[0]))
 counter_multiple_allele_origin = SupplementaryTableCounter('Multiple allele origins', 'Allele origins')
 table_inconsistent_moi_ao = SupplementaryTable(
     'Inconsistent mode of inheritance and allele origin values', ['RCV', 'Modes of inheritance', 'Allele origins'],
