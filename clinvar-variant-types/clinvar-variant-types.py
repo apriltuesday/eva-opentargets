@@ -104,6 +104,10 @@ def review_status_stars(review_status):
     return '★' * black_stars + '☆' * white_stars
 
 
+def rcv_to_link(rcv_id):
+    return f'[{rcv_id}](https://www.ncbi.nlm.nih.gov/clinvar/{rcv_id}/)'
+
+
 # Sankey diagrams for visualisation
 sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
@@ -194,7 +198,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                     sankey_mode_of_inheritance.add_transitions('Germline', 'Multiple')
             # Log multiple ModeOfInheritance cases in a separate table
             if len(modes_of_inheritance) > 1:
-                table_multiple_mode_of_inheritance.add_row([rcv_id, modes_of_inheritance_text])
+                table_multiple_mode_of_inheritance.add_row([rcv_to_link(rcv_id), modes_of_inheritance_text])
 
             # Allele origins
             allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
@@ -223,7 +227,8 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 sankey_inheritance_origin.add_transitions(
                     f'[MoI] {mode_of_inheritance_category}', f'{allele_origin_category} [AO]')
                 if mode_of_inheritance_category != allele_origin_category:
-                    table_inconsistent_moi_ao.add_row([rcv_id, modes_of_inheritance_text, allele_origin_text])
+                    table_inconsistent_moi_ao.add_row([rcv_to_link(rcv_id), modes_of_inheritance_text,
+                                                       allele_origin_text])
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
