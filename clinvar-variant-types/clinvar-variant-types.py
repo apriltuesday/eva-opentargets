@@ -3,21 +3,12 @@
 import argparse
 from collections import Counter
 import logging
-import re
 
 import eva_cttv_pipeline.clinvar_xml_utils as clinvar_xml_utils
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-SIG_STARS = {
-    'practice guideline': 4,
-    'reviewed by expert panel': 3,
-    'criteria provided, multiple submitters, no conflicts': 2,
-    'criteria provided, conflicting interpretations': 1,
-    'criteria provided, single submitter': 1,
-}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--clinvar-xml', required=True)
@@ -98,8 +89,8 @@ def find_attribute(rcv, xpath, attribute_name):
         return '{} multiple'.format(attribute_name)
 
 
-def review_status_stars(review_status):
-    black_stars = SIG_STARS.get(review_status, 0)
+def review_status_stars(score):
+    black_stars = score
     white_stars = 4 - black_stars
     return '★' * black_stars + '☆' * white_stars
 
@@ -127,24 +118,13 @@ table_inconsistent_moi_ao = SupplementaryTable(
     'Inconsistent mode of inheritance and allele origin values', ['RCV', 'Modes of inheritance', 'Allele origins'],
     sort_lambda=lambda x: (x[1], x[2], x[0]))
 
-# ClinVar XML has the following top-level structure:
-#   <ReleaseSet>
-#     <ClinVarSet>...</ClinVarSet>
-#     <ClinVarSet>...</ClinVarSet>
-#     ...
-#   </ReleaseSet>
-# To not load everything into memory, we use iterparse, wait for a complete ClinVarSet element, and then remove it from
-# the tree because we don't need it anymore.
-
 elements_processed = 0
-for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
-    # TODO: use clinvar_xml_utils abstractions instead of working with XML directly
-    # TODO: https://github.com/EBIvariation/eva-opentargets/issues/170
-    rcv_id = rcv.find('./ClinVarAccession').attrib['Acc']
+for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
+    rcv_id = clinvar_record.accession
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
-    measure_sets = rcv.findall('MeasureSet')
-    genotype_sets = rcv.findall('GenotypeSet')
+    measure_sets = clinvar_record.rcv.findall('MeasureSet')
+    genotype_sets = clinvar_record.rcv.findall('GenotypeSet')
     if len(measure_sets) == 1 and len(genotype_sets) == 0:
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
@@ -161,8 +141,8 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             sankey_variant_types.add_transitions(measure_set_type, measures[0].attrib['Type'])
 
             # Clinical significance
-            clinical_significance = find_attribute(rcv, 'ClinicalSignificance/Description', 'ClinicalSignificance')
-            clin_sig_split = re.split(', |/', clinical_significance)
+            clinical_significance = clinvar_record.clinical_significance_raw
+            clin_sig_split = clinvar_record.clinical_significance_list
             for clin_sig in clin_sig_split:  # Count all clinical significance levels after splitting
                 counter_clin_sig_all.add_count(clin_sig)
             if len(clin_sig_split) == 1:
@@ -172,14 +152,13 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 counter_clin_sig_complex.add_count(clinical_significance)
 
             # Review status
-            review_status = find_attribute(rcv, 'ClinicalSignificance/ReviewStatus', 'ReviewStatus')
-            star_rating = review_status_stars(review_status)
+            review_status = clinvar_record.review_status
+            star_rating = review_status_stars(clinvar_record.score)
             sankey_star_rating.add_transitions('Variant', star_rating, review_status)
             counter_star_rating.add_count(star_rating)
 
             # Mode of inheritance
-            modes_of_inheritance = {moi.text for moi in rcv.findall(
-                'AttributeSet/Attribute[@Type="ModeOfInheritance"]')}
+            modes_of_inheritance = clinvar_record.mode_of_inheritance
             modes_of_inheritance_text = ', '.join(sorted(modes_of_inheritance))
             if len(modes_of_inheritance) == 0:
                 mode_of_inheritance_category = 'Missing'
@@ -201,7 +180,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
                 table_multiple_mode_of_inheritance.add_row([rcv_to_link(rcv_id), modes_of_inheritance_text])
 
             # Allele origins
-            allele_origins = {origin.text for origin in rcv.findall('ObservedIn/Sample/Origin')}
+            allele_origins = clinvar_record.allele_origins
             allele_origin_text = ', '.join(sorted(allele_origins))
             if len(allele_origins) == 0:
                 allele_origin_category = 'Missing'
