@@ -110,7 +110,7 @@ sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1200, 500)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 1200, 600)
-sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
+sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 400)
 
 # Supplementary tables and counters for the report
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
@@ -250,7 +250,8 @@ for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sanke
 
 # Output the supplementary tables for the report.
 for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, counter_star_rating,
-                            table_multiple_mode_of_inheritance, counter_multiple_allele_origin):
+                            table_multiple_mode_of_inheritance, counter_multiple_allele_origin,
+                            table_inconsistent_moi_ao):
     print('\n')
     print(supplementary_table)
 
