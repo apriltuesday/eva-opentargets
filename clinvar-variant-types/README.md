@@ -360,3 +360,11 @@ biparental,paternal,unknown|1
 inherited,maternal,unknown|1
 inherited,not applicable,paternal|1
 de novo,paternal,somatic|1
+
+
+
+## Mapping between mode of inheritance and allele origin
+
+In theory, for single values the categories of mode of inheritance and allele origin (somatic or non-somatic) must always be the same. The following diagram illustrates the mapping from one to the other in practice. For readability, it shows only the records where *both* allele origin and mode of inheritance are present:
+
+![](inheritance-origin.png)

@@ -108,9 +108,9 @@ def review_status_stars(review_status):
 sankey_variant_types = SankeyDiagram('variant-types.png', 1200, 600)
 sankey_clinical_significance = SankeyDiagram('clinical-significance.png', 1200, 600)
 sankey_star_rating = SankeyDiagram('star-rating.png', 1200, 600)
-sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
 sankey_mode_of_inheritance = SankeyDiagram('mode-of-inheritance.png', 1200, 500)
 sankey_allele_origin = SankeyDiagram('allele-origin.png', 1200, 600)
+sankey_inheritance_origin = SankeyDiagram('inheritance-origin.png', 1200, 600)
 
 # Supplementary tables and counters for the report
 counter_clin_sig_complex = SupplementaryTableCounter('Complex clinical significance levels', 'Clinical significance')
@@ -175,7 +175,10 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if mode_of_inheritance.endswith('missing'):
                 mode_of_inheritance_category = 'Missing'
             elif mode_of_inheritance.endswith('multiple'):
-                mode_of_inheritance_category = 'Multiple'
+                if 'Somatic mutation' in mode_of_inheritance:
+                    mode_of_inheritance_category = 'Multiple; germline and somatic'
+                else:
+                    mode_of_inheritance_category = 'Multiple; germline only'
             elif mode_of_inheritance == 'Somatic mutation':
                 mode_of_inheritance_category = 'Somatic'
             else:
@@ -184,7 +187,7 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if mode_of_inheritance_category == 'Non-somatic':
                 sankey_mode_of_inheritance.add_transitions(mode_of_inheritance_category, mode_of_inheritance)
             # Log multiple ModeOfInheritance cases in a separate table
-            if mode_of_inheritance_category == 'Multiple':
+            if mode_of_inheritance_category.startswith('Multiple'):
                 all_modes = ', '.join(sorted(mode.text for mode in rcv.findall(mode_of_inheritance_xpath)))
                 table_multiple_mode_of_inheritance.add_row([rcv_id, all_modes])
 
@@ -193,7 +196,10 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if len(allele_origins) == 0:
                 allele_origin_category = 'Missing'
             elif len(allele_origins) > 1:
-                allele_origin_category = 'Multiple'
+                if 'somatic' in allele_origins:
+                    allele_origin_category = 'Multiple; germline and somatic'
+                else:
+                    allele_origin_category = 'Multiple; germline only'
             elif allele_origins == {'somatic'}:
                 allele_origin_category = 'Somatic'
             else:
@@ -202,9 +208,14 @@ for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
             if allele_origin_category == 'Non-somatic':
                 sankey_allele_origin.add_transitions(allele_origin_category, allele_origins.pop())
             # Count multiple allele of origin values in a table
-            if allele_origin_category == 'Multiple':
+            if allele_origin_category.startswith('Multiple'):
                 allele_origins_text = ','.join(sorted(allele_origins))
                 counter_multiple_allele_origin.add_count(allele_origins_text)
+
+            # Mode of inheritance and allele origin mapping
+            if mode_of_inheritance_category != 'Missing' and allele_origin_category != 'Missing':
+                sankey_inheritance_origin.add_transitions(
+                    'Variant', f'[MoI] {mode_of_inheritance_category}', f'{allele_origin_category} [AO]')
 
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
@@ -226,9 +237,10 @@ logger.info(f'Done. Processed {elements_processed} elements')
 # Output the code for Sankey diagrams. Transitions are sorted in decreasing number of counts, so that the most frequent
 # cases are on top.
 for sankey_diagram in (sankey_variant_types, sankey_clinical_significance, sankey_star_rating,
-                       sankey_mode_of_inheritance, sankey_allele_origin):
+                       sankey_mode_of_inheritance, sankey_allele_origin, sankey_inheritance_origin):
     print('\n')
     print(sankey_diagram)
+
 
 # Output the supplementary tables for the report.
 for supplementary_table in (counter_clin_sig_complex, counter_clin_sig_all, counter_star_rating,
