@@ -2,7 +2,7 @@
 
 The script in this directory parses the ClinVar XML data dump and constructs several diagrams and tables which illustrate how variation and disease data are represented. This helps guide the design of the pipeline and its output structure.
 
-The data was last updated on **2021-03-12.** Graphs can be enlarged by clicking on them.
+The data was last updated on **2021-03-19.** Graphs can be enlarged by clicking on them.
 
 
 
@@ -13,7 +13,7 @@ wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.x
 python3 clinvar-variant-types.py --clinvar-xml ClinVarFullRelease_00-latest.xml.gz
 ```
 
-The source code for diagrams and tables will be printed to STDOUT. The diagrams can then be built using the website http://sankeymatic.com/build/. Parameters for rendering them will be indicated in the output as well. The tables should be copy-pasted in this Markdown report directly.
+The source code for diagrams and tables will be printed to STDOUT. The diagrams can then be built using the website http://sankeymatic.com/build/. Parameters for rendering them will be indicated in the output as well. The tables should be copy-pasted into the [corresponding Markdown file](supplementary-tables.md).
 
 
 
@@ -71,7 +71,7 @@ Clinical significance can be either “Simple” (only one level present per a V
 
 Supplementary tables:
 * [**Complex clinical significance levels**](supplementary-tables.md#complex-clinical-significance-levels). This is simply the part of the distribution which is not shown on the diagram above for readability.
-* [**All clinical significance levels**](supplementary-tables.md#all-clinical-significance-levels)
+* [**All clinical significance levels.**](supplementary-tables.md#all-clinical-significance-levels)
 
 
 
@@ -96,9 +96,9 @@ Star rating|Count
 
 ![](diagrams/mode-of-inheritance.png)
 
-Only a small fraction of all records specify their mode of inheritance: 41,270 out of 1,193,055, or about 3.5%. The possible scenarios can be broadly divided into four categories: missing values; single somatic; single non-somatic; and multiple values.
+Only a small fraction of all records specify their mode of inheritance: 41,270 out of 1,193,055, or about 3.5%. The possible scenarios can be broadly divided into four categories: missing values; germline (single or multiple values); somatic; germline & somatic mixed (multiple values).
 
-Supplementary table: [**Records with Multiple mode of inheritance values.**](supplementary-tables.md#records-with-multiple-mode-of-inheritance-values)
+Supplementary table: [**Records with multiple mode of inheritance values.**](supplementary-tables.md#records-with-multiple-mode-of-inheritance-values)
 
 
 
