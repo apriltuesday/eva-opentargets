@@ -49,13 +49,13 @@ def process_clinvar_record(clinvar_record, outfile):
                    if variant_id is not None]
     traits = clinvar_record.traits
     for variant_id, trait in itertools.product(variant_ids, traits):
-        if (trait.preferred_name is None) or (trait.preferred_name.lower() == 'not provided'):
+        if (trait.preferred_or_other_name is None) or (trait.preferred_or_other_name.lower() == 'not provided'):
             continue
         for db, identifier, status in trait.xrefs:
             if status != 'current' or db.lower() not in OntologyUri.db_to_uri_conversion:
                 continue
             ontology_uri = OntologyUri(identifier, db)
-            write_zooma_record(clinvar_record.accession, variant_id, trait.preferred_name, ontology_uri,
+            write_zooma_record(clinvar_record.accession, variant_id, trait.preferred_or_other_name, ontology_uri,
                                strftime('%d/%m/%y %H:%M', gmtime()), outfile)
 
 
