@@ -11,5 +11,5 @@ class TestGetTraitNames(unittest.TestCase):
         # from *both* records must be parsed and returned.
         test_filename = os.path.join(os.path.dirname(__file__),
                                      '../evidence_string_generation/resources/test_clinvar_record.xml.gz')
-        trait_names = [trait.name for trait in trait_names_parsing.parse_trait_names(test_filename)]
+        trait_names = [trait.preferred_name for trait in trait_names_parsing.parse_trait_names(test_filename)]
         self.assertEqual(trait_names, ['leber congenital amaurosis 13'])

@@ -181,10 +181,10 @@ class ClinVarTrait:
         self.clinvar_record = clinvar_record
 
     def __str__(self):
-        return f'ClinVarTrait object with name {self.name} from ClinVar record {self.clinvar_record.accession}'
+        return f'ClinVarTrait object with name {self.preferred_name} from ClinVar record {self.clinvar_record.accession}'
 
     @property
-    def name(self):
+    def preferred_name(self):
         name = find_optional_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]')
         return None if name is None else name.text
 
