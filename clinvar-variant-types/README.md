@@ -23,22 +23,7 @@ The source code for diagrams and tables will be printed to STDOUT. The diagrams 
 
 **RCV** is the top level of ClinVar data organisation. It is a record which associates one or more traits (usually diseases) with exactly one _VCV record,_ which can be one of two types:
 * **MeasureSet** contains one or more _Measures._ (Each Measure is essentially an individual, isolated variant.) The MeasureSet can be one of four types:
-  - **Variant.** This means that the measure “set” has the size of 1 and contains just a single isolated variant. This variant can be one of the following subtypes, listed in the decreasing order of occurrence:
-    + single nucleotide variant
-    + Deletion
-    + copy number loss
-    + copy number gain
-    + Duplication
-    + Microsatellite
-    + Indel
-    + Insertion
-    + Variation
-    + Inversion
-    + Translocation
-    + protein only
-    + Complex
-    + fusion
-    + Tandem duplication
+  - **Variant.** This means that the measure “set” has the size of 1 and contains just a single isolated variant. This variant can be one of the subtypes illustrated on the diagram.
   - Three other complex types, which were not investigated further in this analysis. They may contain multiple Measures (variants), which must all be interpreted together:
     + **Haplotype.** A collection of variants phased on the same chromosome copy and usually inherited together.
     + **Phase unknown**
@@ -47,7 +32,7 @@ The source code for diagrams and tables will be printed to STDOUT. The diagrams 
   - **CompoundHeterozygote.** Presumably this should include exactly two variants which are _trans_ phased and interpreted together.
   - **Diplotype.** Similar, but at least one of the _trans_ phased alleles includes a haplotype. An example of this would be three variants located on one copy of the gene, and one variant in the second one, all interpreted together.
 
-As of 2021-03-12, the most common case is the MeasureSet/Variant one, accounting for 1,193,055 out of 1,196,231 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.** All following diagrams also examine distributions only within that record type.
+As of 2021-03-19, the most common case is MeasureSet/Variant, accounting for 1,193,055 out of 1,196,231 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.** All following diagrams also examine distributions only within that record type.
 
 
 
@@ -67,11 +52,11 @@ Only traits of type “Disease” are processed by the pipeline and demonstrated
 
 ![](diagrams/clinical-significance.png)
 
-Clinical significance can be either “Simple” (only one level present per a Variant record) or “Complex” (multiple levels are present, separated by slashes and/or commas).
+Clinical significance can be either “Simple” (only one level present per Variant record) or “Complex” (multiple levels are present, separated by slashes and/or commas).
 
 Supplementary tables:
 * [**Complex clinical significance levels**](supplementary-tables.md#complex-clinical-significance-levels). This is simply the part of the distribution which is not shown on the diagram above for readability.
-* [**All clinical significance levels.**](supplementary-tables.md#all-clinical-significance-levels)
+* [**All clinical significance levels.**](supplementary-tables.md#all-clinical-significance-levels) This is the cumulative count for both simple and complex cases. For complex cases, the levels are split and counted individually. Hence, the total in this table will be higher than the total number of Variant records.
 
 
 
