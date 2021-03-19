@@ -88,7 +88,7 @@ class ClinVarRecord:
 
         # Add a list of traits
         self.trait_set = []
-        for trait in find_elements(self.rcv, './TraitSet/Trait[@Type="Disease"]'):
+        for trait in find_elements(self.rcv, './TraitSet/Trait'):
             self.trait_set.append(ClinVarTrait(trait, self))
 
         # We are currently only processing MeasureSets of type Variant which are included directly in the RCV record.
