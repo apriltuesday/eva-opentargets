@@ -310,11 +310,9 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         # Example of such an identifier: 14:23423715:G:A
         coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
-        # Non-ATGC allele sequences are not accepted by Open Targets schema 2.0.5
-        # Example: 12_32625716_G_H (from RCV000032000)
+        # Log unusual variants with IUPAC ambiguity symbols. Example: 12_32625716_G_H (from RCV000032000)
         if ILLEGAL_ALLELE_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
-            logger.warning(f'Skipping variant with non-ACGT allele sequences: {coord_id}')
-            return []
+            logger.warning(f'Observed variant with non-ACGT allele sequences: {coord_id}')
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
 
