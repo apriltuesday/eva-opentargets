@@ -315,10 +315,6 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         if ILLEGAL_ALLELE_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
             logger.warning(f'Skipping variant with non-ACGT allele sequences: {coord_id}')
             return []
-        # FIXME: Open Targets schema 2.0.5 does not support mitochondrial variants, so they are not being processed
-        if clinvar_record_measure.chr == 'MT':
-            logger.warning(f'Skipping mitochondrial variant: {coord_id}')
-            return []
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
 
