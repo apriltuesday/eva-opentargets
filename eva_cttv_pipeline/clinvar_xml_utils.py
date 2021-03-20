@@ -181,11 +181,12 @@ class ClinVarTrait:
         self.clinvar_record = clinvar_record
 
     def __str__(self):
-        return f'ClinVarTrait object with name {self.preferred_name} from ClinVar record {self.clinvar_record.accession}'
+        return f'ClinVarTrait object with name {self.preferred_or_other_name} from ClinVar record ' \
+               f'{self.clinvar_record.accession}'
 
     @property
     def all_names(self):
-        """Returns an alphabetical list of all trait names, including the preferred one (if any)"""
+        """Returns a lexicographically sorted list of all trait names, including the preferred one (if any)."""
         return sorted(name.text for name in find_elements(self.trait_xml, './Name/ElementValue'))
 
     @property
@@ -195,7 +196,8 @@ class ClinVarTrait:
 
     @property
     def preferred_or_other_name(self):
-        """Returns a preferred trait name, if present. Otherwise, returns the name which is first alphabetically."""
+        """Returns a preferred trait name, if present. Otherwise, returns the name which is the first
+        lexicographically."""
         if self.preferred_name:
             return self.preferred_name
         elif self.all_names:
