@@ -1,1 +1,2 @@
-tests/evidence_string_generation/resources/mappings_2021-03-04.tsv -diff
+# The linguist-generated property is necessary because GitHub ignores -diff
+tests/evidence_string_generation/resources/mappings_2021-03-04.tsv -diff linguist-generated
