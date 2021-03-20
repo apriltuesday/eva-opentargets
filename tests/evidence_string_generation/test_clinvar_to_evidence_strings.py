@@ -20,7 +20,7 @@ class GetMappingsTest(unittest.TestCase):
         cls.gene_mappings = GENE_MAPPINGS
 
     def test_efo_mapping(self):
-        self.assertEqual(len(self.efo_mappings), 8567)
+        self.assertEqual(len(self.efo_mappings), 9)
 
         self.assertEqual(self.efo_mappings['renal-hepatic-pancreatic dysplasia 2'][0],
                          ('http://www.orpha.net/ORDO/Orphanet_294415', 'Renal-hepatic-pancreatic dysplasia'))
@@ -33,8 +33,8 @@ class GetMappingsTest(unittest.TestCase):
 
         self.assertEqual(
             self.efo_mappings['coronary artery disease/myocardial infarction'],
-            [('http://www.ebi.ac.uk/efo/EFO_0001645', 'coronary artery disease'),
-             ('http://www.ebi.ac.uk/efo/EFO_0000612', 'myocardial infarction')])
+            [('http://www.ebi.ac.uk/efo/EFO_0000612', 'myocardial infarction'),
+             ('http://www.ebi.ac.uk/efo/EFO_0001645', 'coronary heart disease')])
 
     def test_consequence_type_dict(self):
         self.assertEqual(len(self.gene_mappings), 21)
