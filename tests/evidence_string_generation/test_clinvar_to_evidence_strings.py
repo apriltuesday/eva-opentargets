@@ -20,15 +20,16 @@ class GetMappingsTest(unittest.TestCase):
         cls.gene_mappings = GENE_MAPPINGS
 
     def test_efo_mapping(self):
-        self.assertEqual(len(self.efo_mappings), 5283)
+        self.assertEqual(len(self.efo_mappings), 9)
 
         self.assertEqual(self.efo_mappings['renal-hepatic-pancreatic dysplasia 2'][0],
-                         ('http://www.orpha.net/ORDO/Orphanet_294415', None))
-        self.assertEqual(self.efo_mappings['frontotemporal dementia'][0],
-                         ('http://purl.obolibrary.org/obo/HP_0000733', None))
+                         ('http://www.orpha.net/ORDO/Orphanet_294415', 'Renal-hepatic-pancreatic dysplasia'))
+        self.assertEqual(self.efo_mappings['frontotemporal dementia, ubiquitin-positive'][0],
+                         ('http://www.orpha.net/ORDO/Orphanet_282', 'Frontotemporal dementia'))
         self.assertEqual(
             self.efo_mappings['3 beta-hydroxysteroid dehydrogenase deficiency'][0],
-            ('http://www.orpha.net/ORDO/Orphanet_90791', None))
+            ('http://www.orpha.net/ORDO/Orphanet_90791',
+             'Congenital adrenal hyperplasia due to 3-beta-hydroxysteroid dehydrogenase deficiency'))
 
         self.assertEqual(
             self.efo_mappings['coronary artery disease/myocardial infarction'],

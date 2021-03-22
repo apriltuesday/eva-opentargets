@@ -2,10 +2,10 @@ import os
 
 from eva_cttv_pipeline import clinvar_xml_utils
 
-OT_SCHEMA_VERSION = "2.0.5"
+OT_SCHEMA_VERSION = "2.0.6"
 
 test_dir = os.path.dirname(__file__)
-efo_mapping_file = os.path.join(test_dir, 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
+efo_mapping_file = os.path.join(test_dir, 'resources', 'string_to_ontology_mappings.tsv')
 snp_2_gene_file = os.path.join(test_dir, 'resources/snp2gene_extract.tsv')
 test_clinvar_record_file = os.path.join(test_dir, 'resources/test_clinvar_record.xml.gz')
 expected_genetics_evidence_string = os.path.join(test_dir, 'resources/expected_genetics_evidence_string.json')

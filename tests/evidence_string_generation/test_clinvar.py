@@ -24,7 +24,8 @@ class TestClinvarRecord(unittest.TestCase):
         self.assertEqual(self.test_clinvar_record.accession, 'RCV000002127')
 
     def test_traits(self):
-        self.assertEqual(self.test_clinvar_record.traits[0].name, 'Leber congenital amaurosis 13')
+        self.assertEqual(self.test_clinvar_record.traits[0].preferred_name, 'Leber congenital amaurosis 13')
+        self.assertEqual(self.test_clinvar_record.traits[0].preferred_or_other_name, 'Leber congenital amaurosis 13')
 
     def test_trait_pubmed_refs(self):
         self.assertEqual(self.test_clinvar_record.traits[0].pubmed_refs, [20301475, 20301590, 30285347])

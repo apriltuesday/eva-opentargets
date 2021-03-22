@@ -257,7 +257,8 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* disease names from that ClinVar record
-        'cohortPhenotypes': sorted([trait.name for trait in clinvar_record.traits if trait.name is not None]),
+        'cohortPhenotypes': sorted([trait.preferred_or_other_name for trait in clinvar_record.traits
+                                    if trait.preferred_or_other_name is not None]),
 
         # One disease name for this evidence string (see group_diseases_by_efo_mapping)
         'diseaseFromSource': disease_name,
@@ -310,15 +311,9 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         # Example of such an identifier: 14:23423715:G:A
         coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
-        # Non-ATGC allele sequences are not accepted by Open Targets schema 2.0.5
-        # Example: 12_32625716_G_H (from RCV000032000)
+        # Log unusual variants with IUPAC ambiguity symbols. Example: 12_32625716_G_H (from RCV000032000)
         if ILLEGAL_ALLELE_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
-            logger.warning(f'Skipping variant with non-ACGT allele sequences: {coord_id}')
-            return []
-        # FIXME: Open Targets schema 2.0.5 does not support mitochondrial variants, so they are not being processed
-        if clinvar_record_measure.chr == 'MT':
-            logger.warning(f'Skipping mitochondrial variant: {coord_id}')
-            return []
+            logger.warning(f'Observed variant with non-ACGT allele sequences: {coord_id}')
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
 
@@ -405,21 +400,25 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
     # Group traits by their EFO mappings and explode multiple mappings
     efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID
     for trait in clinvar_record_traits:
-        if trait.name is None:
-            logger.warning(f'Skipping a trait without a preferred name in RCV {clinvar_rcv}')
-            continue
-        trait_name = trait.name.lower()
-        if trait_name not in string_to_efo_mappings:  # Traits without an EFO mapping are skipped
+        # Try to match using all trait names.
+        efo_mappings = []
+        for trait_name in trait.all_names:
+            efo_mappings.extend(string_to_efo_mappings.get(trait_name.lower(), []))
+        # Log any failures.
+        if efo_mappings is None:
             report.counters['n_missed_strings_unmapped_traits'] += 1
-            report.unmapped_traits[trait_name] += 1
+            if trait.preferred_or_other_name:
+                report.unmapped_traits[trait.preferred_or_other_name] += 1
+            else:
+                logging.warning(f'Encountered trait with no names: {trait}')
             continue
-        for efo_id, efo_label in string_to_efo_mappings[trait_name]:
+        for efo_id, efo_label in efo_mappings:
             efo_to_traits[efo_id].append(trait)
 
     # Generate tuples by keeping only one disease from each group
     grouped_tuples = []
     for efo_id, traits in efo_to_traits.items():
-        traits = sorted(traits, key=lambda t: t.name)
+        traits = sorted(traits, key=lambda t: t.preferred_or_other_name)
         selected_trait = traits[0]
-        grouped_tuples.append((selected_trait.name, selected_trait.medgen_id, efo_id))
+        grouped_tuples.append((selected_trait.preferred_or_other_name, selected_trait.medgen_id, efo_id))
     return grouped_tuples

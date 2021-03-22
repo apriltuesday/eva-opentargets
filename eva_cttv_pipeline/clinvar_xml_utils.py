@@ -88,7 +88,7 @@ class ClinVarRecord:
 
         # Add a list of traits
         self.trait_set = []
-        for trait in find_elements(self.rcv, './TraitSet/Trait[@Type="Disease"]'):
+        for trait in find_elements(self.rcv, './TraitSet/Trait'):
             self.trait_set.append(ClinVarTrait(trait, self))
 
         # We are currently only processing MeasureSets of type Variant which are included directly in the RCV record.
@@ -181,12 +181,29 @@ class ClinVarTrait:
         self.clinvar_record = clinvar_record
 
     def __str__(self):
-        return f'ClinVarTrait object with name {self.name} from ClinVar record {self.clinvar_record.accession}'
+        return f'ClinVarTrait object with name {self.preferred_or_other_name} from ClinVar record ' \
+               f'{self.clinvar_record.accession}'
 
     @property
-    def name(self):
+    def all_names(self):
+        """Returns a lexicographically sorted list of all trait names, including the preferred one (if any)."""
+        return sorted(name.text for name in find_elements(self.trait_xml, './Name/ElementValue'))
+
+    @property
+    def preferred_name(self):
         name = find_optional_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]')
         return None if name is None else name.text
+
+    @property
+    def preferred_or_other_name(self):
+        """Returns a preferred trait name, if present. Otherwise, returns the name which is the first
+        lexicographically."""
+        if self.preferred_name:
+            return self.preferred_name
+        elif self.all_names:
+            return self.all_names[0]
+        else:
+            return None
 
     @property
     def pubmed_refs(self):
