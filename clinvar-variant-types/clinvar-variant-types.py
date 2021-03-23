@@ -154,7 +154,9 @@ for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
             for trait in traits:
                 if len(trait.all_names) > 1:
                     names_category = 'Multiple names per trait'
-            sankey_trait_representation.add_transitions('Variant', traits_category, names_category)
+            sankey_trait_representation.add_transitions('Variant', traits_category)
+            if traits_category != 'No traits':
+                sankey_trait_representation.add_transitions(traits_category, names_category)
 
             # Clinical significance
             clinical_significance = clinvar_record.clinical_significance_raw
