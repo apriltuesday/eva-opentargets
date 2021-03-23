@@ -22,7 +22,7 @@ def get_requires():
 
 
 setup(name='eva_cttv_pipeline',
-      version='2.0.2',
+      version='2.0.3.dev',
       packages=find_packages(),
       install_requires=get_requires(),
       package_data={
