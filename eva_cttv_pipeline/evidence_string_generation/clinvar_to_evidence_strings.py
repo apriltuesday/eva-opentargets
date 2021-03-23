@@ -190,13 +190,11 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # 3. Genes where the variant has effect
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
 
-        # If at least one of the resulting groups is empty, report and skip generation for this evidence string.
+        # If at least one of the resulting groups is empty, add this to the report.
         if not grouped_allele_origins:
             report.counters['n_records_no_recognised_allele_origin'] += 1
-            continue
         if not consequence_types:
             report.counters['n_no_variant_to_ensg_mapping'] += 1
-            continue
         if not grouped_diseases:
             report.counters['n_missed_strings_unmapped_traits'] += 1
             if not clinvar_record.traits:
