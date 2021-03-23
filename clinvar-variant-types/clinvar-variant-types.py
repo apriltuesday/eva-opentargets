@@ -145,7 +145,7 @@ for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
             # Trait representation
             traits = clinvar_record.traits
             if len(traits) == 0:
-                traits_category = 'No traits'
+                raise AssertionError('There must always be at least one trait')
             elif len(traits) == 1:
                 traits_category = 'One trait'
             else:
@@ -154,7 +154,7 @@ for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
             for trait in traits:
                 if len(trait.all_names) > 1:
                     names_category = 'Multiple names per trait'
-            sankey_trait_representation.add_transitions('Variant', traits_category)
+            sankey_trait_representation.add_transitions('Variant', clinvar_record.trait_set_type, traits_category)
             if traits_category != 'No traits':
                 sankey_trait_representation.add_transitions(traits_category, names_category)
 

@@ -40,11 +40,15 @@ As of 2021-03-19, the most common case is MeasureSet/Variant, accounting for 1,1
 
 ![](diagrams/traits.png)
 
-The diagram above demonstrates two properties for each Variant record:
-* Whether it contains no trait records, one record, or multiple;
-* Whether at least one of the trait records contains more than one name.
+Each Variant record contains exactly one **trait set.** A trait set has a particular type assigned to it which represents the nature of the traits combined within it. Some examples are disease, drug response, or physiological measurement.
 
-Only traits of type “Disease” are processed by the pipeline and demonstrated in this diagram.
+A trait set contains one, or multiple **traits.**
+
+In turn, each trait has one or multiple **names** (synonyms) assigned to it.
+
+The diagram above demonstrates all these relationships. For a trait set with multiple traits, the rightmost part of the diagram means:
+* “One name per trait” = _every_ trait in a trait set has at most one name;
+* “multiple names per trait” = at least one trait in a trait set has multiple names.
 
 
 

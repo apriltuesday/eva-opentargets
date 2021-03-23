@@ -142,6 +142,10 @@ class ClinVarRecord:
         })
 
     @property
+    def trait_set_type(self):
+        return find_mandatory_unique_element(self.rcv, './TraitSet').attrib['Type']
+
+    @property
     def traits(self):
         """Returns a list of traits associated with the ClinVar record, in the form of Trait objects."""
         return self.trait_set
