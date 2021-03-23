@@ -40,15 +40,15 @@ As of 2021-03-19, the most common case is MeasureSet/Variant, accounting for 1,1
 
 ![](diagrams/traits.png)
 
-Each Variant record contains exactly one **trait set.** A trait set has a particular type assigned to it which represents the nature of the traits combined within it. Some examples are disease, drug response, or physiological measurement.
+Each Variant record contains exactly one **trait set** of a particular type, which represents the nature of the traits combined within it, for example disease or drug response.
 
-A trait set contains one, or multiple **traits.**
+A trait set contains one or multiple **traits.**
 
 In turn, each trait has one or multiple **names** (synonyms) assigned to it.
 
 The diagram above demonstrates all these relationships. For a trait set with multiple traits, the rightmost part of the diagram means:
 * “One name per trait” = _every_ trait in a trait set has at most one name;
-* “multiple names per trait” = at least one trait in a trait set has multiple names.
+* “Multiple names per trait” = at least one trait in a trait set has multiple names.
 
 
 
