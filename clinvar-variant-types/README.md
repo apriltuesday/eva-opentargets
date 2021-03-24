@@ -1,42 +1,29 @@
 # ClinVar data model and attribute value distributions
 
-The script in this directory parses ClinVar XML types and calculates statistics on all possible ways the variants can be represented. The results are described below.
+The script in this directory parses the ClinVar XML data dump and constructs several diagrams and tables which illustrate how variation and disease data are represented. This helps guide the design of the pipeline and its output structure.
 
-## Running the script
+The data was last updated on **2021-03-19.** Graphs can be enlarged by clicking on them.
+
+
+
+## Updating the data
 
 ```bash
 wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
-python3 \
-  clinvar-variant-types.py \
-  --clinvar-xml ClinVarFullRelease_00-latest.xml.gz
+python3 clinvar-variant-types.py --clinvar-xml ClinVarFullRelease_00-latest.xml.gz
 ```
 
-## Results
+The source code for diagrams and tables will be printed to STDOUT. The diagrams can then be built using the website http://sankeymatic.com/build/. Parameters for rendering them will be indicated in the output as well. The tables should be copy-pasted into the [corresponding Markdown file](supplementary-tables.md).
 
-Graphs can be enlarged by clicking on them. Dates in parentheses specify when the graph was last updated.
 
-### Data model and variant types (2020-07-06)
 
-![](variant-types.png)
+## Variation representation
+
+![](diagrams/variant-types.png)
 
 **RCV** is the top level of ClinVar data organisation. It is a record which associates one or more traits (usually diseases) with exactly one _VCV record,_ which can be one of two types:
-* **MeasureSet** contains one or more _Measures_ (which are basically individual, isolated variants). Its type can be one of four values:
-  - **Variant.** This means that the measure “set” has the length of 1 and contains just a single isolated variant. This variant can be one of the following subtypes, listed in the decreasing order of occurrence:
-    + single nucleotide variant
-    + Deletion
-    + copy number loss
-    + copy number gain
-    + Duplication
-    + Microsatellite
-    + Indel
-    + Insertion
-    + Variation
-    + Inversion
-    + Translocation
-    + protein only
-    + Complex
-    + fusion
-    + Tandem duplication
+* **MeasureSet** contains one or more _Measures._ (Each Measure is essentially an individual, isolated variant.) The MeasureSet can be one of four types:
+  - **Variant.** This means that the measure “set” has the size of 1 and contains just a single isolated variant. This variant can be one of the subtypes illustrated on the diagram.
   - Three other complex types, which were not investigated further in this analysis. They may contain multiple Measures (variants), which must all be interpreted together:
     + **Haplotype.** A collection of variants phased on the same chromosome copy and usually inherited together.
     + **Phase unknown**
@@ -45,37 +32,79 @@ Graphs can be enlarged by clicking on them. Dates in parentheses specify when th
   - **CompoundHeterozygote.** Presumably this should include exactly two variants which are _trans_ phased and interpreted together.
   - **Diplotype.** Similar, but at least one of the _trans_ phased alleles includes a haplotype. An example of this would be three variants located on one copy of the gene, and one variant in the second one, all interpreted together.
 
-As of July 2020, the most common case is the MeasureSet/Variant one, accounting for 1114689 out of 1117817 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.**
+As of 2021-03-19, the most common case is MeasureSet/Variant, accounting for 1,193,055 out of 1,196,231 RCV records, or >99.7%. **Currently, this is the only type being processed by this pipeline.** All following diagrams also examine distributions only within that record type.
 
-### Clinical significance (2020-07-06)
 
-Calculated from `ClinVarFullRelease_2020-0706.xml.gz`.
 
-![](clinical-significance.png)
+## Trait representation
 
-Under the current criteria, 188,518 out of 1,114,689 (17%) records are being processed.
+![](diagrams/traits.png)
 
-For the situations where multiple clinical significance levels were reported for a given association, they are converted into a single composite string, e.g. `Benign/Likely benign, other`.
+Each Variant record contains exactly one **trait set** of a particular type, which represents the nature of the traits combined within it, for example disease or drug response.
 
-### Star rating and review status (2020-07-06)
+A trait set contains one or multiple **traits.**
 
-![](star-rating.png)
+In turn, each trait has one or multiple **names** (synonyms) assigned to it.
 
-The distribution of records by star rating is:
-* ☆☆☆☆ 142,855 (13%)
-* ★☆☆☆ 894,109 (80%)
-* ★★☆☆ 66,107 (6%)
-* ★★★☆ 11,583 (1%)
-* ★★★★ 35 (< 0.01%)
+The diagram above demonstrates all these relationships. For a trait set with multiple traits, the rightmost part of the diagram means:
+* “One name per trait” = _every_ trait in a trait set has at most one name;
+* “Multiple names per trait” = at least one trait in a trait set has multiple names.
 
-### Mode of inheritance (2020-07-21)
 
-![](mode-of-inheritance.png)
 
-Only a small fraction of all records specify their mode of inheritance: 35,009 out of 1,114,689, or about 3%.
+## Clinical significance
 
-### Allele origin (2020-10-13)
+![](diagrams/clinical-significance.png)
 
-![](allele-origin.png)
+Clinical significance can be either “Simple” (only one level present per Variant record) or “Complex” (multiple levels are present, separated by slashes and/or commas).
 
-All records specify an allele origin. It can be either a single value (the majority of them) or multiple ones.
+Supplementary tables:
+* [**Complex clinical significance levels**](supplementary-tables.md#complex-clinical-significance-levels). This is simply the part of the distribution which is not shown on the diagram above for readability.
+* [**All clinical significance levels.**](supplementary-tables.md#all-clinical-significance-levels) This is the cumulative count for both simple and complex cases. For complex cases, the levels are split and counted individually. Hence, the total in this table will be higher than the total number of Variant records.
+
+
+
+## Star rating and review status
+
+These fields reflect the strength of evidence supporting the assertion of variant/disease association contained in the ClinVar record.
+
+![](diagrams/star-rating.png)
+
+### Distribution of records by star rating
+Star rating|Count
+:--|:--
+☆☆☆☆|161196
+★☆☆☆|949515
+★★☆☆|70117
+★★★☆|12185
+★★★★|42
+
+
+
+## Mode of inheritance
+
+![](diagrams/mode-of-inheritance.png)
+
+Only a small fraction of all records specify their mode of inheritance: 41,270 out of 1,193,055, or about 3.5%. The possible scenarios can be broadly divided into four categories: missing values; germline (single or multiple values); somatic; germline & somatic mixed (multiple values).
+
+Supplementary table: [**Records with multiple mode of inheritance values.**](supplementary-tables.md#records-with-multiple-mode-of-inheritance-values)
+
+
+
+## Allele origin
+
+![](diagrams/allele-origin.png)
+
+All Variant records, save for a few, specify an allele origin. The values can be divided in the same broad categories as modes of inheritance.
+
+Supplementary table: [**Records with multiple allele origin values.**](supplementary-tables.md#records-with-multiple-allele-origin-values)
+
+
+
+## Mapping between mode of inheritance and allele origin
+
+In theory, for single values the categories of mode of inheritance and allele origin (germline / somatic / germline & somatic) must always be the same. The following diagram illustrates the mapping from one to the other in practice. For readability, it shows only the records where *both* allele origin and mode of inheritance are present:
+
+![](diagrams/inheritance-origin.png)
+
+The majority of records can be seen to conform to the rules. For the list of exceptions, see supplementary table: [**Records with inconsistent mode of inheritance and allele origin values.**](supplementary-tables.md#records-with-inconsistent-mode-of-inheritance-and-allele-origin-values)
