@@ -186,13 +186,24 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # 1. Allele origins
         grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
         # 2. EFO mappings
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings, report,
-                                                         clinvar_record.accession)
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings)
         # 3. Genes where the variant has effect
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+
+        # If at least one of the resulting groups is empty, add this to the report.
+        if not grouped_allele_origins:
+            report.counters['n_records_no_recognised_allele_origin'] += 1
         if not consequence_types:
             report.counters['n_no_variant_to_ensg_mapping'] += 1
-            continue
+        if not grouped_diseases:
+            report.counters['n_missed_strings_unmapped_traits'] += 1
+            if not clinvar_record.traits:
+                unmapped_trait = 'No traits present in ClinVar record'
+            elif not clinvar_record.traits[0].preferred_or_other_name:
+                unmapped_trait = 'Trait with no name in ClinVar record'
+            else:
+                unmapped_trait = clinvar_record.traits[0].preferred_or_other_name
+            report.unmapped_traits[unmapped_trait] += 1
 
         for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                 grouped_allele_origins, grouped_diseases, consequence_types):
@@ -377,7 +388,7 @@ def convert_allele_origins(orig_allele_origins):
     return converted_allele_origins
 
 
-def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings, report, clinvar_rcv):
+def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings):
     """Processes and groups diseases from a ClinVar record in two ways. First, diseases mapping to the same EFO term are
     grouped together. Second, if a group of diseases has multiple EFO mappings, they are split into separate groups.
     For each group, the tuple of the following values is returned: (1) the original name of the disease which comes
@@ -401,19 +412,9 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings,
     efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID
     for trait in clinvar_record_traits:
         # Try to match using all trait names.
-        efo_mappings = []
         for trait_name in trait.all_names:
-            efo_mappings.extend(string_to_efo_mappings.get(trait_name.lower(), []))
-        # Log any failures.
-        if efo_mappings is None:
-            report.counters['n_missed_strings_unmapped_traits'] += 1
-            if trait.preferred_or_other_name:
-                report.unmapped_traits[trait.preferred_or_other_name] += 1
-            else:
-                logging.warning(f'Encountered trait with no names: {trait}')
-            continue
-        for efo_id, efo_label in efo_mappings:
-            efo_to_traits[efo_id].append(trait)
+            for efo_id, efo_label in string_to_efo_mappings.get(trait_name.lower(), []):
+                efo_to_traits[efo_id].append(trait)
 
     # Generate tuples by keeping only one disease from each group
     grouped_tuples = []
