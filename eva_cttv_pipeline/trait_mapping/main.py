@@ -2,6 +2,7 @@ import csv
 import logging
 import multiprocessing
 
+from eva_cttv_pipeline.clinvar_xml_utils import ClinVarTrait
 from eva_cttv_pipeline.trait_mapping.output import output_trait
 from eva_cttv_pipeline.trait_mapping.oxo import get_oxo_results
 from eva_cttv_pipeline.trait_mapping.oxo import uris_to_oxo_format
@@ -13,9 +14,7 @@ from eva_cttv_pipeline.trait_mapping.zooma import get_zooma_results
 logger = logging.getLogger(__package__)
 
 # These ambiguous trait names cannot be resolved to a specific disease and must not be output
-# TODO: Also use this in the future refactor of the quality control system (see issue #114)
-NONSPECIFIC_TRAITS = {'disease', 'not provided', 'not specified', 'reclassified - variant of unknown significance',
-                      'see cases', 'variant of unknown significance'}
+NONSPECIFIC_TRAITS = ClinVarTrait.NONSPECIFIC_TRAITS
 
 
 def get_uris_for_oxo(zooma_result_list: list) -> set:

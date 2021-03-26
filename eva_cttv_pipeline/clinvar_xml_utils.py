@@ -150,6 +150,10 @@ class ClinVarRecord:
         """Returns a list of traits associated with the ClinVar record, in the form of Trait objects."""
         return self.trait_set
 
+    def traits_with_valid_names(self):
+        """Returns a list of traits which have at least one valid (potentially resolvable) name."""
+        return [trait for trait in self.trait_set if trait.preferred_or_other_valid_name]
+
     @property
     def evidence_support_pubmed_refs(self):
         """The references of this type represent evidence support for this specific variant being observed in this
@@ -180,12 +184,19 @@ class ClinVarTrait:
     """Represents a single ClinVar trait (usually a disease), with the corresponding database and Pubmed
     cross-references."""
 
+    # Some trait records in ClinVar contain names which are non-specific and cannot possibly be resolved to any
+    # meaningful EFO term.
+    NONSPECIFIC_TRAITS = {
+        '', 'disease', 'not provided', 'not specified', 'reclassified - variant of unknown significance', 'see cases',
+        'variant of unknown significance'
+    }
+
     def __init__(self, trait_xml, clinvar_record):
         self.trait_xml = trait_xml
         self.clinvar_record = clinvar_record
 
     def __str__(self):
-        return f'ClinVarTrait object with name {self.preferred_or_other_name} from ClinVar record ' \
+        return f'ClinVarTrait object with name {self.preferred_or_other_valid_name} from ClinVar record ' \
                f'{self.clinvar_record.accession}'
 
     @property
@@ -194,18 +205,24 @@ class ClinVarTrait:
         return sorted(name.text for name in find_elements(self.trait_xml, './Name/ElementValue'))
 
     @property
+    def all_valid_names(self):
+        """Returns a lexicographically sorted list of all valid trait names. A valid name is defined as something which
+        is not contained in the list of nonspecific traits, which cannot possibly be resolved to a valid EFO mapping."""
+        return [name for name in self.all_names if name not in self.NONSPECIFIC_TRAITS]
+
+    @property
     def preferred_name(self):
+        """Returns a single preferred name, as incidated in the ClinVar record."""
         name = find_optional_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]')
         return None if name is None else name.text
 
     @property
-    def preferred_or_other_name(self):
-        """Returns a preferred trait name, if present. Otherwise, returns the name which is the first
-        lexicographically."""
-        if self.preferred_name:
+    def preferred_or_other_valid_name(self):
+        """Returns a consistent valid name for a trait, if one is present."""
+        if self.preferred_name and self.preferred_name not in self.NONSPECIFIC_TRAITS:
             return self.preferred_name
-        elif self.all_names:
-            return self.all_names[0]
+        elif self.all_valid_names:
+            return self.all_valid_names[0]
         else:
             return None
 

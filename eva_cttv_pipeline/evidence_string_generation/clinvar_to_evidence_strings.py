@@ -268,8 +268,8 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* disease names from that ClinVar record
-        'cohortPhenotypes': sorted([trait.preferred_or_other_name for trait in clinvar_record.traits
-                                    if trait.preferred_or_other_name is not None]),
+        'cohortPhenotypes': sorted([trait.preferred_or_other_valid_name for trait in clinvar_record.traits
+                                    if trait.preferred_or_other_valid_name is not None]),
 
         # One disease name for this evidence string (see group_diseases_by_efo_mapping)
         'diseaseFromSource': disease_name,
@@ -419,7 +419,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
     # Generate tuples by keeping only one disease from each group
     grouped_tuples = []
     for efo_id, traits in efo_to_traits.items():
-        traits = sorted(traits, key=lambda t: t.preferred_or_other_name)
+        traits = sorted(traits, key=lambda t: t.preferred_or_other_valid_name)
         selected_trait = traits[0]
-        grouped_tuples.append((selected_trait.preferred_or_other_name, selected_trait.medgen_id, efo_id))
+        grouped_tuples.append((selected_trait.preferred_or_other_valid_name, selected_trait.medgen_id, efo_id))
     return grouped_tuples
