@@ -4,7 +4,7 @@ import json
 import re
 import sys
 import os
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import jsonschema
 
@@ -19,6 +19,7 @@ IUPAC_AMBIGUOUS_SEQUENCE = re.compile(r'[^ACGT]')
 # Output file names
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
 EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
+UNMAPPED_TRAITS_FILE_NAME = 'unmapped_traits.tsv'
 
 
 class Report:
@@ -41,14 +42,14 @@ class Report:
         self.clinvar_done_multiple_evidence_strings = 0
 
         # Total number of trait-to-ontology mappings present in the database
-        self.total_trait_mappings = len(trait_mappings)
+        self.total_trait_mappings = sum([len(mappings) for mappings in trait_mappings.values()])
         # All distinct (trait name, EFO ID) mappings used in the evidence strings
         self.used_trait_mappings = set()
         # All unmapped trait names which prevented evidence string generation and their counts
-        self.unmapped_trait_names = set()
+        self.unmapped_trait_names = Counter()
 
         # Variant-to-consequence mapping counts
-        self.total_consequence_mappings = len(consequence_mappings)
+        self.total_consequence_mappings = sum([len(mappings) for mappings in consequence_mappings.values()])
         self.repeat_expansion_variants = 0
 
     @staticmethod
@@ -96,6 +97,11 @@ class Report:
 
         return self.generate_report_from_lines(lines)
 
+    def write_unmapped_terms(self, dir_out):
+        with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
+            for trait, number_of_occurrences in sorted(self.unmapped_trait_names.items(), key=lambda x: -x[1]):
+                unmapped_traits_file.write(f'{trait}\t{number_of_occurrences}\n')
+
 
 def validate_evidence_string(ev_string, ot_schema_contents):
     try:
@@ -118,6 +124,7 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
         output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
     print(report.collate_report())
+    report.write_unmapped_terms(dir_out)
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
@@ -131,9 +138,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         report.clinvar_total += 1
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')
-
-        if report.clinvar_total > 10000:
-            break
+        if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
+            report.repeat_expansion_variants += 1
 
         # Failure mode 1 (fatal). A ClinVar record contains no allele origin.
         if not clinvar_record.allele_origins:
@@ -155,7 +161,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # origins, (2) EFO mappings, and (3) genes where the variant has effect.
         grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names(),
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                          string_to_efo_mappings)
 
         # Failure mode 4 (skip). No functional consequences are available.
@@ -168,7 +174,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         if not grouped_diseases:
             report.clinvar_skip_missing_efo_mapping += 1
             unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
-            report.unmapped_trait_names.add(unmapped_trait_name)
+            report.unmapped_trait_names[unmapped_trait_name] += 1
             continue
 
         assert grouped_allele_origins and grouped_diseases and consequence_types, \
@@ -195,8 +201,6 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         else:
             report.clinvar_done_multiple_evidence_strings += 1
         report.evidence_string_count += evidence_strings_generated
-        if clinvar_record.measure.is_repeat_expansion_variant:
-            report.repeat_expansion_variants += 1
 
     output_evidence_strings_file.close()
     return report

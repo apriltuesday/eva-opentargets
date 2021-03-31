@@ -188,8 +188,8 @@ class ClinVarTrait:
     # Some trait records in ClinVar contain names which are non-specific and cannot possibly be resolved to any
     # meaningful EFO term.
     NONSPECIFIC_TRAITS = {
-        '', 'disease', 'not provided', 'not specified', 'reclassified - variant of unknown significance', 'see cases',
-        'variant of unknown significance'
+        '', 'allhighlypenetrant', 'disease', 'not provided', 'not specified',
+        'reclassified - variant of unknown significance', 'see cases', 'variant of unknown significance'
     }
 
     def __init__(self, trait_xml, clinvar_record):
@@ -209,7 +209,7 @@ class ClinVarTrait:
     def all_valid_names(self):
         """Returns a lexicographically sorted list of all valid trait names. A valid name is defined as something which
         is not contained in the list of nonspecific traits, which cannot possibly be resolved to a valid EFO mapping."""
-        return [name for name in self.all_names if name not in self.NONSPECIFIC_TRAITS]
+        return [name for name in self.all_names if name.lower() not in self.NONSPECIFIC_TRAITS]
 
     @property
     def preferred_name(self):
@@ -220,7 +220,7 @@ class ClinVarTrait:
     @property
     def preferred_or_other_valid_name(self):
         """Returns a consistent valid name for a trait, if one is present."""
-        if self.preferred_name and self.preferred_name not in self.NONSPECIFIC_TRAITS:
+        if self.preferred_name and self.preferred_name.lower() not in self.NONSPECIFIC_TRAITS:
             return self.preferred_name
         elif self.all_valid_names:
             return self.all_valid_names[0]
