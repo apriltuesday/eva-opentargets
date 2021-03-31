@@ -61,4 +61,4 @@ Approximately one month before the submission deadline, OpenTargets will contact
 
 See details [here](docs/workflow-diagram) about how to regenerate this diagram from source.
 
-There is also a [presentation](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM) describing the workflow in more detail. However, it was last updated 1.5 years ago and part of it can be seriously obsolete.
+There is also a [presentation](https://docs.google.com/presentation/d/1kr1orv08ZGnPGKNu6vQk4wFYIrufu_iIDf-drCc21vY) describing the workflow in more detail.
