@@ -11,7 +11,7 @@ In order to regenerate the workflow diagram from source, use the commands:
 npm install @mermaid-js/mermaid-cli
 
 # Generate the diagram
-./node_modules/.bin/mmdc -i workflow.mmd -o workflow.png
+./node_modules/.bin/mmdc -i workflow.mmd -w 2000 -H 1000 -o workflow.png
 ```
 
 ## Live editor
