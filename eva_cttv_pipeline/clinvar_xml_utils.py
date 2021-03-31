@@ -150,6 +150,7 @@ class ClinVarRecord:
         """Returns a list of traits associated with the ClinVar record, in the form of Trait objects."""
         return self.trait_set
 
+    @property
     def traits_with_valid_names(self):
         """Returns a list of traits which have at least one valid (potentially resolvable) name."""
         return [trait for trait in self.trait_set if trait.preferred_or_other_valid_name]

@@ -1,6 +1,5 @@
 import logging
 import itertools
-import copy
 import json
 import re
 import sys
@@ -14,129 +13,88 @@ from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)
 
-# Illegal allele regular expression
-ILLEGAL_ALLELE_SEQUENCE = re.compile(r'[^ACGT]')
+# A regular expression to detect alleles with IUPAC ambiguity bases
+IUPAC_AMBIGUOUS_SEQUENCE = re.compile(r'[^ACGT]')
 
-# Output settings
+# Output file names
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
 EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
-UNMAPPED_TRAITS_FILE_NAME = 'unmappedTraits.tsv'
-UNAVAILABLE_EFO_FILE_NAME = 'unavailableefo.tsv'
-NSV_LIST_FILE = 'nsvlist.txt'
 
 
 class Report:
-    """Holds counters and other records of a pipeline run. Includes method to write to output files, and __str__ shows
-    the summary of the report. One instance of this class is instantiated in the running of the pipeline."""
+    """Holds counters and other records for a pipeline run."""
 
-    def __init__(self, trait_mappings=None):
-        if trait_mappings is None:
-            self.trait_mappings = {}
-        else:
-            self.trait_mappings = copy.deepcopy(trait_mappings)
+    def __init__(self, trait_mappings, consequence_mappings):
+        self.report_strings = []
 
-        self.unrecognised_clin_sigs = set()
-        self.ensembl_gene_id_uris = set()
-        self.traits = set()
-        self.n_unrecognised_allele_origin = defaultdict(int)
-        self.nsv_list = []
-        self.unmapped_traits = defaultdict(int)
+        # The main evidence string counter
         self.evidence_string_count = 0
-        self.counters = self.__get_counters()
 
-    def __str__(self):
+        # ClinVar record counters
+        self.clinvar_total = 0
+        self.clinvar_fatal_no_allele_origin = 0
+        self.clinvar_fatal_no_valid_traits = 0
+        self.clinvar_skip_unsupported_variation = 0
+        self.clinvar_skip_no_functional_consequences = 0
+        self.clinvar_skip_missing_efo_mapping = 0
+        self.clinvar_done_one_evidence_string = 0
+        self.clinvar_done_multiple_evidence_strings = 0
 
-        report_strings = [
-            str(self.counters["record_counter"]) + ' ClinVar records in total',
-            str(self.evidence_string_count) + ' evidence string jsons generated',
-            str(self.counters["n_processed_clinvar_records"]) +
-            ' ClinVar records generated at least one evidence string',
-            str(len(self.unrecognised_clin_sigs)) +
-            " Clinical significance string(s) not found " +
-            "among those described in ClinVar documentation:",
-            str(self.unrecognised_clin_sigs),
-            str(self.counters["n_same_ref_alt"]) +
-            ' ClinVar records with allowed clinical significance ' +
-            'did present the same reference and alternate and were skipped',
-            'Activities of those ClinVar records with ' +
-            'unrecognized clinical significances were set to "unknown".',
-            str(len(self.ensembl_gene_id_uris)) +
-            ' distinct ensembl gene ids appear in generated evidence string json objects',
-            str(len(self.traits)) +
-            ' distinct trait names found to include in generated evidence string json objects',
-            str(self.counters["n_pathogenic_no_rs"]) +
-            ' ClinVar records with allowed clinical significance DO NOT have an rs id',
-            str(self.counters["n_multiple_evidence_strings"]) +
-            ' ClinVar records generated more than one evidence_string',
-            str(self.counters["n_germline_somatic"]) +
-            ' ClinVar records with germline and somatic origins',
-            str(self.counters["n_multiple_allele_origin"]) +
-            ' ClinVar records with more than one allele origin',
-            'Number valid ClinVar records with unprocessed allele origins:'
-        ]
+        # Total number of trait-to-ontology mappings present in the database
+        self.total_trait_mappings = len(trait_mappings)
+        # All distinct (trait name, EFO ID) mappings used in the evidence strings
+        self.used_trait_mappings = set()
+        # All unmapped trait names which prevented evidence string generation and their counts
+        self.unmapped_trait_names = set()
 
-        report_strings.extend(
-            [' ' + alleleOrigin + ': ' +
-             str(self.n_unrecognised_allele_origin[alleleOrigin])
-             for alleleOrigin in self.n_unrecognised_allele_origin])
-
-        report_strings.extend([
-            str(self.counters["n_no_variant_to_ensg_mapping"]) +
-            ' ClinVar records with allowed clinical significance and valid rs id ' +
-            'were skipped due to a lack of Variant->ENSG mapping.',
-            str(self.counters["n_missed_strings_unmapped_traits"]) +
-            ' ClinVar records with allowed clinical significance, valid rs id and ' +
-            'Variant->ENSG mapping were skipped due to a lack of EFO mapping (see ' +
-            UNMAPPED_TRAITS_FILE_NAME + ').',
-            str(self.counters["n_records_no_recognised_allele_origin"]) +
-            ' ClinVar records with allowed clinical significance, ' +
-            'valid rs id, valid Variant->ENSG' +
-            ' mapping and valid EFO mapping were skipped due to a lack of a valid alleleOrigin.',
-            str(self.counters["n_more_than_one_efo_term"]) +
-            ' evidence strings with more than one trait mapped to EFO terms',
-            str(self.counters["n_valid_rs_and_nsv"]) +
-            ' evidence strings were generated from ClinVar records with rs and nsv ids',
-            str(self.counters["n_nsvs"]) + ' total nsvs found',
-            str(self.counters["n_nsv_skipped_clin_sig"]) +
-            ' ClinVar nsvs were skipped because of a different clinical significance',
-            str(self.counters["n_nsv_skipped_wrong_ref_alt"]) +
-            ' ClinVar nsvs were skipped because of same ref and alt'
-        ])
-
-        return '\n'.join(report_strings)
-
-    def write_output(self, dir_out):
-        write_string_list_to_file(self.nsv_list, dir_out + '/' + NSV_LIST_FILE)
-
-        # Contains traits without an ontology mapping
-        with open(dir_out + '/' + UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
-            fdw.write('Trait\tCount\n')
-            for trait_list in self.unmapped_traits:
-                fdw.write(str(trait_list) + '\t' +
-                          str(self.unmapped_traits[trait_list]) + '\n')
-
-    def remove_trait_mapping(self, trait_name):
-        if trait_name in self.trait_mappings:
-            del self.trait_mappings[trait_name]
+        # Variant-to-consequence mapping counts
+        self.total_consequence_mappings = len(consequence_mappings)
+        self.repeat_expansion_variants = 0
 
     @staticmethod
-    def __get_counters():
-        return {"n_processed_clinvar_records": 0,
-                "n_pathogenic_no_rs": 0,
-                "n_multiple_evidence_strings": 0,
-                "n_multiple_allele_origin": 0,
-                "n_germline_somatic": 0,
-                "n_records_no_recognised_allele_origin": 0,
-                "n_no_variant_to_ensg_mapping": 0,
-                "n_more_than_one_efo_term": 0,
-                "n_same_ref_alt": 0,
-                "n_missed_strings_unmapped_traits": 0,
-                "n_nsvs": 0,
-                "n_valid_rs_and_nsv": 0,
-                "n_nsv_skipped_clin_sig": 0,
-                "n_nsv_skipped_wrong_ref_alt": 0,
-                "record_counter": 0,
-                "n_total_clinvar_records": 0}
+    def generate_report_from_lines(lines):
+        return '\n'.join([
+            '\t'.join([str(field) for field in line])
+            for line in lines
+        ]) + '\n'
+
+    def collate_report(self):
+        # ClinVar tallies
+        clinvar_fatal = self.clinvar_fatal_no_allele_origin + self.clinvar_fatal_no_valid_traits
+        clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
+                           self.clinvar_skip_missing_efo_mapping)
+        clinvar_done = self.clinvar_done_one_evidence_string + self.clinvar_done_multiple_evidence_strings
+        assert clinvar_fatal + clinvar_skipped + clinvar_done == self.clinvar_total, \
+            'ClinVar evidence string tallies do not add up to the total amount.'
+
+        lines = [
+            ('Total number of evidence strings generated', self.evidence_string_count),
+            (),
+            ('Total number of ClinVar records', self.clinvar_total),
+            ('    Fatal: Cannot be processed ever', f'{clinvar_fatal}'),
+            ('        No allele origin', self.clinvar_fatal_no_allele_origin),
+            ('        No traits with valid names', self.clinvar_fatal_no_valid_traits),
+            ('    Skipped: Can be rescued by future improvements', f'{clinvar_skipped}'),
+            ('        Unsupported variation type', self.clinvar_skip_unsupported_variation),
+            ('        No functional consequences', self.clinvar_skip_no_functional_consequences),
+            ('        Missing EFO mapping', self.clinvar_skip_missing_efo_mapping),
+            ('    Done: Generated at least one evidence string', f'{clinvar_done}'),
+            ('        One evidence string', self.clinvar_done_one_evidence_string),
+            ('        Multiple evidence strings', self.clinvar_done_multiple_evidence_strings),
+            ('Percentage of all potentially supportable ClinVar records which generated at least one evidence string',
+             f'{clinvar_done / (clinvar_skipped + clinvar_done):.1%}'),
+            (),
+            ('Total number of trait-to-ontology mappings in the database', self.total_trait_mappings),
+            ('    The number of distinct trait-to-ontology mappings used in the evidence strings',
+             len(self.used_trait_mappings)),
+            ('The number of distinct unmapped trait names which prevented evidence string generation',
+             len(self.unmapped_trait_names)),
+            (),
+            ('Total number of variant to consequence mappings', self.total_consequence_mappings),
+            ('    Number of repeat expansion variants', self.repeat_expansion_variants),
+        ]
+
+        return self.generate_report_from_lines(lines)
 
 
 def validate_evidence_string(ev_string, ot_schema_contents):
@@ -159,52 +117,64 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
         output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
-    report.write_output(dir_out)
-    print(report)
+    print(report.collate_report())
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
                                 output_evidence_strings):
-    report = Report(trait_mappings=string_to_efo_mappings)
+    report = Report(trait_mappings=string_to_efo_mappings, consequence_mappings=variant_to_gene_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
 
     logger.info('Processing ClinVar records')
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(clinvar_xml):
-        report.counters['record_counter'] += 1
-        if report.counters['record_counter'] % 1000 == 0:
-            logger.info('{} records processed'.format(report.counters['record_counter']))
-        n_ev_strings_per_record = 0
+        report.clinvar_total += 1
+        if report.clinvar_total % 1000 == 0:
+            logger.info(f'{report.clinvar_total} records processed')
 
-        if clinvar_record.measure is None:  # No valid variants to process in this record
+        if report.clinvar_total > 10000:
+            break
+
+        # Failure mode 1 (fatal). A ClinVar record contains no allele origin.
+        if not clinvar_record.allele_origins:
+            report.clinvar_fatal_no_allele_origin += 1
             continue
-        report.counters['n_nsvs'] += (clinvar_record.measure.nsv_id is not None)
-        append_nsv(report.nsv_list, clinvar_record.measure)
-        report.counters['n_multiple_allele_origin'] += (len(clinvar_record.allele_origins) > 1)
 
-        # Within each ClinVar record, an evidence string is generated for all possible permutations of:
-        # 1. Allele origins
+        # Failure mode 2 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
+        # potentially mappable name).
+        if not clinvar_record.traits_with_valid_names:
+            report.clinvar_fatal_no_valid_traits += 1
+            continue
+
+        # Failure mode 3 (skip). A ClinVar record contains an unsupported variation type.
+        if clinvar_record.measure is None:
+            report.clinvar_skip_unsupported_variation += 1
+            continue
+
+        # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) allele
+        # origins, (2) EFO mappings, and (3) genes where the variant has effect.
         grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
-        # 2. EFO mappings
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits, string_to_efo_mappings)
-        # 3. Genes where the variant has effect
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names(),
+                                                         string_to_efo_mappings)
 
-        # If at least one of the resulting groups is empty, add this to the report.
-        if not grouped_allele_origins:
-            report.counters['n_records_no_recognised_allele_origin'] += 1
+        # Failure mode 4 (skip). No functional consequences are available.
         if not consequence_types:
-            report.counters['n_no_variant_to_ensg_mapping'] += 1
-        if not grouped_diseases:
-            report.counters['n_missed_strings_unmapped_traits'] += 1
-            if not clinvar_record.traits:
-                unmapped_trait = 'No traits present in ClinVar record'
-            elif not clinvar_record.traits[0].preferred_or_other_name:
-                unmapped_trait = 'Trait with no name in ClinVar record'
-            else:
-                unmapped_trait = clinvar_record.traits[0].preferred_or_other_name
-            report.unmapped_traits[unmapped_trait] += 1
+            report.clinvar_skip_no_functional_consequences += 1
+            continue
 
+        # Failure mode 5 (skip). A ClinVar records has at least one trait with at least one valid name, but no suitable
+        # EFO mappings were found in the database.
+        if not grouped_diseases:
+            report.clinvar_skip_missing_efo_mapping += 1
+            unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
+            report.unmapped_trait_names.add(unmapped_trait_name)
+            continue
+
+        assert grouped_allele_origins and grouped_diseases and consequence_types, \
+            'Some of the attribute lists are still empty even after passing all checks.'
+
+        evidence_strings_generated = 0
         for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                 grouped_allele_origins, grouped_diseases, consequence_types):
             disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
@@ -215,17 +185,18 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             validate_evidence_string(evidence_string, ot_schema_contents)
             output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
 
-            report.evidence_string_count += 1
-            report.counters['n_valid_rs_and_nsv'] += (clinvar_record.measure.nsv_id is not None)
-            report.traits.add(disease_mapped_efo_id)
-            report.remove_trait_mapping(disease_name)
-            report.ensembl_gene_id_uris.add(consequence_attributes.ensembl_gene_id)
-            n_ev_strings_per_record += 1
+            # Record some evidence string and trait metrics
+            evidence_strings_generated += 1
+            report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
 
-        if n_ev_strings_per_record > 0:
-            report.counters['n_processed_clinvar_records'] += 1
-            if n_ev_strings_per_record > 1:
-                report.counters['n_multiple_evidence_strings'] += 1
+        assert evidence_strings_generated != 0, 'No evidence strings generated despite all attributes passing checks.'
+        if evidence_strings_generated == 1:
+            report.clinvar_done_one_evidence_string += 1
+        else:
+            report.clinvar_done_multiple_evidence_strings += 1
+        report.evidence_string_count += evidence_strings_generated
+        if clinvar_record.measure.is_repeat_expansion_variant:
+            report.repeat_expansion_variants += 1
 
     output_evidence_strings_file.close()
     return report
@@ -323,7 +294,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
         # Log unusual variants with IUPAC ambiguity symbols. Example: 12_32625716_G_H (from RCV000032000)
-        if ILLEGAL_ALLELE_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
+        if IUPAC_AMBIGUOUS_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
             logger.warning(f'Observed variant with non-ACGT allele sequences: {coord_id}')
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
@@ -336,13 +307,6 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
 def write_string_list_to_file(string_list, filename):
     with open(filename, 'wt') as out_file:
         out_file.write('\n'.join(string_list))
-
-
-def append_nsv(nsv_list, clinvar_record_measure):
-    nsv = clinvar_record_measure.nsv_id
-    if nsv is not None:
-        nsv_list.append(nsv)
-    return nsv_list
 
 
 def load_efo_mapping(efo_mapping_file):
