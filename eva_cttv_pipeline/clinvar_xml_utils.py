@@ -213,7 +213,7 @@ class ClinVarTrait:
 
     @property
     def preferred_name(self):
-        """Returns a single preferred name, as incidated in the ClinVar record."""
+        """Returns a single preferred name, as indicated in the ClinVar record."""
         name = find_optional_unique_element(self.trait_xml, './Name/ElementValue[@Type="Preferred"]')
         return None if name is None else name.text
 
