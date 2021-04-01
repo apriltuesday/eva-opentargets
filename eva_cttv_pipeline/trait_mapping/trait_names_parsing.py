@@ -28,8 +28,8 @@ def parse_trait_names(filepath: str) -> list:
     nt_expansion_traits = set()
 
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
-        trait_names = set(trait.preferred_or_other_name.lower() for trait in clinvar_record.traits
-                          if trait.preferred_or_other_name is not None)
+        trait_names = set(trait.preferred_or_other_valid_name.lower()
+                          for trait in clinvar_record.traits_with_valid_names)
         for trait_name in trait_names:
             trait_name_counter[trait_name] += 1
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:

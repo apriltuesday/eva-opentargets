@@ -24,6 +24,7 @@
       <w>htslib</w>
       <w>intron</w>
       <w>introns</w>
+      <w>iupac</w>
       <w>libbz</w>
       <w>liblzma</w>
       <w>licensable</w>
@@ -39,6 +40,7 @@
       <w>trinucleotide</w>
       <w>unhashable</w>
       <w>vaccession</w>
+      <w>zooma</w>
     </words>
   </dictionary>
 </component>
