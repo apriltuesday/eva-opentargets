@@ -52,13 +52,6 @@ class Report:
         self.total_consequence_mappings = sum([len(mappings) for mappings in consequence_mappings.values()])
         self.repeat_expansion_variants = 0
 
-    @staticmethod
-    def generate_report_from_lines(lines):
-        return '\n'.join([
-            '\t'.join([str(field) for field in line])
-            for line in lines
-        ]) + '\n'
-
     def collate_report(self):
         # ClinVar tallies.
         clinvar_fatal = self.clinvar_fatal_no_allele_origin + self.clinvar_fatal_no_valid_traits
@@ -68,34 +61,30 @@ class Report:
         assert clinvar_fatal + clinvar_skipped + clinvar_done == self.clinvar_total, \
             'ClinVar evidence string tallies do not add up to the total amount.'
 
-        lines = [
-            ('Total number of evidence strings generated', self.evidence_string_count),
-            (),
-            ('Total number of ClinVar records', self.clinvar_total),
-            ('    Fatal: Cannot be processed ever', f'{clinvar_fatal}'),
-            ('        No allele origin', self.clinvar_fatal_no_allele_origin),
-            ('        No traits with valid names', self.clinvar_fatal_no_valid_traits),
-            ('    Skipped: Can be rescued by future improvements', f'{clinvar_skipped}'),
-            ('        Unsupported variation type', self.clinvar_skip_unsupported_variation),
-            ('        No functional consequences', self.clinvar_skip_no_functional_consequences),
-            ('        Missing EFO mapping', self.clinvar_skip_missing_efo_mapping),
-            ('    Done: Generated at least one evidence string', f'{clinvar_done}'),
-            ('        One evidence string', self.clinvar_done_one_evidence_string),
-            ('        Multiple evidence strings', self.clinvar_done_multiple_evidence_strings),
-            ('Percentage of all potentially supportable ClinVar records which generated at least one evidence string',
-             f'{clinvar_done / (clinvar_skipped + clinvar_done):.1%}'),
-            (),
-            ('Total number of trait-to-ontology mappings in the database', self.total_trait_mappings),
-            ('    The number of distinct trait-to-ontology mappings used in the evidence strings',
-             len(self.used_trait_mappings)),
-            ('The number of distinct unmapped trait names which prevented evidence string generation',
-             len(self.unmapped_trait_names)),
-            (),
-            ('Total number of variant to consequence mappings', self.total_consequence_mappings),
-            ('    Number of repeat expansion variants', self.repeat_expansion_variants),
-        ]
+        return f'''Total number of evidence strings generated\t{self.evidence_string_count}
 
-        return self.generate_report_from_lines(lines)
+            Total number of ClinVar records\t{self.clinvar_total}
+                Fatal: Cannot be processed ever\t{clinvar_fatal}
+                    No allele origin\t{self.clinvar_fatal_no_allele_origin}
+                    No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
+                Skipped: Can be rescued by future improvements\t{clinvar_skipped}
+                    Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
+                    No functional consequences\t{self.clinvar_skip_no_functional_consequences}
+                    Missing EFO mapping\t{self.clinvar_skip_missing_efo_mapping}
+                Done: Generated at least one evidence string\t{clinvar_done}
+                    One evidence string\t{self.clinvar_done_one_evidence_string}
+                    Multiple evidence strings\t{self.clinvar_done_multiple_evidence_strings}
+            Percentage of all potentially supportable ClinVar records which generated at least one evidence string\t{
+                clinvar_done / (clinvar_skipped + clinvar_done):.1%}
+
+            Total number of trait-to-ontology mappings in the database\t{self.total_trait_mappings}
+                The number of distinct trait-to-ontology mappings used in the evidence strings\t{
+                    len(self.used_trait_mappings)}
+            The number of distinct unmapped trait names which prevented evidence string generation\t{
+                len(self.unmapped_trait_names)}
+
+            Total number of variant to consequence mappings\t{self.total_consequence_mappings}
+                Number of repeat expansion variants\t{self.repeat_expansion_variants}'''.replace('\n' + ' ' * 12, '\n')
 
     def write_unmapped_terms(self, dir_out):
         with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
