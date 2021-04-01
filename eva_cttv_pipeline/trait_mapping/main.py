@@ -10,11 +10,7 @@ from eva_cttv_pipeline.trait_mapping.trait import Trait
 from eva_cttv_pipeline.trait_mapping.trait_names_parsing import parse_trait_names
 from eva_cttv_pipeline.trait_mapping.zooma import get_zooma_results
 
-
 logger = logging.getLogger(__package__)
-
-# These ambiguous trait names cannot be resolved to a specific disease and must not be output
-NONSPECIFIC_TRAITS = ClinVarTrait.NONSPECIFIC_TRAITS
 
 
 def get_uris_for_oxo(zooma_result_list: list) -> set:
@@ -95,7 +91,7 @@ def main(input_filepath, output_mappings_filepath, output_curation_filepath, fil
         logger.info('Writing output with the processed traits')
         for trait in processed_trait_list:
             # Remove non-specific trait names which should never be output
-            if trait.name.lower() not in NONSPECIFIC_TRAITS:
+            if trait.name.lower() not in ClinVarTrait.NONSPECIFIC_TRAITS:
                 output_trait(trait, mapping_writer, curation_writer)
 
     logger.info('Finished processing trait names')
