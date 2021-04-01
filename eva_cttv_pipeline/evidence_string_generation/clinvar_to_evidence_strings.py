@@ -13,10 +13,10 @@ from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)
 
-# A regular expression to detect alleles with IUPAC ambiguity bases
+# A regular expression to detect alleles with IUPAC ambiguity bases.
 IUPAC_AMBIGUOUS_SEQUENCE = re.compile(r'[^ACGT]')
 
-# Output file names
+# Output file names.
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
 EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
 UNMAPPED_TRAITS_FILE_NAME = 'unmapped_traits.tsv'
@@ -28,10 +28,10 @@ class Report:
     def __init__(self, trait_mappings, consequence_mappings):
         self.report_strings = []
 
-        # The main evidence string counter
+        # The main evidence string counter.
         self.evidence_string_count = 0
 
-        # ClinVar record counters
+        # ClinVar record counters.
         self.clinvar_total = 0
         self.clinvar_fatal_no_allele_origin = 0
         self.clinvar_fatal_no_valid_traits = 0
@@ -41,14 +41,14 @@ class Report:
         self.clinvar_done_one_evidence_string = 0
         self.clinvar_done_multiple_evidence_strings = 0
 
-        # Total number of trait-to-ontology mappings present in the database
+        # Total number of trait-to-ontology mappings present in the database.
         self.total_trait_mappings = sum([len(mappings) for mappings in trait_mappings.values()])
-        # All distinct (trait name, EFO ID) mappings used in the evidence strings
+        # All distinct (trait name, EFO ID) mappings used in the evidence strings.
         self.used_trait_mappings = set()
-        # All unmapped trait names which prevented evidence string generation and their counts
+        # All unmapped trait names which prevented evidence string generation and their counts.
         self.unmapped_trait_names = Counter()
 
-        # Variant-to-consequence mapping counts
+        # Variant-to-consequence mapping counts.
         self.total_consequence_mappings = sum([len(mappings) for mappings in consequence_mappings.values()])
         self.repeat_expansion_variants = 0
 
@@ -60,7 +60,7 @@ class Report:
         ]) + '\n'
 
     def collate_report(self):
-        # ClinVar tallies
+        # ClinVar tallies.
         clinvar_fatal = self.clinvar_fatal_no_allele_origin + self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
                            self.clinvar_skip_missing_efo_mapping)
@@ -187,11 +187,11 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
                                                        disease_mapped_efo_id, consequence_attributes)
 
-            # Validate and immediately output the evidence string (not keeping everything in memory)
+            # Validate and immediately output the evidence string (not keeping everything in memory).
             validate_evidence_string(evidence_string, ot_schema_contents)
             output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
 
-            # Record some evidence string and trait metrics
+            # Record some evidence string and trait metrics.
             evidence_strings_generated += 1
             report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
 
@@ -238,25 +238,25 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         # VARIANT ATTRIBUTES.
         'targetFromSourceId': consequence_attributes.ensembl_gene_id,
         'variantFunctionalConsequenceId': consequence_attributes.so_term.accession,
-        'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation
+        'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation.
         'variantRsId': clinvar_record.measure.rs_id,
 
         # PHENOTYPE ATTRIBUTES.
-        # The alphabetical list of *all* disease names from that ClinVar record
+        # The alphabetical list of *all* disease names from that ClinVar record.
         'cohortPhenotypes': sorted([trait.preferred_or_other_valid_name for trait in clinvar_record.traits
                                     if trait.preferred_or_other_valid_name is not None]),
 
-        # One disease name for this evidence string (see group_diseases_by_efo_mapping)
+        # One disease name for this evidence string (see group_diseases_by_efo_mapping).
         'diseaseFromSource': disease_name,
 
-        # The internal identifier of that disease
+        # The internal identifier of that disease.
         'diseaseFromSourceId': disease_source_id,
 
         # The EFO identifier to which we mapped that first disease. Converting the URI to a compact representation as
         # required by the Open Targets JSON schema.
         'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],
     }
-    # Remove the attributes with empty values (either None or empty lists)
+    # Remove the attributes with empty values (either None or empty lists).
     evidence_string = {key: value for key, value in evidence_string.items() if value}
     return evidence_string
 
@@ -294,10 +294,10 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     # If RCV is not present in the consequences file, pair using full variant description (CHROM:POS:REF:ALT)
     if clinvar_record_measure.has_complete_coordinates:
         # This VCF-flavoured identifier is used to pair ClinVar records with functional consequence predictions.
-        # Example of such an identifier: 14:23423715:G:A
+        # Example of such an identifier: 14:23423715:G:A.
         coord_id = ':'.join([clinvar_record_measure.chr, str(clinvar_record_measure.vcf_pos),
                              clinvar_record_measure.vcf_ref, clinvar_record_measure.vcf_alt])
-        # Log unusual variants with IUPAC ambiguity symbols. Example: 12_32625716_G_H (from RCV000032000)
+        # Log unusual variants with IUPAC ambiguity symbols. Example: 12_32625716_G_H (from RCV000032000).
         if IUPAC_AMBIGUOUS_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
             logger.warning(f'Observed variant with non-ACGT allele sequences: {coord_id}')
         if coord_id in consequence_type_dict:
@@ -376,15 +376,15 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
         * (E, MedGen_E, EFO_4)
         * (E, MedGen_E, EFO_5)"""
 
-    # Group traits by their EFO mappings and explode multiple mappings
-    efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID
+    # Group traits by their EFO mappings and explode multiple mappings.
+    efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID.
     for trait in clinvar_record_traits:
         # Try to match using all trait names.
         for trait_name in trait.all_names:
             for efo_id, efo_label in string_to_efo_mappings.get(trait_name.lower(), []):
                 efo_to_traits[efo_id].append(trait)
 
-    # Generate tuples by keeping only one disease from each group
+    # Generate tuples by keeping only one disease from each group.
     grouped_tuples = []
     for efo_id, traits in efo_to_traits.items():
         traits = sorted(traits, key=lambda t: t.preferred_or_other_valid_name)
