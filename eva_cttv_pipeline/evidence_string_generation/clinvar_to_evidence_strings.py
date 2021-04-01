@@ -128,7 +128,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
-            report.repeat_expansion_variants += 1
+            report.repeat_expansion_variants += len(get_consequence_types(clinvar_record.measure,
+                                                                          variant_to_gene_mappings))
 
         # Failure mode 1 (fatal). A ClinVar record contains no allele origin.
         if not clinvar_record.allele_origins:
