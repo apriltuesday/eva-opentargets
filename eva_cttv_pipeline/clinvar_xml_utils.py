@@ -235,7 +235,7 @@ class ClinVarTrait:
 
     @property
     def xrefs(self):
-        return [(elem.attrib['DB'], elem.attrib['ID'], elem.attrib.get('Status', 'current').lower())
+        return [(elem.attrib['DB'], elem.attrib['ID'].strip(), elem.attrib.get('Status', 'current').lower())
                 for elem in find_elements(self.trait_xml, './XRef')]
 
     @property
