@@ -26,10 +26,8 @@ script:
   # able to compare the results and see if they make sense.
   - echo 'Test 2. VEP mapping pipeline'
   - cd vep-mapping-pipeline
-  # TODO: Update the VEP pipeline tests to use XML input
-  # TODO: https://github.com/EBIvariation/eva-opentargets/issues/168
-  # - bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.vcf output_mappings.tsv
-  # - diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
+   - bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.xml.gz output_mappings.tsv
+   - diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
 
   - echo 'Test 3. Repeat expansion pipeline'
   - python3 -m pip install --editable .
