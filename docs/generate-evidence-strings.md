@@ -112,7 +112,7 @@ The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use 
 
 The files are uploaded to the FTP, where ZOOMA will pick it up. At this stage, you only need to upload the **clinvar_xrefs** dataset (the *eva_clinvar* dataset is updated in the process of the manual curation).
 
-To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then run `become <FTP administrative user> /bin/bash`. (Please see [this document](https://www.ebi.ac.uk/seqdb/confluence/display/VAR/Simplified+EVA+FTP+SOP) for details on the FTP administrative user.) After you do this, the environment will be wiped clean, so you will need to set the `BATCH_ROOT` variable again.
+To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then run `become eva_etl`. After you do this, the environment will be wiped clean, so you will need to set the `BATCH_ROOT` variable again.
 
 ```bash
 # EXECUTE UNDER FTP ADMINISTRATIVE USER
