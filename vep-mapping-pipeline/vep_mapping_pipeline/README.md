@@ -45,15 +45,15 @@ This should only be done for testing purposes and only for a small number of var
 ### Running the pipeline using a wrapper script
 In production environment the pipeline should be run using a wrapper script which would take care of preprocessing and parallelisation. There is a simple wrapper script available, [run_consequence_mapping.sh](/run_consequence_mapping.sh). It can be run as follows:
 ```bash
-bash run_consequence_mapping.sh input_variants.vcf output_mappings.tsv
+bash run_consequence_mapping.sh input_variants.xml.gz output_mappings.tsv
 ```
 
 It performs the following steps:
-1. Take regular VCF as input.
+1. Take ClinVar's [compressed XML data dump](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz) as input.
 1. Extract the necessary fields using `bcftools query`.
 1. Sort and remove duplicates.
 1. Using `parallel`, split the input file into chunks at most **200** records long and process them using **20** workers in parallel. These values have been selected to process the variants in reasonable time, but not to overload VEP API.
-1. Sort the result and remove any duplicate values if present, and save it to a specified output file.f
+1. Sort the result and remove any duplicate values if present, and save it to a specified output file.
 
 ## Mapping process
 For each variant:
