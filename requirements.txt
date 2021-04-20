@@ -18,7 +18,7 @@ pandas==1.0.5
 parse==1.16.0
 pluggy==0.13.1
 progressbar2==3.51.4
-py==1.9.0
+py==1.10.0
 pyparsing==2.4.7
 pyrsistent==0.16.0
 pytest==6.0.1
