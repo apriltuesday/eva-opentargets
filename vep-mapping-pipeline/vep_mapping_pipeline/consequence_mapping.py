@@ -112,12 +112,16 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
         # If mandated by a flag, keep only one (least distant) consequence
         if only_closest:
             consequences = [consequences[0]]
+        for c in consequences:
+            if 'gene_symbol' not in c:
+                logger.error(f"No gene symbol for {c['gene_id']}")
 
         # Return a subset of fields (required for output) of filtered consequences
         results_by_variant[variant_identifier].extend([
             (variant_identifier, c['gene_id'], c['gene_symbol'], most_severe_consequence_term,
              c.get('distance', 0) if report_distance else 0)
             for c in consequences
+            if 'gene_id' in c and 'gene_symbol' in c
         ])
 
     return results_by_variant
