@@ -16,6 +16,8 @@ class TestUriToOxoFormat(unittest.TestCase):
                          "OMIM:314580")
         self.assertEqual(oxo.uri_to_oxo_format("http://identifiers.org/omim/314580"),
                          "OMIM:314580")
+        self.assertEqual(oxo.uri_to_oxo_format("http://www.omim.org/entry/314580"),
+                         "OMIM:314580")
 
     def test_efo(self):
         self.assertEqual(oxo.uri_to_oxo_format("http://www.ebi.ac.uk/efo/EFO_0000313"),
