@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/EBIvariation/eva-opentargets.svg?branch=master)](https://travis-ci.com/EBIvariation/eva-opentargets)
+[![Build Status](https://github.com/EBIvariation/eva-opentargets/actions/workflows/tests.yml/badge.svg)](https://github.com/EBIvariation/eva-opentargets/actions)
 [![Coverage Status](https://coveralls.io/repos/github/EBIvariation/eva-opentargets/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/eva-opentargets?branch=master)
 
 
