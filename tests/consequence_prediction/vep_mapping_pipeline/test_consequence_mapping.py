@@ -12,11 +12,11 @@ def test_extract_consequences():
                     'biotype': 'protein_coding',
                     'consequence_terms': ['missense_variant']
                 },
-                # {  # missing gene symbol is okay
-                #     'gene_id': 'ENSG00000120538',
-                #     'biotype': 'protein_coding',
-                #     'consequence_terms': ['missense_variant']
-                # },
+                {  # missing gene symbol is okay
+                    'gene_id': 'ENSG00000120538',
+                    'biotype': 'protein_coding',
+                    'consequence_terms': ['missense_variant']
+                },
                 {  # less severe consequences should be filtered out
                     'gene_symbol': 'ACBD5',
                     'gene_id': 'ENSG00000107897',
@@ -42,7 +42,7 @@ def test_extract_consequences():
     )
     assert results == {'10 27169969 . C A': [
         ('10 27169969 . C A', 'ENSG00000120539', 'MASTL', 'missense_variant', 0),
-        # ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant', 0),
+        ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant', 0),
     ]}
 
 
