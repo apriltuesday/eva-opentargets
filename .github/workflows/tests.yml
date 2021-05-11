@@ -28,7 +28,7 @@ jobs:
       run: |
         # Executing the main pipeline 
         python setup.py install
-        python setup.py test
+        python -m pytest --cov=eva_cttv_pipeline tests
 
     #- name: Test 2. VEP mapping pipeline
     #  run: |
@@ -41,7 +41,8 @@ jobs:
         cd vep-mapping-pipeline
         python -m pip install --editable .
         python -m pytest
-    - name: Run the coverall
+    
+    - name: Upload the coverage data to Coveralls
       env: 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
