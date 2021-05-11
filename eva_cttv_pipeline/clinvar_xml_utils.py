@@ -188,7 +188,7 @@ class ClinVarTrait:
     # Some trait records in ClinVar contain names which are non-specific and cannot possibly be resolved to any
     # meaningful EFO term.
     NONSPECIFIC_TRAITS = {
-        '', 'allhighlypenetrant', 'disease', 'not provided', 'not specified',
+        '', 'allhighlypenetrant', 'disease', 'none provided', 'not provided', 'not specified',
         'reclassified - variant of unknown significance', 'see cases', 'variant of unknown significance'
     }
 
