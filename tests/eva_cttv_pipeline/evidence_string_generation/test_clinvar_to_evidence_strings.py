@@ -185,7 +185,7 @@ class GenerateEvidenceStringTest(unittest.TestCase):
 
 
 class GroupDiseasesByMappingTest(unittest.TestCase):
-    """Verifies behaviour of group_diseases_by_efo_mapping"""
+    """Verifies behaviour of group_diseases_by_efo_mapping."""
 
     def setUp(self):
         self.string_to_efo_mappings = {
@@ -197,7 +197,7 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
 
     @staticmethod
     def get_trait(name, medgen):
-        """Return ClinVarTrait with given name and medgen id"""
+        """Return ClinVarTrait with given name and medgen id."""
         # template for trait xml that allows name and medgen id to be inserted
         trait_xml_template = f'''
         <Trait ID="123" Type="Disease">
@@ -210,8 +210,7 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
         return ClinVarTrait(trait_xml=ElementTree.fromstring(trait_xml_template), clinvar_record=None)
 
     def test_multiple_diseases_mapped_to_one_term(self):
-        # Diseases mapped to same EFO term should be grouped together,
-        # and the lexicographically first one returned.
+        """Diseases mapped to same EFO term should be grouped together, and the lexicographically first one returned."""
         trait_a = self.get_trait('Disease A', 'MedGen_A')
         trait_b = self.get_trait('Disease B', 'MedGen_B')
         trait_c = self.get_trait('Disease C', 'MedGen_C')
@@ -223,7 +222,7 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_one_disease_mapped_to_multiple_terms(self):
-        # One disease mapped to multiple terms should be split.
+        """One disease mapped to multiple terms should be split."""
         trait_d = self.get_trait('Disease D', 'MedGen_D')
         expected_result = [('Disease D', 'MedGen_D', 'EFO_2'), ('Disease D', 'MedGen_D', 'EFO_3')]
         result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
@@ -233,7 +232,7 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_disease_without_mapping(self):
-        # Diseases without mappings should be skipped.
+        """Diseases without mappings should be skipped."""
         trait_e = self.get_trait('Disease E', 'MedGen_E')
         expected_result = []
         result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(

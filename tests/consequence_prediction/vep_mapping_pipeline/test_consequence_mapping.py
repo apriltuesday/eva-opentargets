@@ -2,6 +2,7 @@ from consequence_prediction.vep_mapping_pipeline.consequence_mapping import extr
 
 
 def test_extract_consequences():
+    """Verifies behaviour of extract_consequences."""
     vep_results = [
         {
             'input': '10 27169969 . C A',
@@ -47,6 +48,7 @@ def test_extract_consequences():
 
 
 def test_extract_consequences_only_closest():
+    """Verifies that extract_consequences excludes more distant consequences when only_closest flag is set."""
     vep_results = [
         {
             'input': '6 1611781 . C CACGGCG',

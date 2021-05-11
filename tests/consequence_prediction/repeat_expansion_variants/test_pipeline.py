@@ -73,6 +73,7 @@ def test_no_explicit_coordinates():
 
 
 def test_alternative_identifiers():
+    """Protein HGVS and human-readable identifiers should also be processed."""
     assert sorted(run_pipeline('alternatives.xml.gz')) == sorted([
         # NP_003915.2:p.Ala260(5_9) is protein hgvs and assumed to be trinucleotide expansion
         ['RCV000006377', '1', 'ENSG00000109132', 'PHOX2B', 'trinucleotide_repeat_expansion', '0'],
