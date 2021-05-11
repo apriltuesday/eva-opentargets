@@ -16,7 +16,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Install other native packages
+    - name: Install native packages
       run: |
         sudo apt update
         sudo apt -y install samtools bcftools parallel libbz2-dev liblzma-dev
@@ -26,7 +26,6 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test 1. Main pipeline
       run: |
-        # Executing the main pipeline 
         python setup.py install
         python -m pytest --cov=eva_cttv_pipeline tests
 
