@@ -119,6 +119,9 @@ def uri_to_oxo_format(uri: str) -> str:
     if "identifiers.org" in uri:
         db = uri_list[-2]
         id_ = uri_list[-1]
+    elif "omim.org" in uri:
+        db = "OMIM"
+        id_ = uri_list[-1]
     else:
         db, id_ = uri_list[-1].split("_")
     db = URI_DB_TO_DB_DICT[db.lower()]
