@@ -79,8 +79,11 @@ ${BSUB_CMDLINE} -K -M 10G \
     --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
     --out          ${BATCH_ROOT}/evidence_strings/
 
-# Check that the generated evidence strings do not contain any duplicated evidence strings (fields: datatypeId, studyId, targetFromSourceId, variantFunctionalConsequenceId and diseaseFromSourceMappedId)
-grep -oP '(?<=(datatypeId\"\: ")|(studyId\"\: ")|(targetFromSourceId\"\: ")|(variantFunctionalConsequenceId\"\: ")|(diseaseFromSourceMappedId\"\: \"))[^\"]*' ${BATCH_ROOT}/evidence_strings/evidence_strings.json | paste - - - - - | sort | uniq -d > ${BATCH_ROOT}/evidence_strings/duplicates.json
+# Check that the generated evidence strings do not contain any duplicated evidence strings. For every evidence string, we group the value of fields datatypeId, studyId, targetFromSourceId, variantFunctionalConsequenceId and diseaseFromSourceMappedId, all separated by tabs, sorted and saved at duplicates.json if found duplicated. 
+jq --arg sep $'\t' -jr \
+  '.datatypeId,$sep,.studyId,$sep,.targetFromSourceId,$sep,.variantFunctionalConsequenceId,$sep,.diseaseFromSourceMappedId,"\n"' \
+  ${BATCH_ROOT}/evidence_strings/evidence_strings.json \
+  | sort | uniq -d > ${BATCH_ROOT}/evidence_strings/duplicates.json
 
 # Convert MedGen and OMIM cross-references into ZOOMA format.
 ${BSUB_CMDLINE} -K \
