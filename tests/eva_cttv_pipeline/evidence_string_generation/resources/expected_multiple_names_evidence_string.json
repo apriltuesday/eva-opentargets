@@ -1,0 +1,28 @@
+{
+  "alleleOrigins": [
+    "somatic"
+  ],
+  "clinicalSignificances": [
+    "pathogenic"
+  ],
+  "cohortPhenotypes": [
+    "Abnormal skeletal development",
+    "Congenital bone fractures",
+    "Multiple fractures present at birth",
+    "Multiple prenatal fractures",
+    "Numerous multiple fractures present at birth",
+    "Numerous multiple fractures that are present at birth",
+    "Skeletal dysplasia"
+  ],
+  "confidence": "criteria provided, single submitter",
+  "datasourceId": "eva_somatic",
+  "datatypeId": "somatic_mutation",
+  "diseaseFromSource": "Skeletal dysplasia",
+  "diseaseFromSourceId": "C0410528",
+  "diseaseFromSourceMappedId": "HP_0002652",
+  "studyId": "RCV000415158",
+  "targetFromSourceId": "ENSG00000139988",
+  "variantFunctionalConsequenceId": "SO_0001583",
+  "variantId": "7_94423102_G_A",
+  "variantRsId": "rs1057518967"
+}

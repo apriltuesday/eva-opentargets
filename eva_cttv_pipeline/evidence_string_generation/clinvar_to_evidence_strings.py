@@ -234,7 +234,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* valid disease names from all traits from that ClinVar record, reported as a
         # flat list. See https://github.com/EBIvariation/eva-opentargets/issues/221 for a discussion of this choice.
-        'cohortPhenotypes': sorted([name for trait in clinvar_record.traits for name in trait.all_valid_names]),
+        'cohortPhenotypes': sorted([name for trait in clinvar_record.traits_with_valid_names for name in trait.all_valid_names]),
 
         # One disease name for this evidence string (see group_diseases_by_efo_mapping).
         'diseaseFromSource': disease_name,

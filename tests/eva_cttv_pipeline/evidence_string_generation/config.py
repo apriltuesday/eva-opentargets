@@ -7,11 +7,13 @@ OT_SCHEMA_VERSION = "2.0.6"
 test_dir = os.path.dirname(__file__)
 efo_mapping_file = os.path.join(test_dir, 'resources', 'string_to_ontology_mappings.tsv')
 snp_2_gene_file = os.path.join(test_dir, 'resources/snp2gene_extract.tsv')
-test_clinvar_record_file = os.path.join(test_dir, 'resources/test_clinvar_record.xml.gz')
-expected_genetics_evidence_string = os.path.join(test_dir, 'resources/expected_genetics_evidence_string.json')
-expected_somatic_evidence_string = os.path.join(test_dir, 'resources/expected_somatic_evidence_string.json')
 
 
-def get_test_clinvar_record():
-    """The test file contains an extract of ClinVar XML for the record RCV000002127."""
+def get_expected_evidence_string(filename):
+    return open(os.path.join(test_dir, 'resources', f'expected_{filename}_evidence_string.json')).read()
+
+
+def get_test_clinvar_record(filename='test_clinvar_record.xml.gz'):
+    """The default test file contains an extract of ClinVar XML for the record RCV000002127."""
+    test_clinvar_record_file = os.path.join(test_dir, 'resources', filename)
     return [r for r in clinvar_xml_utils.ClinVarDataset(test_clinvar_record_file)][0]
