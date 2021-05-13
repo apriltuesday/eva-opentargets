@@ -24,22 +24,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test 1. Main pipeline
+    - name: Test 1. Main pipeline and repeat expansion pipeline
       run: |
         python setup.py install
-        python -m pytest --cov=eva_cttv_pipeline tests
+        python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests
 
-    #- name: Test 2. VEP mapping pipeline
-    #  run: |
-    #    cd vep-mapping-pipeline
-    #    bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.xml.gz output_mappings.tsv
-    #    diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
-
-    - name: Test 3. Repeat expansion pipeline
+    - name: Test 2. VEP mapping pipeline
       run: |
-        cd consequence_prediction
-        python -m pip install --editable .
-        python -m pytest
+        bash tests/consequence_prediction/vep_mapping_pipeline/test_vep_pipeline.sh
     
     - name: Upload the coverage data to Coveralls
       env: 
