@@ -95,5 +95,19 @@ And then one of:
 * To install to develop: `python3 setup.py develop`
 * To build a source distribution: `python3 setup.py sdist`
 
+## JQ Installation
+``jq`` is a lightweight and flexible command-line JSON processor, used to parse the evidence strings and extract specific fields to check for duplicates.
+
+To install it you can:
+* Either run the specific installation command (e.g. ``sudo apt-get install jq`` for Ubuntu) for your operating system (search for yours [here](https://stedolan.github.io/jq/download/)).
+* Directly download it (since it has no runtime dependencies) and export its path:
+````bash
+JQ_INSTALL_PATH="/nfs/production3/eva/software/jq/1.6"
+JQ_DOWNLOAD_VERSION="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64"
+mkdir -p ${JQ_INSTALL_PATH}
+wget -O ${JQ_INSTALL_PATH}/jq ${JQ_DOWNLOAD_VERSION}
+export PATH="${JQ_INSTALL_PATH}:$PATH"
+````
+
 ## Tests
 You can run all tests with: `python3 setup.py test`
