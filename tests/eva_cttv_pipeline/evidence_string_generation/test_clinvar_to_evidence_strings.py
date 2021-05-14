@@ -251,11 +251,12 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_disease_without_mapping(self):
-        """Diseases without mappings should be skipped."""
+        """Diseases without mappings should be included but not grouped."""
         trait_e = self.get_trait('Disease E', 'MedGen_E')
-        expected_result = []
+        trait_f = self.get_trait('Disease F', 'MedGen_F')
+        expected_result = [('Disease E', 'MedGen_E', ''), ('Disease F', 'MedGen_F', '')]
         result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
-            clinvar_record_traits=[trait_e],
+            clinvar_record_traits=[trait_e, trait_f],
             string_to_efo_mappings=self.string_to_efo_mappings,
         )
         self.assertEqual(result, expected_result)

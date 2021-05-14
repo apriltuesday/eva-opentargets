@@ -244,7 +244,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # The EFO identifier to which we mapped that first disease. Converting the URI to a compact representation as
         # required by the Open Targets JSON schema.
-        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],
+        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],  # TODO ''
     }
     # Remove the attributes with empty values (either None or empty lists).
     evidence_string = {key: value for key, value in evidence_string.items() if value}
@@ -351,7 +351,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
     grouped together. Second, if a group of diseases has multiple EFO mappings, they are split into separate groups.
     For each group, the tuple of the following values is returned: (1) the original name of the disease which comes
     first lexicographically; (2) the original MedGen ID of that disease; (3) the mapped EFO term of that disease.
-    Diseases without mappings are skipped.
+    Diseases without mappings are included, see https://github.com/EBIvariation/eva-opentargets/issues/237.
 
     For example, for a ClinVar record with the following mappings:
         * Diseases A, B, C -> EFO_1
@@ -364,18 +364,24 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
         * (D, MedGen_D, EFO_2)
         * (D, MedGen_D, EFO_3)
         * (E, MedGen_E, EFO_4)
-        * (E, MedGen_E, EFO_5)"""
+        * (E, MedGen_E, EFO_5)
+        * (G, MedGen_G, '')"""
 
     # Group traits by their EFO mappings and explode multiple mappings.
     efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID.
+    grouped_tuples = []
     for trait in clinvar_record_traits:
+        is_unmapped = True
         # Try to match using all trait names.
         for trait_name in trait.all_names:
             for efo_id, efo_label in string_to_efo_mappings.get(trait_name.lower(), []):
+                is_unmapped = False
                 efo_to_traits[efo_id].append(trait)
+        # Unmapped traits are kept but not grouped
+        if is_unmapped:
+            grouped_tuples.append((trait.preferred_or_other_valid_name, trait.medgen_id, ''))
 
     # Generate tuples by keeping only one disease from each group.
-    grouped_tuples = []
     for efo_id, traits in efo_to_traits.items():
         traits = sorted(traits, key=lambda t: t.preferred_or_other_valid_name)
         selected_trait = traits[0]
