@@ -244,7 +244,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # The EFO identifier to which we mapped that first disease. Converting the URI to a compact representation as
         # required by the Open Targets JSON schema.
-        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],  # TODO ''
+        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],
     }
     # Remove the attributes with empty values (either None or empty lists).
     evidence_string = {key: value for key, value in evidence_string.items() if value}

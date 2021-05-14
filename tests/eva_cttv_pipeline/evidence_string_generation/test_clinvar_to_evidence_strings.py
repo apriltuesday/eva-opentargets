@@ -202,6 +202,21 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         expected_evidence_string = config.get_expected_evidence_string('multiple_names')
         self.assertEqual(evidence_string, expected_evidence_string)
 
+    def test_no_mapping_evidence_string(self):
+        """Verifies evidence string generation when there are no EFO mappings for a trait."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=['somatic'],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id='',
+            consequence_attributes=self.consequence_attributes
+        )
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
+        # Check that diseaseFromSourceMappedId is not present
+        self.assertTrue('diseaseFromSourceMappedId' not in evidence)
+
 
 class GroupDiseasesByMappingTest(unittest.TestCase):
     """Verifies behaviour of group_diseases_by_efo_mapping."""
