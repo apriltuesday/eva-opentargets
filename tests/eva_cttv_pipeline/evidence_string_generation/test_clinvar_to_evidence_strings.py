@@ -163,7 +163,7 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
         # Check that the evidence string contents are as expected
         evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
-        expected_evidence_string = open(config.expected_genetics_evidence_string).read()
+        expected_evidence_string = config.get_expected_evidence_string('genetics')
         self.assertEqual(evidence_string, expected_evidence_string)
 
     def test_somatic_evidence_string(self):
@@ -180,7 +180,26 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
         # Check that the evidence string contents are as expected
         evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
-        expected_evidence_string = open(config.expected_somatic_evidence_string).read()
+        expected_evidence_string = config.get_expected_evidence_string('somatic')
+        self.assertEqual(evidence_string, expected_evidence_string)
+
+    def test_multiple_trait_names_evidence_string(self):
+        """Verifies evidence string generation when there are multiple traits for a record
+        and multiple names for a trait."""
+        record = config.get_test_clinvar_record('multiple_names.xml.gz')
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=record,
+            allele_origins=['somatic'],
+            disease_name='Skeletal dysplasia',
+            disease_source_id='C0410528',
+            disease_mapped_efo_id='HP_0002652',
+            consequence_attributes=self.consequence_attributes
+        )
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
+        # Check that the evidence string contents are as expected
+        evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
+        expected_evidence_string = config.get_expected_evidence_string('multiple_names')
         self.assertEqual(evidence_string, expected_evidence_string)
 
 
