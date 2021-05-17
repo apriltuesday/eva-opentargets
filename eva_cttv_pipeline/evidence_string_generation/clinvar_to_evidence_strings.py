@@ -244,7 +244,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # The EFO identifier to which we mapped that first disease. Converting the URI to a compact representation as
         # required by the Open Targets JSON schema.
-        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1],
+        'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1] if disease_mapped_efo_id else None,
     }
     # Remove the attributes with empty values (either None or empty lists).
     evidence_string = {key: value for key, value in evidence_string.items() if value}
@@ -365,7 +365,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
         * (D, MedGen_D, EFO_3)
         * (E, MedGen_E, EFO_4)
         * (E, MedGen_E, EFO_5)
-        * (G, MedGen_G, '')"""
+        * (G, MedGen_G, None)"""
 
     # Group traits by their EFO mappings and explode multiple mappings.
     efo_to_traits = defaultdict(list)  # Key: EFO ID, value: list of traits mapped to that ID.
@@ -379,7 +379,7 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
                 efo_to_traits[efo_id].append(trait)
         # Unmapped traits are kept but not grouped
         if is_unmapped:
-            grouped_tuples.append((trait.preferred_or_other_valid_name, trait.medgen_id, ''))
+            grouped_tuples.append((trait.preferred_or_other_valid_name, trait.medgen_id, None))
 
     # Generate tuples by keeping only one disease from each group.
     for efo_id, traits in efo_to_traits.items():

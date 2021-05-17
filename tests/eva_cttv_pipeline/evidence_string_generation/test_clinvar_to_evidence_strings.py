@@ -209,7 +209,7 @@ class GenerateEvidenceStringTest(unittest.TestCase):
             allele_origins=['somatic'],
             disease_name=self.disease_name,
             disease_source_id=self.disease_source_id,
-            disease_mapped_efo_id='',
+            disease_mapped_efo_id=None,
             consequence_attributes=self.consequence_attributes
         )
         # Check that the evidence string validates against schema
@@ -269,7 +269,7 @@ class GroupDiseasesByMappingTest(unittest.TestCase):
         """Diseases without mappings should be included but not grouped."""
         trait_e = self.get_trait('Disease E', 'MedGen_E')
         trait_f = self.get_trait('Disease F', 'MedGen_F')
-        expected_result = [('Disease E', 'MedGen_E', ''), ('Disease F', 'MedGen_F', '')]
+        expected_result = [('Disease E', 'MedGen_E', None), ('Disease F', 'MedGen_F', None)]
         result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
             clinvar_record_traits=[trait_e, trait_f],
             string_to_efo_mappings=self.string_to_efo_mappings,
