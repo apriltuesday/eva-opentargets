@@ -30,6 +30,8 @@ class Report:
 
         # The main evidence string counter.
         self.evidence_string_count = 0
+        # Complete evidence strings are ones with an EFO mapping.
+        self.complete_evidence_string_count = 0
 
         # ClinVar record counters.
         self.clinvar_total = 0
@@ -38,8 +40,8 @@ class Report:
         self.clinvar_skip_unsupported_variation = 0
         self.clinvar_skip_no_functional_consequences = 0
         self.clinvar_skip_missing_efo_mapping = 0
-        self.clinvar_done_one_evidence_string = 0
-        self.clinvar_done_multiple_evidence_strings = 0
+        self.clinvar_done_one_complete_evidence_string = 0
+        self.clinvar_done_multiple_complete_evidence_strings = 0
 
         # Total number of trait-to-ontology mappings present in the database.
         self.total_trait_mappings = sum([len(mappings) for mappings in trait_mappings.values()])
@@ -57,11 +59,13 @@ class Report:
         clinvar_fatal = self.clinvar_fatal_no_allele_origin + self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
                            self.clinvar_skip_missing_efo_mapping)
-        clinvar_done = self.clinvar_done_one_evidence_string + self.clinvar_done_multiple_evidence_strings
+        clinvar_done = (self.clinvar_done_one_complete_evidence_string +
+                        self.clinvar_done_multiple_complete_evidence_strings)
         assert clinvar_fatal + clinvar_skipped + clinvar_done == self.clinvar_total, \
             'ClinVar evidence string tallies do not add up to the total amount.'
 
         return f'''Total number of evidence strings generated\t{self.evidence_string_count}
+            Total number of complete evidence strings generated\t{self.complete_evidence_string_count}
 
             Total number of ClinVar records\t{self.clinvar_total}
                 Fatal: Cannot be processed ever\t{clinvar_fatal}
@@ -71,16 +75,16 @@ class Report:
                     Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
                     No functional consequences\t{self.clinvar_skip_no_functional_consequences}
                     Missing EFO mapping\t{self.clinvar_skip_missing_efo_mapping}
-                Done: Generated at least one evidence string\t{clinvar_done}
-                    One evidence string\t{self.clinvar_done_one_evidence_string}
-                    Multiple evidence strings\t{self.clinvar_done_multiple_evidence_strings}
-            Percentage of all potentially supportable ClinVar records which generated at least one evidence string\t{
+                Done: Generated at least one complete evidence string\t{clinvar_done}
+                    One complete evidence string\t{self.clinvar_done_one_complete_evidence_string}
+                    Multiple complete evidence strings\t{self.clinvar_done_multiple_complete_evidence_strings}
+            Percentage of all potentially supportable ClinVar records which generated at least one complete evidence string\t{
                 clinvar_done / (clinvar_skipped + clinvar_done):.1%}
 
             Total number of trait-to-ontology mappings in the database\t{self.total_trait_mappings}
                 The number of distinct trait-to-ontology mappings used in the evidence strings\t{
                     len(self.used_trait_mappings)}
-            The number of distinct unmapped trait names which prevented evidence string generation\t{
+            The number of distinct unmapped trait names which prevented complete evidence string generation\t{
                 len(self.unmapped_trait_names)}
 
             Total number of variant to consequence mappings\t{self.total_consequence_mappings}
@@ -161,15 +165,18 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
         # Failure mode 5 (skip). A ClinVar records has at least one trait with at least one valid name, but no suitable
         # EFO mappings were found in the database.
-        if not grouped_diseases:
+        if not grouped_diseases or not any(group[-1] for group in grouped_diseases):
             report.clinvar_skip_missing_efo_mapping += 1
             unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
             report.unmapped_trait_names[unmapped_trait_name] += 1
+        # Only when grouped_diseases is completely absent are we unable to generate even unmapped evidence strings.
+        if not grouped_diseases:
             continue
 
         assert grouped_allele_origins and grouped_diseases and consequence_types, \
             'Some of the attribute lists are still empty even after passing all checks.'
 
+        complete_evidence_strings_generated = 0
         evidence_strings_generated = 0
         for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                 grouped_allele_origins, grouped_diseases, consequence_types):
@@ -183,13 +190,17 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             # Record some evidence string and trait metrics.
             evidence_strings_generated += 1
-            report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
+            if disease_mapped_efo_id is not None:
+                complete_evidence_strings_generated += 1
+                report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
 
         assert evidence_strings_generated != 0, 'No evidence strings generated despite all attributes passing checks.'
-        if evidence_strings_generated == 1:
-            report.clinvar_done_one_evidence_string += 1
-        else:
-            report.clinvar_done_multiple_evidence_strings += 1
+        if complete_evidence_strings_generated == 1:
+            report.clinvar_done_one_complete_evidence_string += 1
+        elif complete_evidence_strings_generated > 1:
+            report.clinvar_done_multiple_complete_evidence_strings += 1
+
+        report.complete_evidence_string_count += complete_evidence_strings_generated
         report.evidence_string_count += evidence_strings_generated
 
     output_evidence_strings_file.close()
