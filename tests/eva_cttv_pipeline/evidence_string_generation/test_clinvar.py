@@ -40,6 +40,9 @@ class TestClinvarRecord(unittest.TestCase):
     def test_allele_origins(self):
         self.assertEqual(self.test_clinvar_record.allele_origins, {'germline', 'inherited', 'unknown'})
 
+    def test_valid_allele_origins(self):
+        self.assertEqual(self.test_clinvar_record.valid_allele_origins, {'germline', 'inherited'})
+
 
 class TestClinvarRecordMeasure(unittest.TestCase):
     @classmethod

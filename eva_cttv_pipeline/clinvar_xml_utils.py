@@ -82,6 +82,9 @@ class ClinVarRecord:
         'practice guideline': 4,
     }
 
+    # Some allele origin terms in ClinVar are essentially conveying lack of information and are thus not useful.
+    NONSPECIFIC_ALLELE_ORIGINS = {'unknown', 'not provided', 'not applicable', 'tested-inconclusive', 'not-reported'}
+
     def __init__(self, rcv):
         """Initialise a ClinVar record object from an RCV XML record."""
         self.rcv = rcv
@@ -179,6 +182,11 @@ class ClinVarRecord:
     @property
     def allele_origins(self):
         return {elem.text for elem in find_elements(self.rcv, './ObservedIn/Sample/Origin')}
+
+    @property
+    def valid_allele_origins(self):
+        """Returns all valid allele origins, i.e. ones that are not in the list of nonspecific terms."""
+        return {origin for origin in self.allele_origins if origin.lower() not in self.NONSPECIFIC_ALLELE_ORIGINS}
 
 
 class ClinVarTrait:

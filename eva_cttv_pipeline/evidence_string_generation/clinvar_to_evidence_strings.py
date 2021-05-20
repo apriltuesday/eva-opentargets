@@ -35,7 +35,6 @@ class Report:
 
         # ClinVar record counters.
         self.clinvar_total = 0
-        self.clinvar_fatal_no_allele_origin = 0
         self.clinvar_fatal_no_valid_traits = 0
         self.clinvar_skip_unsupported_variation = 0
         self.clinvar_skip_no_functional_consequences = 0
@@ -56,7 +55,7 @@ class Report:
 
     def collate_report(self):
         # ClinVar tallies.
-        clinvar_fatal = self.clinvar_fatal_no_allele_origin + self.clinvar_fatal_no_valid_traits
+        clinvar_fatal = self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
                            self.clinvar_skip_missing_efo_mapping)
         clinvar_done = (self.clinvar_done_one_complete_evidence_string +
@@ -68,9 +67,7 @@ class Report:
             Total number of complete evidence strings generated\t{self.complete_evidence_string_count}
 
             Total number of ClinVar records\t{self.clinvar_total}
-                Fatal: Cannot be processed ever\t{clinvar_fatal}
-                    No allele origin\t{self.clinvar_fatal_no_allele_origin}
-                    No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
+                Fatal: No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
                 Skipped: Can be rescued by future improvements\t{clinvar_skipped}
                     Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
                     No functional consequences\t{self.clinvar_skip_no_functional_consequences}
@@ -135,35 +132,30 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             report.repeat_expansion_variants += len(get_consequence_types(clinvar_record.measure,
                                                                           variant_to_gene_mappings))
 
-        # Failure mode 1 (fatal). A ClinVar record contains no allele origin.
-        if not clinvar_record.allele_origins:
-            report.clinvar_fatal_no_allele_origin += 1
-            continue
-
-        # Failure mode 2 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
+        # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
         # potentially mappable name).
         if not clinvar_record.traits_with_valid_names:
             report.clinvar_fatal_no_valid_traits += 1
             continue
 
-        # Failure mode 3 (skip). A ClinVar record contains an unsupported variation type.
+        # Failure mode 2 (skip). A ClinVar record contains an unsupported variation type.
         if clinvar_record.measure is None:
             report.clinvar_skip_unsupported_variation += 1
             continue
 
-        # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) allele
+        # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
         # origins, (2) EFO mappings, and (3) genes where the variant has effect.
-        grouped_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
+        grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
         consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
         grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                          string_to_efo_mappings)
 
-        # Failure mode 4 (skip). No functional consequences are available.
+        # Failure mode 3 (skip). No functional consequences are available.
         if not consequence_types:
             report.clinvar_skip_no_functional_consequences += 1
             continue
 
-        # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
+        # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
         # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
         # failure so we can continue to measure mapping coverage.
         if not any(group[-1] for group in grouped_diseases):
@@ -344,7 +336,8 @@ def get_terms_from_file(terms_file_path):
 
 def convert_allele_origins(orig_allele_origins):
     """Splits the original list of allele origins from ClinVar into up to two groups: one for 'somatic' (if present),
-    and another one for all other types, which are considered 'germline' (if present)."""
+    and another one for all other types, which are considered 'germline' (if present). If no allele origins are
+    provided, return a single empty group (which will be classified as 'germline')."""
     orig_allele_origins = {item.lower() for item in orig_allele_origins}
     converted_allele_origins = []
     if 'somatic' in orig_allele_origins:
@@ -352,7 +345,7 @@ def convert_allele_origins(orig_allele_origins):
         orig_allele_origins.remove('somatic')
     if orig_allele_origins:  # Is there something remaining for the second (non-somatic) group?
         converted_allele_origins.append(sorted(orig_allele_origins))
-    return converted_allele_origins
+    return converted_allele_origins if converted_allele_origins else [[]]
 
 
 def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings):
