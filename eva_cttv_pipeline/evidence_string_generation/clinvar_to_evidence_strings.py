@@ -163,15 +163,13 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             report.clinvar_skip_no_functional_consequences += 1
             continue
 
-        # Failure mode 5 (skip). A ClinVar records has at least one trait with at least one valid name, but no suitable
-        # EFO mappings were found in the database.
-        if not grouped_diseases or not any(group[-1] for group in grouped_diseases):
+        # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
+        # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
+        # failure so we can continue to measure mapping coverage.
+        if not any(group[-1] for group in grouped_diseases):
             report.clinvar_skip_missing_efo_mapping += 1
             unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
             report.unmapped_trait_names[unmapped_trait_name] += 1
-        # Only when grouped_diseases is completely absent are we unable to generate even unmapped evidence strings.
-        if not grouped_diseases:
-            continue
 
         assert grouped_allele_origins and grouped_diseases and consequence_types, \
             'Some of the attribute lists are still empty even after passing all checks.'
