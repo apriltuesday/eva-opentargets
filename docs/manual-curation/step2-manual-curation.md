@@ -16,6 +16,8 @@ Good mappings must be eyeballed to ensure they are actually good. Alternative ma
 * Susceptibility on only one half is _bad_ e.g Alcohol dependence, susceptibility to → alcohol dependence
 * Early / late onset on only one half is _bad_ e.g. Alzheimer disease, early-onset → Alzheimer's disease
 
+In general, complex traits with modifiers (e.g. "autosomal recessive", "early onset", or "history of") should not be mapped to the more general term (i.e. without modifiers) because it loses important information. For now the curator should follow the same protocol as for any other term and request to import/create a new term containing the necessary modifiers.
+
 ## Unmapped trait names
 Trait names that haven't been automatically mapped against any ontology term can also be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. If these are not already in EFO they should be imported to EFO using the Webulous submission service.
 
