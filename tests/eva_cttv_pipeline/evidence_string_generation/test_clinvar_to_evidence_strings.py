@@ -110,6 +110,11 @@ class TestConvertAlleleOrigins(unittest.TestCase):
         converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
         self.assertListEqual([['somatic'], ['inherited', 'not applicable']], converted_allele_origins)
 
+    def test_missing(self):
+        orig_allele_origins = []
+        converted_allele_origins = clinvar_to_evidence_strings.convert_allele_origins(orig_allele_origins)
+        self.assertListEqual([[]], converted_allele_origins)
+
 
 class TestGetConsequenceTypes(unittest.TestCase):
 
@@ -216,6 +221,22 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
         # Check that diseaseFromSourceMappedId is not present
         self.assertTrue('diseaseFromSourceMappedId' not in evidence)
+
+    def test_no_allele_origins_evidence_string(self):
+        """Verifies evidence string generation when there are no allele origins."""
+        evidence = clinvar_to_evidence_strings.generate_evidence_string(
+            clinvar_record=self.clinvar_record,
+            allele_origins=[],
+            disease_name=self.disease_name,
+            disease_source_id=self.disease_source_id,
+            disease_mapped_efo_id=self.disease_mapped_efo_id,
+            consequence_attributes=self.consequence_attributes
+        )
+        # Check that the evidence string validates against schema
+        clinvar_to_evidence_strings.validate_evidence_string(evidence, self.ot_schema_contents)
+        # Check that alleleOrigins is not present and datatype is eva
+        self.assertTrue('alleleOrigins' not in evidence)
+        self.assertEqual(evidence['datasourceId'], 'eva')
 
 
 class GroupDiseasesByMappingTest(unittest.TestCase):
