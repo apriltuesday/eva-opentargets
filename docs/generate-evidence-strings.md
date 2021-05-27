@@ -123,7 +123,7 @@ The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use 
 The files are uploaded to the FTP, where ZOOMA will pick it up. At this stage, you only need to upload the **clinvar_xrefs** dataset (the *eva_clinvar* dataset is updated in the process of the manual curation).
 
 To make changes to the FTP, you will need to log in to the cluster using your **personal account** and then you will need to have set up the common environment like in step 1.
-
+```bash
 # Create the folder, copy the file to FTP, and update the “latest” folder
 FTP_PATH=${FTP_PATH_BASE}/`date +%Y/%m/%d`
 mkdir -p ${FTP_PATH}
