@@ -40,6 +40,9 @@ def process_biomart_request(query):
     result = requests.get(query)
     # If there was an HTTP error, raise an exception. This will be caught by @retry.
     result.raise_for_status()
+    # Some errors from BioMart come back as 200 but with an error message in the content.
+    if result.text.lower().startswith('query error'):
+        raise requests.exceptions.HTTPError(result.text)
     return result.text
 
 
