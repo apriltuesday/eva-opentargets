@@ -287,8 +287,25 @@ class ClinVarRecordMeasure:
         self.clinvar_record = clinvar_record
 
     @property
-    def name(self):
-        return find_mandatory_unique_element(self.measure_xml, './Name/ElementValue[@Type="Preferred"]').text
+    def all_names(self):
+        """Returns a lexicographically sorted list of all measure names, including the preferred one (if any)."""
+        return sorted(name.text for name in find_elements(self.measure_xml, './Name/ElementValue'))
+
+    @property
+    def preferred_name(self):
+        """Returns a single preferred measure, as indicated in the ClinVar record."""
+        name = find_optional_unique_element(self.measure_xml, './Name/ElementValue[@Type="Preferred"]')
+        return None if name is None else name.text
+
+    @property
+    def preferred_or_other_name(self):
+        """Returns a consistent name for a measure, if one is present."""
+        if self.preferred_name:
+            return self.preferred_name
+        elif self.all_names:
+            return self.all_names[0]
+        else:
+            return None
 
     @property
     def preferred_gene_symbols(self):
