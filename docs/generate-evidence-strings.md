@@ -36,7 +36,7 @@ mkdir -p clinvar gene_mapping evidence_strings logs
 
 # Download ClinVar data. We always use the most recent XML dump, which contains all data for the release.
 wget \
-  --directory-prefix ${BATCH_ROOT}/clinvar \
+  -O ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
   https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
 
 # Download the Open Targets JSON schema.
@@ -111,10 +111,18 @@ Nevertheless, we also report evidence strings in which  ``diseaseFromSourceMappe
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
 
+There are also a few version numbers to record. For EFO version, compare the release date [here](https://github.com/EBISPOT/efo/releases) with manual curation date. For Ensembl version, do the same with the release date [here](https://www.ensembl.org/index.html) and the evidence string generation date.
+
 ### Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [Open Targets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[yyyy]-[mm]-[dd].json.gz` (e.g. `cttv012-2020-10-21.json.gz`).
 
-More details can be found on [Open Targets Github wiki](https://github.com/opentargets/data_release/wiki/OT006-Data-Submission#ot009-evidence-string-generation-json-schema-validation--submission).
+Once the upload is complete, send an email to Open Targets (helpdesk [at] opentargets.org) containing the following information from the [metrics spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/):
+* The number of submitted evidence strings
+* The ClinVar release date
+* The Ensembl release
+* The EFO version used for mapping
+* The `eva-opentargets` pipeline version
+* The Open Targets JSON schema version
 
 ### Submit feedback to ZOOMA
 The idea with [ZOOMA](http://www.ebi.ac.uk/spot/zooma/) is that we not only use it, but also provide feedback to help improve it. The evidence string generation pipeline generates two files with such a feedback:
@@ -170,7 +178,7 @@ If everything has been done correctly, hash sums will be the same. Note that the
   + Generated evidence strings validate against the schema
     - Have actually been submitted to the Open Targets cloud storage
     - The file is the same as on the cluster (check md5)
-    - E-mail has been sent to Open Targets, with eva-dev in copy
+    - E-mail has been sent to Open Targets, with opentargets-clinvar in copy
   + ZOOMA feedback (the FTP path is http://ftp.ebi.ac.uk/pub/databases/eva/ClinVar/latest; to see where files are located on the cluster, see variable `BATCH_ROOT_BASE` on [this page](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md))
     - The changes have been propagated to the FTP, and the files available over FTP are the same as on the cluster
     - The files in the `YYYY/MM/DD` and in the `latest` folders are identical (using either symlinks or copied)
