@@ -110,14 +110,16 @@ A repeated evidence string will have identical values for these five fields:
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
 
+There are also a few version numbers to record. For EFO version, compare the release date [here](https://github.com/EBISPOT/efo/releases) with manual curation date. For Ensembl version, do the same with the release date [here](https://www.ensembl.org/index.html) and the evidence string generation date.
+
 ### Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [Open Targets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[yyyy]-[mm]-[dd].json.gz` (e.g. `cttv012-2020-10-21.json.gz`).
 
-Once the upload is complete, send an email to Open Targets helpdesk containing the following information:
+Once the upload is complete, send an email to Open Targets (helpdesk [at] opentargets.org) containing the following information from the [metrics spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/):
 * The number of submitted evidence strings
 * The ClinVar release date
-* The Ensembl release (depends on the evidence string generation date)
-* The EFO version used for mapping (depends on the manual curation date)
+* The Ensembl release
+* The EFO version used for mapping
 * The `eva-opentargets` pipeline version
 * The Open Targets JSON schema version
 
