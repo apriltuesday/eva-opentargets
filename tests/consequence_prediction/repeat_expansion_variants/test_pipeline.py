@@ -80,3 +80,8 @@ def test_alternative_identifiers():
         # ATXN2, (CAG)n REPEAT EXPANSION is inferred to be trinucleotide from the repeat unit length
         ['RCV000008583', '1', 'ENSG00000204842', 'ATXN2', 'trinucleotide_repeat_expansion', '0']
     ])
+
+
+def test_missing_names():
+    """Records that are missing variant identifiers/names are skipped."""
+    assert run_pipeline('missing_names.xml.gz') == []

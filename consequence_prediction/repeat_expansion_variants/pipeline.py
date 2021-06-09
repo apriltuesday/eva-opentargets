@@ -46,6 +46,9 @@ def load_clinvar_data(clinvar_xml):
         # Skip the record if it's a deletion or a short insertion
         if not clinvar_record.measure.is_repeat_expansion_variant:
             continue
+        # Also skip the record if the measure is missing a name
+        if not clinvar_record.measure.preferred_or_other_name:
+            continue
 
         # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
         # summary format which was used previously.
@@ -60,7 +63,7 @@ def load_clinvar_data(clinvar_xml):
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                clinvar_record.measure.name,
+                clinvar_record.measure.preferred_or_other_name,
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id
