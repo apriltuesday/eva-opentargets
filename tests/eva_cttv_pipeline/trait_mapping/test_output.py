@@ -1,6 +1,5 @@
 import csv
 import tempfile
-import unittest
 
 import eva_cttv_pipeline.trait_mapping.output as output
 from eva_cttv_pipeline.trait_mapping.oxo import OxOMapping, OxOResult
@@ -8,7 +7,7 @@ from eva_cttv_pipeline.trait_mapping.trait import OntologyEntry, Trait
 import eva_cttv_pipeline.trait_mapping.zooma as zooma
 
 
-class TestOutputTraitMapping(unittest.TestCase):
+class TestOutputTraitMapping:
     def test_output_trait_mapping(self):
         tempfile_path = tempfile.mkstemp()[1]
         with open(tempfile_path, "w", newline='') as mapping_file:
@@ -30,18 +29,16 @@ class TestOutputTraitMapping(unittest.TestCase):
         with open(tempfile_path, "rt", newline='') as mapping_file:
             mapping_reader = csv.reader(mapping_file, delimiter="\t")
             next(mapping_reader)
-            self.assertEqual(['aprt deficiency, japanese type',
-                              'http://www.orpha.net/ORDO/Orphanet_976',
-                              'Adenine phosphoribosyltransferase deficiency'],
-                             next(mapping_reader))
+            assert ['aprt deficiency, japanese type',
+                    'http://www.orpha.net/ORDO/Orphanet_976',
+                    'Adenine phosphoribosyltransferase deficiency'] == next(mapping_reader)
 
-            self.assertEqual(['aprt deficiency, japanese type',
-                              'http://www.orpha.net/ORDO/Orphanet_977',
-                              'Adenine phosphoribosyltransferase deficiency type A'],
-                             next(mapping_reader))
+            assert ['aprt deficiency, japanese type',
+                    'http://www.orpha.net/ORDO/Orphanet_977',
+                    'Adenine phosphoribosyltransferase deficiency type A'] == next(mapping_reader)
 
 
-class TestGetMappingsForCuration(unittest.TestCase):
+class TestGetMappingsForCuration:
     def test_get_non_efo_mapping(self):
         """If mapping is not in EFO, its `is_current` flag should *not* be checked, and the mapping
         *should* be selected for curation."""
@@ -54,7 +51,7 @@ class TestGetMappingsForCuration(unittest.TestCase):
         mapping.ontology_label = ""
         mapping.source = 'eva-clinvar'
         mapping.uri = 'http://purl.obolibrary.org/obo/HP_0000483'
-        self.assertEqual([mapping], output.get_mappings_for_curation([test_zooma_result]))
+        assert [mapping] == output.get_mappings_for_curation([test_zooma_result])
 
     def test_get_obsolete_efo_mapping(self):
         """If mapping is in EFO, but is not current, it *should not* be selected for curation."""
@@ -68,7 +65,7 @@ class TestGetMappingsForCuration(unittest.TestCase):
         mapping.ontology_label = "Adenine phosphoribosyltransferase deficiency"
         mapping.source = 'eva-clinvar'
         mapping.uri = 'http://www.orpha.net/ORDO/Orphanet_976'
-        self.assertEqual([], output.get_mappings_for_curation([test_zooma_result]))
+        assert [] == output.get_mappings_for_curation([test_zooma_result])
 
     def test_get_current_efo_mapping(self):
         """If mapping is in EFO and is current, is *should* be selected for curation."""
@@ -82,10 +79,10 @@ class TestGetMappingsForCuration(unittest.TestCase):
         mapping.ontology_label = "Abnormal neutrophil chemotactic response"
         mapping.source = 'eva-clinvar'
         mapping.uri = 'http://purl.obolibrary.org/obo/MONDO_0008091'
-        self.assertEqual([mapping], output.get_mappings_for_curation([test_zooma_result]))
+        assert [mapping] == output.get_mappings_for_curation([test_zooma_result])
 
 
-class TestOutputForCuration(unittest.TestCase):
+class TestOutputForCuration:
     def test_output_for_curation(self):
         tempfile_path = tempfile.mkstemp()[1]
         with open(tempfile_path, "wt") as curation_file:
@@ -111,8 +108,4 @@ class TestOutputForCuration(unittest.TestCase):
                 "transitional cell carcinoma of the bladder", "276", '',
                 "http://www.ebi.ac.uk/efo/EFO_0006544|bladder transitional cell carcinoma|2|HP:0006740|EFO_CURRENT"
             ]
-            self.assertEqual(expected_record, next(curation_reader))
-
-
-if __name__ == '__main__':
-    unittest.main()
+            assert expected_record == next(curation_reader)

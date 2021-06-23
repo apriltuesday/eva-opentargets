@@ -1,20 +1,18 @@
-import unittest
-
 import eva_cttv_pipeline.trait_mapping.trait as trait
 import eva_cttv_pipeline.trait_mapping.zooma as zooma
 import eva_cttv_pipeline.trait_mapping.oxo as oxo
 
 
-class TestTrait(unittest.TestCase):
+class TestTrait:
     def test_is_finished_true(self):
         test_trait = trait.Trait('aprt deficiency, japanese type', 1)
         test_trait.finished_mapping_set.add(trait.OntologyEntry('http://www.orpha.net/ORDO/Orphanet_976',
                                                                 'Adenine phosphoribosyltransferase deficiency'))
-        self.assertTrue(test_trait.is_finished)
+        assert test_trait.is_finished
 
     def test_is_finished_false(self):
         test_trait = trait.Trait('aprt deficiency, japanese type', 1)
-        self.assertFalse(test_trait.is_finished)
+        assert not test_trait.is_finished
 
     def test_process_zooma_result(self):
         test_trait = trait.Trait('aprt deficiency, japanese type', 1)
@@ -33,7 +31,7 @@ class TestTrait(unittest.TestCase):
         test_trait.zooma_result_list.append(test_zooma_result)
 
         test_trait.process_zooma_results()
-        self.assertEqual(1, len(test_trait.finished_mapping_set))
+        assert 1 == len(test_trait.finished_mapping_set)
 
     def test_process_oxo_mappings(self):
         test_trait = trait.Trait('congenital cystic disease of liver', 11)
@@ -55,8 +53,4 @@ class TestTrait(unittest.TestCase):
 
         test_trait.process_oxo_mappings()
 
-        self.assertEqual(1, len(test_trait.finished_mapping_set))
-
-
-
-
+        assert 1 == len(test_trait.finished_mapping_set)
