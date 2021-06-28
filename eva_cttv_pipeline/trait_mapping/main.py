@@ -66,11 +66,21 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
     return trait
 
 
-def main(input_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host, oxo_target_list,
-         oxo_distance):
+def output_traits_for_curator(trait_list, output_filepath):
+    """Output traits as a CSV file for Curator."""
+    with open(output_filepath, 'w') as output_file:
+        writer = csv.writer(output_file, delimiter=',')
+        writer.writerow(['text', 'upstreamId', 'priority'])
+        for trait in trait_list:
+            writer.writerow([trait.name, trait.identifier, trait.frequency])
+
+
+def main(input_filepath, output_traits_filepath, output_mappings_filepath, output_curation_filepath, filters,
+         zooma_host, oxo_target_list, oxo_distance):
     logger.info('Started parsing trait names')
     trait_list = parse_trait_names(input_filepath)
     logger.info("Loaded {} trait names".format(len(trait_list)))
+    output_traits_for_curator(trait_list, output_traits_filepath)
 
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
             open(output_curation_filepath, "wt") as curation_file:

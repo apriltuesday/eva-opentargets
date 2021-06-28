@@ -209,6 +209,10 @@ class ClinVarTrait:
                f'{self.clinvar_record.accession}'
 
     @property
+    def identifier(self):
+        return int(self.trait_xml.attrib['ID'].strip())
+
+    @property
     def all_names(self):
         """Returns a lexicographically sorted list of all trait names, including the preferred one (if any)."""
         return sorted(name.text for name in find_elements(self.trait_xml, './Name/ElementValue'))
