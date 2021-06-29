@@ -29,9 +29,9 @@ class Trait:
     Object to hold data for one trait name. Including the number of ClinVar record's traits it
     appears in, any Zooma and OxO mappings, and any mappings which are ready to be output.
     """
-    def __init__(self, identifier, name, frequency, associated_with_nt_expansion=False):
-        self.identifier = identifier
+    def __init__(self, name, identifier, frequency, associated_with_nt_expansion=False):
         self.name = name
+        self.identifier = identifier
         self.frequency = frequency
         self.zooma_result_list = []
         self.oxo_result_list = []

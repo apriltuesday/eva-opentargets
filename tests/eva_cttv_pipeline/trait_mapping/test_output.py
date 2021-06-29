@@ -13,7 +13,7 @@ def test_output_trait_mapping():
         mapping_writer = csv.writer(mapping_file, delimiter="\t")
         mapping_writer.writerow(["#clinvar_trait_name", "uri", "label"])
 
-        test_trait = Trait('aprt deficiency, japanese type', 11)
+        test_trait = Trait('aprt deficiency, japanese type', '99999', 11)
 
         # Normally a set, but changed to a list for predictable output order in test
         test_trait.finished_mapping_set = [
@@ -87,7 +87,7 @@ def test_output_for_curation():
     with open(tempfile_path, "wt") as curation_file:
         curation_writer = csv.writer(curation_file, delimiter="\t")
 
-        test_trait = Trait("transitional cell carcinoma of the bladder", 276)
+        test_trait = Trait("transitional cell carcinoma of the bladder", '99999', 276)
 
         test_oxo_result = OxOResult("HP:0006740", "Transitional cell carcinoma of the bladder",
                                     "HP:0006740")

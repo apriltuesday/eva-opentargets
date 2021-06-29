@@ -4,19 +4,18 @@ import eva_cttv_pipeline.trait_mapping.oxo as oxo
 
 
 def test_is_finished_true():
-    test_trait = trait.Trait('aprt deficiency, japanese type', 1)
+    test_trait = trait.Trait('aprt deficiency, japanese type', '99999', 1)
     test_trait.finished_mapping_set.add(trait.OntologyEntry('http://www.orpha.net/ORDO/Orphanet_976',
                                                             'Adenine phosphoribosyltransferase deficiency'))
     assert test_trait.is_finished
 
-
 def test_is_finished_false():
-    test_trait = trait.Trait('aprt deficiency, japanese type', 1)
+    test_trait = trait.Trait('aprt deficiency, japanese type', '99999', 1)
     assert not test_trait.is_finished
 
 
 def test_process_zooma_result():
-    test_trait = trait.Trait('aprt deficiency, japanese type', 1)
+    test_trait = trait.Trait('aprt deficiency, japanese type', '99999', 1)
 
     test_zooma_result = zooma.ZoomaResult(['http://www.orpha.net/ORDO/Orphanet_976'],
                                           'Adenine phosphoribosyltransferase deficiency',
@@ -36,7 +35,7 @@ def test_process_zooma_result():
 
 
 def test_process_oxo_mappings():
-    test_trait = trait.Trait('congenital cystic disease of liver', 11)
+    test_trait = trait.Trait('congenital cystic disease of liver', '99999', 11)
 
     test_oxo_result = oxo.OxOResult('HP:0006706', 'Cystic liver disease', 'HP:0006706')
 

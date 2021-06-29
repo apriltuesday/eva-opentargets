@@ -210,7 +210,7 @@ class ClinVarTrait:
 
     @property
     def identifier(self):
-        return int(self.trait_xml.attrib['ID'].strip())
+        return self.trait_xml.attrib['ID'].strip()
 
     @property
     def all_names(self):
