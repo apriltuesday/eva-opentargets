@@ -23,8 +23,8 @@ class ArgParser:
 
         parser.add_argument("-i", dest="input_filepath", required=True,
                             help="ClinVar XML dump file. One record per line.")
-        parser.add_argument("", dest="output_traits_filepath", required=True,  # TODO should this be required? if so we need to update the readme
-                            help="path to output file for traits")
+        parser.add_argument("-u", dest="output_traits_filepath", required=True,
+                            help="path to output file for all traits, for use with curation platform")
         parser.add_argument("-o", dest="output_mappings_filepath", required=True,
                             help="path to output file for mappings")
         parser.add_argument("-c", dest="output_curation_filepath", required=True,

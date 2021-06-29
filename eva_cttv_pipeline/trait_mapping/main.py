@@ -80,7 +80,10 @@ def main(input_filepath, output_traits_filepath, output_mappings_filepath, outpu
     logger.info('Started parsing trait names')
     trait_list = parse_trait_names(input_filepath)
     logger.info("Loaded {} trait names".format(len(trait_list)))
+    # Remove non-specific trait names which should never be output
+    trait_list = [trait for trait in trait_list if trait.name.lower() not in ClinVarTrait.NONSPECIFIC_TRAITS]
     output_traits_for_curator(trait_list, output_traits_filepath)
+    logger.info("Output {} valid trait names for Curator".format(len(trait_list)))
 
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
             open(output_curation_filepath, "wt") as curation_file:
@@ -100,8 +103,6 @@ def main(input_filepath, output_traits_filepath, output_mappings_filepath, outpu
 
         logger.info('Writing output with the processed traits')
         for trait in processed_trait_list:
-            # Remove non-specific trait names which should never be output
-            if trait.name.lower() not in ClinVarTrait.NONSPECIFIC_TRAITS:
-                output_trait(trait, mapping_writer, curation_writer)
+            output_trait(trait, mapping_writer, curation_writer)
 
     logger.info('Finished processing trait names')
