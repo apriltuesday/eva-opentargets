@@ -45,6 +45,7 @@ class ArgParser:
         args = parser.parse_args(args=argv[1:])
 
         self.input_filepath = args.input_filepath
+        self.output_traits_filepath = args.output_traits_filepath
         self.output_mappings_filepath = args.output_mappings_filepath
         self.output_curation_filepath = args.output_curation_filepath
 
