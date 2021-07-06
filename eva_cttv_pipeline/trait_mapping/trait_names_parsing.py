@@ -28,21 +28,21 @@ def parse_trait_names(filepath: str) -> list:
     nt_expansion_traits = set()
 
     for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
-        trait_names = set(trait.preferred_or_other_valid_name.lower()
-                          for trait in clinvar_record.traits_with_valid_names)
-        for trait_name in trait_names:
-            trait_name_counter[trait_name] += 1
+        trait_names_and_ids = set((trait.preferred_or_other_valid_name.lower(), trait.identifier)
+                                  for trait in clinvar_record.traits_with_valid_names)
+        for trait_tuple in trait_names_and_ids:
+            trait_name_counter[trait_tuple] += 1
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
-            nt_expansion_traits |= trait_names
+            nt_expansion_traits |= trait_names_and_ids
 
     # Count trait occurrences
     traits = []
-    for trait_name, trait_frequency in trait_name_counter.items():
-        if trait_name == '-':
+    for trait_tuple, trait_frequency in trait_name_counter.items():
+        if trait_tuple[0] == '-':
             print('Skipped {} missing trait names'.format(trait_frequency))
             continue
-        associated_with_nt_expansion = trait_name in nt_expansion_traits
-        traits.append(Trait(name=trait_name, frequency=trait_frequency,
+        associated_with_nt_expansion = trait_tuple in nt_expansion_traits
+        traits.append(Trait(name=trait_tuple[0], identifier=trait_tuple[1], frequency=trait_frequency,
                             associated_with_nt_expansion=associated_with_nt_expansion))
 
     return traits

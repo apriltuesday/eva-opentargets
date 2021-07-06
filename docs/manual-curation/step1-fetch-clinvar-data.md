@@ -20,6 +20,7 @@ cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 12G \
   -e ${CURATION_RELEASE_ROOT}/log.trait_mapping.err \
   python3 bin/trait_mapping.py \
   -i ${CURATION_RELEASE_ROOT}/ClinVarFullRelease_00-latest.xml.gz \
+  -u ${CURATION_RELEASE_ROOT}/traits_for_curator_platform.csv \
   -o ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   -c ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv
 
