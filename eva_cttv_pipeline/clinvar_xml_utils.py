@@ -346,25 +346,39 @@ class ClinVarRecordMeasure:
             return None
 
     @property
-    def hgvs(self):
+    def _hgvs_elems(self):
         return [
-            elem.text
+            elem
             for elem in find_elements(self.measure_xml, './AttributeSet/Attribute')
             if elem.attrib['Type'].startswith('HGVS')
         ]
+
+    @property
+    def hgvs(self):
+        return [elem.text for elem in self._hgvs_elems]
+
+
+    @property
+    def refseq_hgvs(self):
+        refseq_elems = [elem for elem in self._hgvs_elems if 'LRG' not in elem.attrib['Type']]
+        # TODO order these appropriately?
+        return [elem.text for elem in refseq_elems]
 
     @property
     def variant_type(self):
         return self.measure_xml.attrib['Type']
 
     @property
+    def explicit_insertion_length(self):
+        return len(self.vcf_alt) - len(self.vcf_ref)
+
+    @property
     def microsatellite_category(self):
         if self.variant_type == 'Microsatellite':
             if self.has_complete_coordinates:
-                explicit_insertion_length = len(self.vcf_alt) - len(self.vcf_ref)
-                if explicit_insertion_length < 0:
+                if self.explicit_insertion_length < 0:
                     return self.MS_DELETION
-                elif explicit_insertion_length < self.REPEAT_EXPANSION_THRESHOLD:
+                elif self.explicit_insertion_length < self.REPEAT_EXPANSION_THRESHOLD:
                     return self.MS_SHORT_EXPANSION
                 else:
                     return self.MS_REPEAT_EXPANSION
@@ -401,7 +415,7 @@ class ClinVarRecordMeasure:
 
     @property
     def has_complete_coordinates(self):
-        return self.chr and self.vcf_pos and self.vcf_ref and self.vcf_alt
+        return bool(self.chr and self.vcf_pos and self.vcf_ref and self.vcf_alt)
 
     @property
     def vcf_full_coords(self):

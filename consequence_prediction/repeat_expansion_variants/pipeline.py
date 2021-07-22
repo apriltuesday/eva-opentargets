@@ -23,6 +23,14 @@ def none_to_nan(*args):
     return [np.nan if a is None else a for a in args]
 
 
+def get_variant_identifier(measure):
+    if measure.preferred_or_other_name:
+        return measure.preferred_or_other_name
+    if measure.refseq_hgvs:
+        return measure.refseq_hgvs[0]
+    return None
+
+
 def load_clinvar_data(clinvar_xml):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
     # Iterate through ClinVar XML records
@@ -46,9 +54,6 @@ def load_clinvar_data(clinvar_xml):
         # Skip the record if it's a deletion or a short insertion
         if not clinvar_record.measure.is_repeat_expansion_variant:
             continue
-        # Also skip the record if the measure is missing a name
-        if not clinvar_record.measure.preferred_or_other_name:
-            continue
 
         # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
         # summary format which was used previously.
@@ -63,16 +68,17 @@ def load_clinvar_data(clinvar_xml):
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                clinvar_record.measure.preferred_or_other_name,
+                get_variant_identifier(clinvar_record.measure),
                 clinvar_record.accession,
                 gene_symbol,
-                hgnc_id
+                hgnc_id,
+                clinvar_record.measure.explicit_insertion_length
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                       stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
     logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variant candidates')
 
-    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
+    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID', 'CoordinateSpan'))
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
@@ -82,8 +88,13 @@ def load_clinvar_data(clinvar_xml):
 def parse_variant_identifier(row):
     """Parse variant identifier and extract certain characteristics into separate columns."""
     variant_name = str(row.Name)
-    row['TranscriptID'], row['CoordinateSpan'], row['RepeatUnitLength'], row['IsProteinHGVS'] = \
+    transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs = \
         none_to_nan(*clinvar_identifier_parsing.parse_variant_identifier(variant_name))
+    row['TranscriptID'], row['RepeatUnitLength'], row['IsProteinHGVS'] = \
+        transcript_id, repeat_unit_length, is_protein_hgvs
+    # Only overwrite the coordinate span inferred previously if we got something better by parsing the identifier.
+    if not np.isnan(coordinate_span):
+        row['CoordinateSpan'] = coordinate_span
     return row
 
 
@@ -179,7 +190,7 @@ def determine_repeat_type(row):
     # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be processed
     # as a repeat *expansion* variant. The reason such records are present at this stage is that for records without
     # explicit allele sequences we cannot verify whether they definitely represent expansions.
-    if row['Name'].endswith('del') or row['Name'].endswith('del)'):
+    if row['Name'] and (row['Name'].endswith('del') or row['Name'].endswith('del)')):
         repeat_type = np.nan
     # Based on the information which we have, determine whether the record is complete
     row['RepeatType'] = repeat_type

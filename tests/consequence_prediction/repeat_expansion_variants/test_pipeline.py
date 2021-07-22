@@ -83,5 +83,7 @@ def test_alternative_identifiers():
 
 
 def test_missing_names():
-    """Records that are missing variant identifiers/names are skipped."""
-    assert run_pipeline('missing_names.xml.gz') == []
+    """Records that are missing variant names are still processed using HGVS identifier."""
+    results = run_pipeline('missing_names.xml.gz')
+    assert len(results) == 7
+    assert all(r[4] == 'short_tandem_repeat_expansion' for r in results)
