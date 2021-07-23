@@ -361,7 +361,7 @@ class ClinVarRecordMeasure:
     @property
     def refseq_hgvs(self):
         refseq_elems = [elem for elem in self._hgvs_elems if 'LRG' not in elem.attrib['Type']]
-        # TODO order these appropriately?
+        # TODO determine if there is a preferred ordering to use here, based e.g. on prevalence in data
         return [elem.text for elem in refseq_elems]
 
     @property
@@ -370,7 +370,8 @@ class ClinVarRecordMeasure:
 
     @property
     def explicit_insertion_length(self):
-        return len(self.vcf_alt) - len(self.vcf_ref)
+        if self.vcf_alt and self.vcf_ref:
+            return len(self.vcf_alt) - len(self.vcf_ref)
 
     @property
     def microsatellite_category(self):
