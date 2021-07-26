@@ -72,6 +72,7 @@ def load_clinvar_data(clinvar_xml):
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id,
+                # TODO use REF and ALT to determine repeat unit length rather than just coordinate span
                 clinvar_record.measure.explicit_insertion_length
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
