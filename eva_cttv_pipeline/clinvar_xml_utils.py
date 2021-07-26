@@ -359,10 +359,9 @@ class ClinVarRecordMeasure:
 
 
     @property
-    def refseq_hgvs(self):
-        refseq_elems = [elem for elem in self._hgvs_elems if 'LRG' not in elem.attrib['Type']]
-        # TODO determine if there is a preferred ordering to use here, based e.g. on prevalence in data
-        return [elem.text for elem in refseq_elems]
+    def toplevel_refseq_hgvs(self):
+        refseq_elems = [elem for elem in self._hgvs_elems if elem.attrib['Type'].lower() == 'hgvs, genomic, top level']
+        return refseq_elems[0].text if refseq_elems else None
 
     @property
     def variant_type(self):
@@ -372,6 +371,7 @@ class ClinVarRecordMeasure:
     def explicit_insertion_length(self):
         if self.vcf_alt and self.vcf_ref:
             return len(self.vcf_alt) - len(self.vcf_ref)
+        return None
 
     @property
     def microsatellite_category(self):

@@ -23,11 +23,11 @@ def none_to_nan(*args):
     return [np.nan if a is None else a for a in args]
 
 
-def get_variant_identifier(measure):
+def get_variant_name_or_hgvs(measure):
     if measure.preferred_or_other_name:
         return measure.preferred_or_other_name
-    if measure.refseq_hgvs:
-        return measure.refseq_hgvs[0]
+    if measure.toplevel_refseq_hgvs:
+        return measure.toplevel_refseq_hgvs
     return None
 
 
@@ -68,7 +68,7 @@ def load_clinvar_data(clinvar_xml):
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                get_variant_identifier(clinvar_record.measure),
+                get_variant_name_or_hgvs(clinvar_record.measure),
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id,
