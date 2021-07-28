@@ -83,5 +83,17 @@ def test_alternative_identifiers():
 
 
 def test_missing_names():
-    """Records that are missing variant identifiers/names are skipped."""
-    assert run_pipeline('missing_names.xml.gz') == []
+    """Records that are missing variant names are still processed using HGVS identifier."""
+    results = run_pipeline('missing_names.xml.gz')
+    assert len(results) == 7
+    assert all(r[4] == 'short_tandem_repeat_expansion' for r in results)
+
+
+def test_missing_names_and_hgvs():
+    """Records that are missing variant names and HGVS should use coordinate span from alleles instead."""
+    assert sorted(run_pipeline('missing_names_and_hgvs.xml.gz')) == [
+        # ref=T, alt=TGAAAGAAAGAAAGAAAGAAA => correctly classified as short tandem repeat
+        ['RCV001355211', '1', 'ENSG00000109861', 'CTSC', 'short_tandem_repeat_expansion', '0'],
+        # ref=T, alt=TACACACACACAC => classified as trinucleotide repeat without repeating unit inference.
+        ['RCV001356600', '1', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion', '0']
+    ]
