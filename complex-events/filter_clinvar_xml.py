@@ -49,7 +49,7 @@ def filter_xml(input_xml, output_xml, filter_fct, max_num=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Filter clinvar xml to get only variants with no functional consequences')
     parser.add_argument('--clinvar-xml', required=True)
-    parser.add_argument('--output_xml', required=True)
+    parser.add_argument('--output-xml', required=True)
     parser.add_argument('--gene-mapping', required=True)
     args = parser.parse_args()
 
