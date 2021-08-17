@@ -6,6 +6,8 @@ import logging
 import re
 import xml.etree.ElementTree as ElementTree
 
+from eva_cttv_pipeline import clinvar_identifier_parsing
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -289,6 +291,7 @@ class ClinVarRecordMeasure:
     def __init__(self, measure_xml, clinvar_record):
         self.measure_xml = measure_xml
         self.clinvar_record = clinvar_record
+        self._parsed_identifier = None
 
     @property
     def all_names(self):
@@ -435,3 +438,64 @@ class ClinVarRecordMeasure:
             # TODO: https://github.com/EBIvariation/eva-opentargets/issues/172
             return None
         return sequence_locations[0].attrib.get(attr)
+
+    def get_variant_name_or_hgvs(self):
+        if self.preferred_or_other_name:
+            return self.preferred_or_other_name
+        if self.toplevel_refseq_hgvs:
+            return self.toplevel_refseq_hgvs
+        return None
+
+    def _parse_identifier(self):
+        if self._parsed_identifier is None:
+            self._parsed_identifier = clinvar_identifier_parsing.parse_variant_identifier(self.get_variant_name_or_hgvs())
+        return self._parsed_identifier
+
+    @property
+    def transcript_id(self):
+        return self._parse_identifier()[0]
+
+    @property
+    def coordinate_span(self):
+        parsed_coordinate_span = self._parse_identifier()[1]
+        return parsed_coordinate_span if parsed_coordinate_span is not None else self.explicit_insertion_length
+
+    @property
+    def repeat_unit_length(self):
+        return self._parse_identifier()[2]
+
+    @property
+    def is_protein_hgvs(self):
+        return self._parse_identifier()[3]
+
+    @property
+    def repeat_type(self):
+        """Based on all available information about a variant, determine its type. The resulting type can be:
+            * trinucleotide_repeat_expansion, corresponding to SO:0002165
+            * short_tandem_repeat_expansion, corresponding to SO:0002162
+            * None (not able to determine)
+        """
+        repeat_type = None
+
+        if self.is_protein_hgvs:
+            # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
+            repeat_type = 'trinucleotide_repeat_expansion'
+        else:
+            # As a priority, use the repeat unit length determined directly from the HGVS-like base sequence
+            # If not available, fall back to using and end coordinate difference
+            repeat_unit_length = self.repeat_unit_length
+            if repeat_unit_length is None:
+                repeat_unit_length = self.coordinate_span
+            # Determine repeat type based on repeat unit length
+            if repeat_unit_length is not None:
+                if repeat_unit_length % 3 == 0:
+                    repeat_type = 'trinucleotide_repeat_expansion'
+                else:
+                    repeat_type = 'short_tandem_repeat_expansion'
+        # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be processed
+        # as a repeat *expansion* variant. The reason such records are present at this stage is that for records without
+        # explicit allele sequences we cannot verify whether they definitely represent expansions.
+        name = self.get_variant_name_or_hgvs()
+        if name and (name.endswith('del') or name.endswith('del)')):
+            repeat_type = None
+        return repeat_type

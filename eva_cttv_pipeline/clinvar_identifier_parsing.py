@@ -97,6 +97,9 @@ def parse_variant_identifier(variant_name):
     # A variant "name", or identifier, can come from either of three patterns described in the section above.
     transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs = None, None, None, False
 
+    if variant_name is None:
+        return transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs
+
     # Try to match HGVS-like transcript/genomic ID
     match = re_hgvs_like_transcript_or_genomic.search(variant_name)
     if match:
