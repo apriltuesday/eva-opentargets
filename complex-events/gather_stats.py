@@ -34,60 +34,61 @@ def counts(input_xml, output_dir):
     hgvs_output_file = open(os.path.join(output_dir, 'unparseable-hgvs.txt'), 'w+')
 
     for record in dataset:
-        if record.measure:
-            m = record.measure
-            if m.has_complete_coordinates:
-                continue
-            total_count += 1
-            variant_type_hist[m.variant_type] += 1
+        if not record.measure:
+            continue
+        m = record.measure
+        if m.has_complete_coordinates:
+            continue
+        total_count += 1
+        variant_type_hist[m.variant_type] += 1
 
-            has_hgvs = m.hgvs
-            has_cytogenetic = find_elements(m.measure_xml, './CytogeneticLocation')
-            has_spdi = find_elements(m.measure_xml, './CanonicalSPDI')
-            has_start_stop = m.chr and m.sequence_location_helper('start') and m.sequence_location_helper('stop')
+        has_hgvs = m.hgvs
+        has_cytogenetic = find_elements(m.measure_xml, './CytogeneticLocation')
+        has_spdi = find_elements(m.measure_xml, './CanonicalSPDI')
+        has_start_stop = m.chr and m.sequence_location_helper('start') and m.sequence_location_helper('stop')
 
-            # exclusive counts
-            if has_hgvs and not has_cytogenetic and not has_start_stop:
-                hgvs_only_count += 1
-            elif has_cytogenetic and not has_hgvs and not has_start_stop:
-                cytogenetic_only_count += 1
-            elif has_start_stop and not has_hgvs and not has_cytogenetic:
-                start_stop_only_count += 1
+        # exclusive counts
+        if has_hgvs and not has_cytogenetic and not has_start_stop:
+            hgvs_only_count += 1
+        elif has_cytogenetic and not has_hgvs and not has_start_stop:
+            cytogenetic_only_count += 1
+        elif has_start_stop and not has_hgvs and not has_cytogenetic:
+            start_stop_only_count += 1
 
-            # non-exclusive counts
-            if has_cytogenetic:
-                cytogenetic_count += 1
-            if has_spdi:
-                spdi_count += 1
-            if has_start_stop:
-                start_stop_count += 1
-            if has_hgvs:
-                hgvs_count += 1
-                if m.toplevel_refseq_hgvs:
-                    toplevel_refseq_hgvs_count += 1
+        # non-exclusive counts
+        if has_cytogenetic:
+            cytogenetic_count += 1
+        if has_spdi:
+            spdi_count += 1
+        if has_start_stop:
+            start_stop_count += 1
+        if has_hgvs:
+            hgvs_count += 1
+            if m.toplevel_refseq_hgvs:
+                toplevel_refseq_hgvs_count += 1
 
-                # hgvs parseability
-                one_strict_parseable = False
-                one_our_parseable = False
-                for hgvs in m.hgvs:
-                    try:
-                        hgvs_parser.parse_hgvs_variant(hgvs)
-                        one_strict_parseable = True
-                    except:
-                        pass
-                    try:
-                        if any(parse_variant_identifier(hgvs)):
-                            one_our_parseable = True
-                        else:
-                            hgvs_output_file.write(hgvs + '\n')
-                    except:
-                        pass  # these are None
-                if one_strict_parseable:
-                    strict_parseable_hgvs_count += 1
-                if one_our_parseable:
-                    our_parseable_hgvs_count += 1
-                if one_strict_parseable or one_our_parseable:
-                    any_parseable_hgvs_count += 1
+            # hgvs parseability
+            one_strict_parseable = False
+            one_our_parseable = False
+            for hgvs in m.hgvs:
+                try:
+                    hgvs_parser.parse_hgvs_variant(hgvs)
+                    one_strict_parseable = True
+                except:
+                    pass
+                try:
+                    if any(parse_variant_identifier(hgvs)):
+                        one_our_parseable = True
+                    else:
+                        hgvs_output_file.write(hgvs + '\n')
+                except:
+                    pass  # these are None
+            if one_strict_parseable:
+                strict_parseable_hgvs_count += 1
+            if one_our_parseable:
+                our_parseable_hgvs_count += 1
+            if one_strict_parseable or one_our_parseable:
+                any_parseable_hgvs_count += 1
 
     hgvs_output_file.close()
 
