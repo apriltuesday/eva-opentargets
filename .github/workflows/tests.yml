@@ -4,9 +4,10 @@
 name: EVA Open Targets pipelines
 
 on:
-  push:
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+
 
 jobs:
   build:
