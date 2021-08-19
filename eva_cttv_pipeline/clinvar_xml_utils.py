@@ -65,7 +65,7 @@ class ClinVarDataset:
 
 class ClinVarRecord:
     """Instances of this class hold data on individual ClinVar records. See also:
-    * /clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model;
+    * /data-exploration/clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model;
     * Issue https://github.com/EBIvariation/eva-opentargets/issues/127 for the most recent discussions on changing
       support of different ClinVar record types."""
 
@@ -175,8 +175,8 @@ class ClinVarRecord:
     def clinical_significance_list(self):
         """The normalised list of all clinical significance values. The original value is (1) split into multiple values
         by two delimiters: ('/', ', '), (2) converted into lowercase and (3) sorted lexicographically. Example:
-        'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor']. See /clinvar-variant-types/
-        README.md for further explanation."""
+        'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor']. See /data-exploration/
+        clinvar-variant-types/README.md for further explanation."""
         return sorted(re.split('/|, ', self.clinical_significance_raw.lower().replace('_', ' ')))
 
     @property
@@ -271,7 +271,7 @@ class ClinVarTrait:
 class ClinVarRecordMeasure:
     """This class represents individual ClinVar record "measures". Measures are essentially isolated variants, which can
     be combined into either MeasureSets (include one or more Measures) or GenotypeSets. For a detailed description of
-    ClinVar data model, see /clinvar-variant-types/."""
+    ClinVar data model, see data-exploration/clinvar-variant-types/."""
 
     # For ClinVar Microsatellite events with complete coordinates, require the event to be at least this number of bases
     # long in order for it to be considered a repeat expansion event. Smaller events will be processed as regular
