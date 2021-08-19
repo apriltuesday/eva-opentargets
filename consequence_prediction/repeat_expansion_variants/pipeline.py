@@ -65,11 +65,11 @@ def load_clinvar_data(clinvar_xml):
                 gene_symbol,
                 hgnc_id,
                 # TODO use REF and ALT to determine repeat unit length rather than just coordinate span
-                none_to_nan(clinvar_record.measure.coordinate_span),
-                none_to_nan(clinvar_record.measure.transcript_id),
-                none_to_nan(clinvar_record.measure.repeat_unit_length),
-                none_to_nan(clinvar_record.measure.is_protein_hgvs),
-                none_to_nan(clinvar_record.measure.repeat_type)
+                none_to_nan(clinvar_record.measure.hgvs_properties.coordinate_span),
+                none_to_nan(clinvar_record.measure.hgvs_properties.transcript_id),
+                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_unit_length),
+                none_to_nan(clinvar_record.measure.hgvs_properties.is_protein_hgvs),
+                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_type)
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                       stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]

@@ -5,6 +5,7 @@ import gzip
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
+from functools import cached_property
 
 from eva_cttv_pipeline import clinvar_identifier_parsing
 
@@ -291,7 +292,6 @@ class ClinVarRecordMeasure:
     def __init__(self, measure_xml, clinvar_record):
         self.measure_xml = measure_xml
         self.clinvar_record = clinvar_record
-        self._parsed_identifier = None
 
     @property
     def all_names(self):
@@ -446,27 +446,21 @@ class ClinVarRecordMeasure:
             return self.toplevel_refseq_hgvs
         return None
 
-    def _parse_identifier(self):
-        if self._parsed_identifier is None:
-            self._parsed_identifier = clinvar_identifier_parsing.parse_variant_identifier(self.get_variant_name_or_hgvs())
-        return self._parsed_identifier
+    @cached_property
+    def hgvs_properties(self):
+        return ClinVarRecordMeasureHGVS(self.get_variant_name_or_hgvs(), self.explicit_insertion_length)
 
-    @property
-    def transcript_id(self):
-        return self._parse_identifier()[0]
 
-    @property
-    def coordinate_span(self):
-        parsed_coordinate_span = self._parse_identifier()[1]
-        return parsed_coordinate_span if parsed_coordinate_span is not None else self.explicit_insertion_length
+class ClinVarRecordMeasureHGVS:
 
-    @property
-    def repeat_unit_length(self):
-        return self._parse_identifier()[2]
-
-    @property
-    def is_protein_hgvs(self):
-        return self._parse_identifier()[3]
+    def __init__(self, name, explicit_insertion_length):
+        (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = \
+            clinvar_identifier_parsing.parse_variant_identifier(name)
+        self.transcript_id = transcript_id
+        self.coordinate_span = coordinate_span if coordinate_span is not None else explicit_insertion_length
+        self.repeat_unit_length = repeat_unit_length
+        self.is_protein_hgvs = is_protein_hgvs
+        self.name = name
 
     @property
     def repeat_type(self):
@@ -495,7 +489,6 @@ class ClinVarRecordMeasure:
         # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be processed
         # as a repeat *expansion* variant. The reason such records are present at this stage is that for records without
         # explicit allele sequences we cannot verify whether they definitely represent expansions.
-        name = self.get_variant_name_or_hgvs()
-        if name and (name.endswith('del') or name.endswith('del)')):
+        if self.name and (self.name.endswith('del') or self.name.endswith('del)')):
             repeat_type = None
         return repeat_type
