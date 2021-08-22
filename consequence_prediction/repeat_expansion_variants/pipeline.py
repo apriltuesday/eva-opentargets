@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """A pipeline to extract repeat expansion variants from ClinVar XML dump. For documentation refer to README.md"""
 
-from collections import Counter
 import logging
+from collections import Counter
 
 import numpy as np
 import pandas as pd
 
 from eva_cttv_pipeline import clinvar_xml_utils
-from . import biomart, clinvar_identifier_parsing
+from . import biomart
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -18,17 +18,9 @@ logger.setLevel(logging.INFO)
 STANDARD_CHROMOSOME_NAMES = {str(c) for c in range(1, 23)} | {'X', 'Y', 'M', 'MT'}
 
 
-def none_to_nan(*args):
-    """Converts all arguments which are None to np.nan, for consistency inside a Pandas dataframe."""
-    return [np.nan if a is None else a for a in args]
-
-
-def get_variant_name_or_hgvs(measure):
-    if measure.preferred_or_other_name:
-        return measure.preferred_or_other_name
-    if measure.toplevel_refseq_hgvs:
-        return measure.toplevel_refseq_hgvs
-    return None
+def none_to_nan(value):
+    """Converts arguments which are None to np.nan, for consistency inside a Pandas dataframe."""
+    return np.nan if value is None else value
 
 
 def load_clinvar_data(clinvar_xml):
@@ -68,35 +60,35 @@ def load_clinvar_data(clinvar_xml):
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                get_variant_name_or_hgvs(clinvar_record.measure),
+                clinvar_record.measure.get_variant_name_or_hgvs(),
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id,
                 # TODO use REF and ALT to determine repeat unit length rather than just coordinate span
-                clinvar_record.measure.explicit_insertion_length
+                none_to_nan(clinvar_record.measure.hgvs_properties.coordinate_span),
+                none_to_nan(clinvar_record.measure.hgvs_properties.transcript_id),
+                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_unit_length),
+                none_to_nan(clinvar_record.measure.hgvs_properties.is_protein_hgvs),
+                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_type)
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                       stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
     logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variant candidates')
 
-    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID', 'CoordinateSpan'))
+    variants = pd.DataFrame(variant_data, columns=('Name',
+                                                   'RCVaccession',
+                                                   'GeneSymbol',
+                                                   'HGNC_ID',
+                                                   'CoordinateSpan',
+                                                   'TranscriptID',
+                                                   'RepeatUnitLength',
+                                                   'IsProteinHGVS',
+                                                   'RepeatType'))
+
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
     return variants.sort_values(by=['Name']), stats
-
-
-def parse_variant_identifier(row):
-    """Parse variant identifier and extract certain characteristics into separate columns."""
-    variant_name = str(row.Name)
-    transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs = \
-        none_to_nan(*clinvar_identifier_parsing.parse_variant_identifier(variant_name))
-    row['TranscriptID'], row['RepeatUnitLength'], row['IsProteinHGVS'] = \
-        transcript_id, repeat_unit_length, is_protein_hgvs
-    # Only overwrite the coordinate span inferred previously if we got something better by parsing the identifier.
-    if not np.isnan(coordinate_span):
-        row['CoordinateSpan'] = coordinate_span
-    return row
 
 
 def annotate_ensembl_gene_info(variants):
@@ -165,36 +157,9 @@ def annotate_ensembl_gene_info(variants):
     return variants
 
 
-def determine_repeat_type(row):
-    """Based on all available information about a variant, determine its type. The resulting type can be:
-        * trinucleotide_repeat_expansion, corresponding to SO:0002165
-        * short_tandem_repeat_expansion, corresponding to SO:0002162
-        * NaN (not able to determine)
-    Also, depending on the information, determine whether the record is complete, i.e., whether it has all necessary
-    fields to be output for the final "consequences" table."""
-    repeat_type = np.nan
-    if row['IsProteinHGVS']:
-        # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
-        repeat_type = 'trinucleotide_repeat_expansion'
-    else:
-        # As a priority, use the repeat unit length determined directly from the HGVS-like base sequence
-        repeat_unit_length = row['RepeatUnitLength']
-        # If not available, fall back to using and end coordinate difference
-        if pd.isnull(repeat_unit_length):
-            repeat_unit_length = row['CoordinateSpan']
-        # Determine repeat type based on repeat unit length
-        if pd.notnull(repeat_unit_length):
-            if repeat_unit_length % 3 == 0:
-                repeat_type = 'trinucleotide_repeat_expansion'
-            else:
-                repeat_type = 'short_tandem_repeat_expansion'
-    # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be processed
-    # as a repeat *expansion* variant. The reason such records are present at this stage is that for records without
-    # explicit allele sequences we cannot verify whether they definitely represent expansions.
-    if row['Name'] and (row['Name'].endswith('del') or row['Name'].endswith('del)')):
-        repeat_type = np.nan
-    # Based on the information which we have, determine whether the record is complete
-    row['RepeatType'] = repeat_type
+def determine_complete(row):
+    """Depending on the information, determine whether the record is complete, i.e., whether it has all necessary
+        fields to be output for the final "consequences" table."""
     row['RecordIsComplete'] = (
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
@@ -276,14 +241,11 @@ def main(clinvar_xml, output_consequences, output_dataframe):
         logger.info('No variants to process')
         return
 
-    logger.info('Parse variant names and extract information about transcript ID and repeat length')
-    variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
-
     logger.info('Match each record to Ensembl gene ID and name')
     variants = annotate_ensembl_gene_info(variants)
 
     logger.info('Determine variant type and whether the record is complete')
-    variants = variants.apply(lambda row: determine_repeat_type(row), axis=1)
+    variants = variants.apply(lambda row: determine_complete(row), axis=1)
 
     logger.info('Postprocess data and output the two final tables')
     generate_output_files(variants, output_consequences, output_dataframe)
