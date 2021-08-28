@@ -44,29 +44,13 @@ wget \
   -O ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
   https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json
 
-# Extract repeat expansion variants from ClinVar and map them to genes.
-cd ${CODE_ROOT}
-${BSUB_CMDLINE} -K \
-  -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
-  -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
-  python3 ${CODE_ROOT}/consequence_prediction/run_repeat_expansion_variants.py \
-    --clinvar-xml         ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-    --output-consequences ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
-    --output-dataframe    ${BATCH_ROOT}/gene_mapping/repeat_dataframe.tsv
-
 # Run ClinVar variants through VEP and map them to genes and functional consequences.
 ${BSUB_CMDLINE} -K -M 10G \
   -o ${BATCH_ROOT}/logs/consequence_vep.out \
   -e ${BATCH_ROOT}/logs/consequence_vep.err \
   bash ${CODE_ROOT}/consequence_prediction/run_consequence_mapping.sh \
     ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-    ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv
-
-# Unite results from the previous two steps.
-cat \
-  ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
-  ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv \
-  > ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv
+    ${BATCH_ROOT}/gene_mapping/consequences_vep.tsv
 
 # Generate the evidence strings for submission to Open Targets.
 ${BSUB_CMDLINE} -K -M 10G \
@@ -75,7 +59,7 @@ ${BSUB_CMDLINE} -K -M 10G \
   python3 ${CODE_ROOT}/bin/evidence_string_generation.py \
     --clinvar-xml  ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
     --efo-mapping  ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
-    --gene-mapping ${BATCH_ROOT}/gene_mapping/consequences_3_combined.tsv \
+    --gene-mapping ${BATCH_ROOT}/gene_mapping/consequences_vep.tsv \
     --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
     --out          ${BATCH_ROOT}/evidence_strings/
 
