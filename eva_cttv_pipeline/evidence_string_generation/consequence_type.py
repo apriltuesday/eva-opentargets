@@ -36,14 +36,14 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath, consequence_type_dict
 
 
 def process_consequence_type_dataframe(consequences_dataframe):
+    """
+    Return a dictionary of consequence information extracted from the dataframe
+    """
     consequence_type_dict = defaultdict(list)
-    for row in consequences_dataframe.itertuples:
+    for row in consequences_dataframe.itertuples():
         variant_id = row[0]
         ensembl_gene_id = row[2]
         so_term = row[4]
-
-        if pd.isna(ensembl_gene_id):
-            continue
 
         process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
@@ -51,6 +51,10 @@ def process_consequence_type_dataframe(consequences_dataframe):
 
 
 def process_consequence_type_file(snp_2_gene_file, consequence_type_dict = None):
+    """
+        Return a dictionary of consequence information extracted from the given file.
+        If consequence_type_dict is provided then the information will be merge into this dictionary.
+    """
     logger.info('Loading mapping rs -> ENSG/SOterms')
     consequence_type_dict = process_consequence_type_file_tsv(snp_2_gene_file, consequence_type_dict)
     logger.info('{} rs->ENSG/SOterms mappings loaded'.format(len(consequence_type_dict)))

@@ -110,7 +110,7 @@ def validate_evidence_string(ev_string, ot_schema_contents):
 def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
-    repeat_expansion_consequences = pipeline.main(clinvar_xml_file, None, None)
+    repeat_expansion_consequences = pipeline.main(clinvar_xml_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file, CT.process_consequence_type_dataframe(repeat_expansion_consequences))
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,

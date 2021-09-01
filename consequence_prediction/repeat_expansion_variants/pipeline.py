@@ -220,7 +220,7 @@ def generate_all_variants_file(output_dataframe, variants):
     variants.to_csv(output_dataframe, sep='\t', index=False)
 
 
-def main(clinvar_xml, output_consequences, output_dataframe):
+def main(clinvar_xml, output_consequences=None, output_dataframe=None):
     """Process data and generate output files.
 
     Args:
