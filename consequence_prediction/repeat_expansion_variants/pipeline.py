@@ -169,27 +169,27 @@ def determine_complete(row):
     return row
 
 
-def generate_output_files(variants, output_consequences, output_dataframe):
-    """Postprocess and output final tables."""
+def generate_consequences_file(consequences, output_consequences):
+    """Output final table."""
 
-    # Rearrange order of dataframe columns
-    variants = variants[
-        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
-         'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
-         'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
-         'RepeatType', 'RecordIsComplete']
-    ]
-    # Write the full dataframe. This is used for debugging and investigation purposes.
-    variants.sort_values(by=['Name', 'RCVaccession', 'GeneSymbol'])
-    variants.to_csv(output_dataframe, sep='\t', index=False)
+    if consequences.empty:
+        logger.info('There are no records ready for output')
+        return
+    # Write the consequences table. This is used by the main evidence string generation pipeline.
+    consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
+    # Output statistics
+    logger.info(f'Generated {len(consequences)} consequences in total:')
+    logger.info(f'  {sum(consequences.RepeatType == "trinucleotide_repeat_expansion")} trinucleotide repeat expansion')
+    logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
 
+
+def extract_consequences(variants):
     # Generate consequences table
     consequences = variants[variants['RecordIsComplete']] \
         .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'])['RepeatType'] \
         .apply(set).reset_index(name='RepeatType')
     if consequences.empty:
-        logger.info('There are no records ready for output')
-        return
+        return consequences
     # Check that for every (RCV, gene) pair there is only one consequence type
     assert consequences['RepeatType'].str.len().dropna().max() == 1, 'Multiple (RCV, gene) → variant type mappings!'
     # Get rid of sets
@@ -204,15 +204,23 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
     # Check that there are no empty cells in the final consequences table
     assert consequences.isnull().to_numpy().sum() == 0
-    # Write the consequences table. This is used by the main evidence string generation pipeline.
-    consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
-    # Output statistics
-    logger.info(f'Generated {len(consequences)} consequences in total:')
-    logger.info(f'  {sum(consequences.RepeatType == "trinucleotide_repeat_expansion")} trinucleotide repeat expansion')
-    logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
+    return consequences
 
 
-def main(clinvar_xml, output_consequences, output_dataframe):
+def generate_all_variants_file(output_dataframe, variants):
+    # Rearrange order of dataframe columns
+    variants = variants[
+        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
+         'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
+         'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
+         'RepeatType', 'RecordIsComplete']
+    ]
+    # Write the full dataframe. This is used for debugging and investigation purposes.
+    variants.sort_values(by=['Name', 'RCVaccession', 'GeneSymbol'])
+    variants.to_csv(output_dataframe, sep='\t', index=False)
+
+
+def main(clinvar_xml, output_consequences=None, output_dataframe=None):
     """Process data and generate output files.
 
     Args:
@@ -239,7 +247,7 @@ def main(clinvar_xml, output_consequences, output_dataframe):
 
     if variants.empty:
         logger.info('No variants to process')
-        return
+        return None
 
     logger.info('Match each record to Ensembl gene ID and name')
     variants = annotate_ensembl_gene_info(variants)
@@ -248,6 +256,11 @@ def main(clinvar_xml, output_consequences, output_dataframe):
     variants = variants.apply(lambda row: determine_complete(row), axis=1)
 
     logger.info('Postprocess data and output the two final tables')
-    generate_output_files(variants, output_consequences, output_dataframe)
+    if output_dataframe is not None:
+        generate_all_variants_file(output_dataframe, variants)
+    consequences = extract_consequences(variants)
+    if output_consequences is not None:
+        generate_consequences_file(consequences, output_consequences)
 
     logger.info('Completed successfully')
+    return consequences
