@@ -3,7 +3,7 @@
 import argparse
 import re
 
-from eva_cttv_pipeline import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils.src import clinvar_xml_utils
 
 parser = argparse.ArgumentParser('Processes ClinVar XML dump and extract all variants, in CHROM:POS:REF:ALT format,'
                                  'for processing by the VEP mapping pipeline.')
