@@ -259,14 +259,13 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
 
     This is the place where ClinVar records are paired with the information about gene and functional consequences.
     This information is produced by two pipelines in the `consequence_prediction` subdirectory:
-    1. The main one, `vep_mapping_pipeline`, runs all records in the ClinVar VCF dump through Variant Effect Predictor
+    1. The main one, `vep_mapping_pipeline`, runs all records in the ClinVar XML dump through Variant Effect Predictor
        and outputs the results using a VCF-compatible "CHROM:POS:REF:ALT" identifier.
     2. The auxiliary one, `repeat_expansion_variants`, uses a different approach to extract information about repeat
-       expansion variants from the ClinVar TSV dump. The repeat expansion variants have several important features:
-       a. Most (but not all) of them are not present in ClinVar VCF dump, only in the TSV dump.
-       b. Even the variants which have the coordinates cannot be adequately processed by VEP: it will output the wrong
+       expansion variants from the ClinVar XML dump. The repeat expansion variants have several important features:
+       a. Even the variants which have the coordinates cannot be adequately processed by VEP: it will output the wrong
           functional consequence type.
-       c. The "CHROM:POS:REF:ALT" notation is not useful for these variants, because some of them have an indeterminate
+       b. The "CHROM:POS:REF:ALT" notation is not useful for these variants, because some of them have an indeterminate
           number of repeats, hence there is no single ALT allele.
        This second pipeline outputs the results using the RCV identifier from ClinVar."""
 
@@ -278,9 +277,8 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     # RCV accessions *are* specific and contain only one variant.
     #
     # The reason we pair first by RCV accession and *then* by CHROM:POS:REF:ALT identifiers is that some repeat
-    # expansion variants actually *do* appear in the ClinVar VCF dump, will be fed to VEP, and will receive incorrect
-    # consequence annotations. By using RCV pairing first, we prioritise results of the variant expansion pipeline over
-    # the general VEP pipeline.
+    # expansion variants will be fed to VEP and will receive incorrect consequence annotations. By using RCV pairing
+    # first, we prioritise results of the variant expansion pipeline over the general VEP pipeline.
     if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
         return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
 
