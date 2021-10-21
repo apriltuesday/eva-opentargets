@@ -1,6 +1,6 @@
 import os
 
-from eva_cttv_pipeline import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils.src import clinvar_xml_utils
 
 OT_SCHEMA_VERSION = "2.1.0"
 

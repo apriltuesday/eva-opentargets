@@ -25,6 +25,7 @@ setup(name='eva_cttv_pipeline',
       version='2.4.1',
       packages=find_packages(),
       install_requires=get_requires(),
+      #! TBD: list as a dependency subpackage 'clinvar_xml_utils.src.clinvar_xml_utils'
       package_data={
           'eva_cttv_pipeline': get_package_data()
       },

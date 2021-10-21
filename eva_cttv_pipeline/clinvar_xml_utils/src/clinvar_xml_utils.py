@@ -1,5 +1,5 @@
 """Contains utilities and classes to parse the ClinVar XML and convert the records into internal representation via
-ClinVarDataset, ClinVarRecord, and ClinVarRecordMeasure classes."""
+ClinVarDataset, ClinVarRecord, ClinVarTrait, ClinVarRecordMeasure and ClinVarRecordMeasureHGVS classes."""
 
 import gzip
 import logging
