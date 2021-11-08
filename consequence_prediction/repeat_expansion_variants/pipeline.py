@@ -7,7 +7,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from eva_cttv_pipeline.clinvar_xml_utils.src import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import clinvar_xml_utils
 from . import biomart
 
 logging.basicConfig()
