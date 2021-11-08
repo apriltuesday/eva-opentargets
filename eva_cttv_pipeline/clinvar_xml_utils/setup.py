@@ -29,7 +29,7 @@ setup(name = 'clinvar_xml_utils',
       package_data = {
           'clinvar_xml_utils': ["data/*"]
       },
-      #! TBD: list as a dependency '../clinvar_identifier_parsing.py'
+      #! TBD: list as a dependency 'clinvar_xml_utils/clinvar_xml_utils/clinvar_identifier_parsing.py'
       package_dir = {'': '.'},
       description = "Contains utilities and classes to parse the ClinVar XML and convert the records into internal representation via ClinVarDataset, ClinVarRecord, ClinVarTrait, ClinVarRecordMeasure and ClinVarRecordMeasureHGVS classes",
       long_description = long_description,

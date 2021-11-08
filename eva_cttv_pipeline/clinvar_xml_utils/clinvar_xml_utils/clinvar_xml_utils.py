@@ -7,7 +7,7 @@ import re
 import xml.etree.ElementTree as ElementTree
 from functools import cached_property
 
-from eva_cttv_pipeline import clinvar_identifier_parsing
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import clinvar_identifier_parsing
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
