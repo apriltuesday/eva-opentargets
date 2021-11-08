@@ -5,7 +5,7 @@ import os
 import hgvs.parser
 
 from eva_cttv_pipeline.clinvar_identifier_parsing import parse_variant_identifier
-from eva_cttv_pipeline.clinvar_xml_utils.src.clinvar_xml_utils import ClinVarDataset, find_elements
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils import ClinVarDataset, find_elements
 
 hgvs_parser = hgvs.parser.Parser()
 

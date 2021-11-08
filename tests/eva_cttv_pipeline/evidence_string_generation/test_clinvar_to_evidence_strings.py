@@ -3,7 +3,7 @@ import os
 import requests
 import xml.etree.ElementTree as ElementTree
 
-from eva_cttv_pipeline.clinvar_xml_utils.src.clinvar_xml_utils import ClinVarTrait
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils import ClinVarTrait
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 from tests.eva_cttv_pipeline.evidence_string_generation import config

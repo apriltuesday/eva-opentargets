@@ -1,6 +1,6 @@
 from collections import Counter
 
-from eva_cttv_pipeline.clinvar_xml_utils.src import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import clinvar_xml_utils
 from eva_cttv_pipeline.trait_mapping.trait import Trait
 
 

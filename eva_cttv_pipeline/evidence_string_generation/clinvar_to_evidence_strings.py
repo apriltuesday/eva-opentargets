@@ -9,7 +9,7 @@ from collections import defaultdict, Counter
 import jsonschema
 
 from consequence_prediction.repeat_expansion_variants import pipeline
-from eva_cttv_pipeline.clinvar_xml_utils.src import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import clinvar_xml_utils
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)

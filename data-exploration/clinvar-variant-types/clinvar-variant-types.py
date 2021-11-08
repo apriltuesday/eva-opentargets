@@ -4,7 +4,7 @@ import argparse
 from collections import Counter
 import logging
 
-import eva_cttv_pipeline.clinvar_xml_utils.src.clinvar_xml_utils as clinvar_xml_utils
+import eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils as clinvar_xml_utils
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
