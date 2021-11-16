@@ -14,17 +14,17 @@ sort_keys () {
 }
 
 # A function to extract all unique identifying fields from the evidence strings. The fields being extracted are:
-# * Datatype ID
 # * ClinVar RCV accession
 # * Variant ID (chr_pos_ref_alt or, if absent, RCV accession)
 # * Phenotype (mapped ID or, if absent, disease from source)
+# * Datatype ID
 # * Ensembl gene ID
 extract_fields () {
   jq '
-    .datatypeId + "|" +
     .studyId + "|" +
     .variantId + "|" +
-    (if .diseaseFromSourceMappedId? then .diseaseFromSourceMappedId else .diseaseFromSource end) + "|" +
+    (if .diseaseFromSourceMappedId? then .diseaseFromSourceMappedId else .diseaseFromSource | ascii_downcase end) + "|" +
+    .datatypeId + "|" +
     .targetFromSourceId
   ' < "$1" | tr -d '"' > "$2"
 }
