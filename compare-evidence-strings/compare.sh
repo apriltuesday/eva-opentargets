@@ -7,30 +7,25 @@
 echo "Defining functions"
 
 # A function to sort keys in the evidence strings. This makes them more readable and helps comparison through word diff.
-# Also removes several version- and date-related fields which are changed frequently, but do not reflect actual change:
-# * validated_aginst_schema_version
-# * date_asserted
 # The two arguments are input and output JSON files.
 sort_keys () {
   jq -c -S "." <"$1" \
-    | sed -e 's|,"validated_against_schema_version":"[0-9.]*"||g' \
-    | sed -e 's|"date_asserted":".\{19\}",||g' \
   > "$2"
 }
 
 # A function to extract all unique identifying fields from the evidence strings. The fields being extracted are:
+# * Datatype ID
 # * ClinVar RCV accession
-# * Phenotype
-# * Allele origin
-# * Variant ID (rsID or, if absent, RCV accession)
+# * Variant ID (chr_pos_ref_alt or, if absent, RCV accession)
+# * Phenotype (mapped ID or, if absent, disease from source)
 # * Ensembl gene ID
 extract_fields () {
   jq '
-    .unique_association_fields.clinvarAccession + "|" +
-    .unique_association_fields.phenotype + "|" +
-    .unique_association_fields.alleleOrigin + "|" +
-    .unique_association_fields.variant_id + "|" +
-    .unique_association_fields.gene
+    .datatypeId + "|" +
+    .studyId + "|" +
+    .variantId + "|" +
+    (if .diseaseFromSourceMappedId? then .diseaseFromSourceMappedId else .diseaseFromSource end) + "|" +
+    .targetFromSourceId
   ' < "$1" | tr -d '"' > "$2"
 }
 
@@ -44,15 +39,13 @@ compute_git_diff () {
   --color=always \
   --word-diff=color \
   --no-index \
+  --text \
   "$1" "$2"
 }
 
 # Extract only the functional consequence from the evidence string
 extract_functional_consequences () {
-  jq '.evidence.gene2variant.functional_consequence' \
-  | tr -d '"' \
-  | sed -e 's|http://purl.obolibrary.org/obo/||g' \
-        -e 's|http://targetvalidation.org/sequence/||g'
+  jq '.variantFunctionalConsequenceId'
 }
 
 export -f sort_keys extract_fields compute_git_diff extract_functional_consequences

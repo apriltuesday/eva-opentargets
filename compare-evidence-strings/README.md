@@ -60,13 +60,15 @@ First two sections describe statistics per input file. The evidence strings are 
 
 For the EVA/ClinVar use case, the association fields are:
 1. ClinVar RCV record accession
-1. Ontology term specifying which phenotype/trait is contained in the record
-1. Allele origin (germline or somatic)
-1. Variant ID (RS ID, if present, or the same RCV ID as in the first field)
+1. Ontology term specifying which phenotype/trait is contained in the record (the ID if mapped, or the original string from ClinVar)
+1. Datatype ID (`eva` or `eva_somatic`)
+1. Variant ID (`chr_pos_ref_alt`, if present, or the same RCV ID as in the first field)
 1. Ensembl gene ID
 
 ### Diff for evidence strings with non-unique association fields
 If a certain set of association fields occurs more than once for at least one of the input files, the evidence strings falls in the “non-unique” category. They cannot be easily paired between files 1 and 2, so for them only a bulk diff between the two files is produced, which is available through a diff link.
+
+Note that as of JSON schema v2, duplications among these fields should not occur.
 
 ### Diffs and statistics for evidence strings with unique association fields
 If a certain set of association fields occurs at most once per each of the files, its evidence strings will be in the “unique” category. For them, it is easy to pair old and new evidence strings together, and to carry out more detailed analysis.
