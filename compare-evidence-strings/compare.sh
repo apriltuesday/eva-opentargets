@@ -140,6 +140,32 @@ uniq -c 12.consequences-transitions | sort -k1,1rn > 99.consequences-transition-
 
 
 ########################################################################################################################
+echo "Identify evidence strings with changes in phenotype or datatype"
+
+paste <(cut -d '|' -f 1,2,4,5 02.fields.old) <(cut -d '|' -f 3 02.fields.old) | sort -k1,1 > 03a.phenotype.old
+paste <(cut -d '|' -f 1,2,4,5 02.fields.new) <(cut -d '|' -f 3 02.fields.new) | sort -k1,1 > 03a.phenotype.new
+
+paste <(cut -d '|' -f 1,2,3,5 02.fields.old) <(cut -d '|' -f 4 02.fields.old) | sort -k1,1 > 03a.datatype.old
+paste <(cut -d '|' -f 1,2,3,5 02.fields.new) <(cut -d '|' -f 4 02.fields.new) | sort -k1,1 > 03a.datatype.new
+
+for field in phenotype datatype
+do
+    cut -f1 03a.${field}.old | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.old \
+	& cut -f1 03a.${field}.new | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.new \
+	& wait
+    cat 04a.non-unique-fields.old 04a.non-unique-fields.new | sort -u > 05a.all-non-unique-fields
+
+    join -t$'\t' -j 1 -v 2 05a.all-non-unique-fields 03a.${field}.old > 07a.unique.old \
+	& join -t$'\t' -j 1 -v 2 05a.all-non-unique-fields 03a.${field}.new > 07a.unique.new \
+	& wait
+
+    join -t$'\t' -j 1 07a.unique.old 07a.unique.new | awk -F$'\t' '$2 != $3' > 08a.common
+    cut -f1,2 08a.common > 10a.common.old & cut -f1,3 08a.common > 10a.common.new & wait
+    compute_git_diff 10a.common.old 10a.common.new > 09a.unique-diff-${field}
+done
+
+
+########################################################################################################################
 echo "Produce the report"
 
 COLOR_RED='\033[0;31m'
@@ -172,9 +198,14 @@ However, you can see <a href="non-unique.html">the full diff only for those evid
 <b>Statistics for evidence strings with unique association fields</b>
 Deleted: <b><a href="deleted.html">$(wc -l <08.deleted)</a></b>
 Added: <b><a href="added.html">$(wc -l <08.added)</a></b>
+  Of these, those with identifiable changes in unique association fields:
+    <a href="phenotype-changed.html">Phenotype changed</a>
+    <a href="datatype-changed.html">Datatype changed</a>
+
 Present in both files: <b>$(wc -l <08.common)</b>
   Of them, changed: <b><a href="changed.html">$(awk -F$'\t' '$2 != $3' 08.common | wc -l)</a></b>
     Of them, have a different consequence: <b><a href="consequences-transition-frequency.html">$(wc -l <12.consequences-transitions)</a></b>
+
 </code></html>
 EOF
 
@@ -182,8 +213,10 @@ EOF
 (echo -e "${COLOR_RED}"; awk '{print $0 "\n"}' 08.deleted; echo -e "${COLOR_RESET}") > 99.deleted
 (echo -e "${COLOR_GREEN}"; awk '{print $0 "\n"}' 08.added; echo -e "${COLOR_RESET}") > 99.added
 (tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
+(tail -n+5 09a.unique-diff-phenotype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.phenotype-changed
+(tail -n+5 09a.unique-diff-datatype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.datatype-changed
 
-parallel 'aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency
+parallel 'aha --word-wrap --title "{}" <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency phenotype-changed datatype-changed
 rm -rf report.zip
 zip report.zip ./*.html
 
