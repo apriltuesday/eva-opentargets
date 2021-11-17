@@ -4,7 +4,7 @@ import argparse
 import itertools
 from time import gmtime, strftime
 
-from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_utils import clinvar_xml_utils
 
 
 class OntologyUri:
