@@ -60,9 +60,10 @@ First two sections describe statistics per input file. The evidence strings are 
 
 For the EVA/ClinVar use case, the association fields are:
 1. ClinVar RCV record accession
-1. Ontology term specifying which phenotype/trait is contained in the record (the ID if mapped, or the original string from ClinVar)
+1. Phenotype/trait contained in the record (the ontology ID if mapped, or the original string from ClinVar)
 1. Datatype ID (`genetic_association` or `somatic_mutation`)
 1. Variant ID (`chr_pos_ref_alt`, if present, or the same RCV ID as in the first field)
+1. Functional consequence ID
 1. Ensembl gene ID
 
 ### Diff for evidence strings with non-unique association fields

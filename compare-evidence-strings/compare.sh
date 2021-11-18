@@ -18,6 +18,7 @@ sort_keys () {
 # * Variant ID (chr_pos_ref_alt or, if absent, RCV accession)
 # * Phenotype (mapped ID or, if absent, disease from source)
 # * Datatype ID
+# * Functional consequence ID
 # * Ensembl gene ID
 extract_fields () {
   jq '
@@ -25,6 +26,7 @@ extract_fields () {
     .variantId + "|" +
     (if .diseaseFromSourceMappedId? then .diseaseFromSourceMappedId else .diseaseFromSource | ascii_downcase end) + "|" +
     .datatypeId + "|" +
+    .variantFunctionalConsequenceId + "|" +
     .targetFromSourceId
   ' < "$1" | tr -d '"' > "$2"
 }
@@ -43,12 +45,7 @@ compute_git_diff () {
   "$1" "$2"
 }
 
-# Extract only the functional consequence from the evidence string
-extract_functional_consequences () {
-  jq '.variantFunctionalConsequenceId'
-}
-
-export -f sort_keys extract_fields compute_git_diff extract_functional_consequences
+export -f sort_keys extract_fields compute_git_diff
 
 
 
@@ -124,31 +121,22 @@ echo "  Diff for evidence strings with *unique* association fields"
 cut -f2 08.common > 10.common.old & cut -f3 08.common > 10.common.new & wait
 compute_git_diff 10.common.old 10.common.new > 09.unique-diff
 
-echo "  Extract functional consequences for all changed evidence strings"
-extract_functional_consequences < 10.common.old > 11.consequences.old \
-  & extract_functional_consequences < 10.common.new > 11.consequences.new \
-  & wait
-
-echo "  Identify consequence type transitions"
-paste 11.consequences.old 11.consequences.new \
-  | awk -F$'\t' '$1 != $2' \
-  | sort > 12.consequences-transitions
-
-echo "  Compute frequencies of consequence type transitions"
-uniq -c 12.consequences-transitions | sort -k1,1rn > 99.consequences-transition-frequency
-
 
 
 ########################################################################################################################
-echo "Identify evidence strings with changes in phenotype or datatype"
+echo "Identify evidence strings with changes in phenotype, datatype, or consequence type"
 
-paste <(cut -d '|' -f 1,2,4,5 02.fields.old) <(cut -d '|' -f 3 02.fields.old) | sort -k1,1 > 03a.phenotype.old
-paste <(cut -d '|' -f 1,2,4,5 02.fields.new) <(cut -d '|' -f 3 02.fields.new) | sort -k1,1 > 03a.phenotype.new
+paste <(cut -d '|' -f 1,2,4,5,6 02.fields.old) <(cut -d '|' -f 3 02.fields.old) | sort -k1,1 > 03a.phenotype.old
+paste <(cut -d '|' -f 1,2,4,5,6 02.fields.new) <(cut -d '|' -f 3 02.fields.new) | sort -k1,1 > 03a.phenotype.new
 
-paste <(cut -d '|' -f 1,2,3,5 02.fields.old) <(cut -d '|' -f 4 02.fields.old) | sort -k1,1 > 03a.datatype.old
-paste <(cut -d '|' -f 1,2,3,5 02.fields.new) <(cut -d '|' -f 4 02.fields.new) | sort -k1,1 > 03a.datatype.new
+paste <(cut -d '|' -f 1,2,3,5,6 02.fields.old) <(cut -d '|' -f 4 02.fields.old) | sort -k1,1 > 03a.datatype.old
+paste <(cut -d '|' -f 1,2,3,5,6 02.fields.new) <(cut -d '|' -f 4 02.fields.new) | sort -k1,1 > 03a.datatype.new
 
-for field in phenotype datatype
+paste <(cut -d '|' -f 1,2,3,4,6 02.fields.old) <(cut -d '|' -f 5 02.fields.old) | sort -k1,1 > 03a.consequence.old
+paste <(cut -d '|' -f 1,2,3,4,6 02.fields.new) <(cut -d '|' -f 5 02.fields.new) | sort -k1,1 > 03a.consequence.new
+
+
+for field in phenotype datatype consequence
 do
     cut -f1 03a.${field}.old | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.old \
 	& cut -f1 03a.${field}.new | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.new \
@@ -201,10 +189,10 @@ Added: <b><a href="added.html">$(wc -l <08.added)</a></b>
   Of these, those with identifiable changes in unique association fields:
     <a href="phenotype-changed.html">Phenotype changed</a>
     <a href="datatype-changed.html">Datatype changed</a>
+    <a href="consequence-changed.html">Consequence changed</a>
 
 Present in both files: <b>$(wc -l <08.common)</b>
   Of them, changed: <b><a href="changed.html">$(awk -F$'\t' '$2 != $3' 08.common | wc -l)</a></b>
-    Of them, have a different consequence: <b><a href="consequences-transition-frequency.html">$(wc -l <12.consequences-transitions)</a></b>
 
 </code></html>
 EOF
@@ -215,8 +203,9 @@ EOF
 (tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
 (tail -n+5 09a.unique-diff-phenotype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.phenotype-changed
 (tail -n+5 09a.unique-diff-datatype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.datatype-changed
+(tail -n+5 09a.unique-diff-consequence | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.consequence-changed
 
-parallel 'aha --word-wrap --title "{}" <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency phenotype-changed datatype-changed
+parallel 'aha --word-wrap --title "{}" <99.{} > {}.html' ::: non-unique deleted added changed phenotype-changed datatype-changed consequence-changed
 rm -rf report.zip
 zip report.zip ./*.html
 
