@@ -69,7 +69,7 @@ For the EVA/ClinVar use case, the association fields are:
 ### Diff for evidence strings with non-unique association fields
 If a certain set of association fields occurs more than once for at least one of the input files, the evidence strings falls in the “non-unique” category. They cannot be easily paired between files 1 and 2, so for them only a bulk diff between the two files is produced, which is available through a diff link.
 
-Note that as of JSON schema v2, duplications among these fields should not occur.
+Note that as of pipeline v2, duplications among these fields should not occur.
 
 ### Diffs and statistics for evidence strings with unique association fields
 If a certain set of association fields occurs at most once per each of the files, its evidence strings will be in the “unique” category. For them, it is easy to pair old and new evidence strings together, and to carry out more detailed analysis.

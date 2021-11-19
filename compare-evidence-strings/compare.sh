@@ -9,8 +9,7 @@ echo "Defining functions"
 # A function to sort keys in the evidence strings. This makes them more readable and helps comparison through word diff.
 # The two arguments are input and output JSON files.
 sort_keys () {
-  jq -c -S "." <"$1" \
-  > "$2"
+  jq -c -S "." <"$1" > "$2"
 }
 
 # A function to extract all unique identifying fields from the evidence strings. The fields being extracted are:
@@ -31,6 +30,13 @@ extract_fields () {
   ' < "$1" | tr -d '"' > "$2"
 }
 
+# Takes file $1 of pipe-delimited fields, splits index $2 into a separate tab-separated column, then sorts the output
+split_and_sort () {
+  awk -v c="$2" '
+    BEGIN{FS="|"; OFS="|"} function mvcol(col) { tmp=$col; for (i=col; i<NF; i++) {$i = $(i+1)}  NF-- } { mvcol(c); print $0"\t"tmp }
+  ' $1 | sort -k1,1
+}
+
 # Computes a word diff between two files using git diff
 compute_git_diff () {
   # The --no-index option is important, because otherwise git will refuse to compare the files if you're running this
@@ -45,7 +51,7 @@ compute_git_diff () {
   "$1" "$2"
 }
 
-export -f sort_keys extract_fields compute_git_diff
+export -f sort_keys extract_fields split_and_sort compute_git_diff
 
 
 
@@ -126,14 +132,14 @@ compute_git_diff 10.common.old 10.common.new > 09.unique-diff
 ########################################################################################################################
 echo "Identify evidence strings with changes in phenotype, datatype, or consequence type"
 
-paste <(cut -d '|' -f 1,2,4,5,6 02.fields.old) <(cut -d '|' -f 3 02.fields.old) | sort -k1,1 > 03a.phenotype.old
-paste <(cut -d '|' -f 1,2,4,5,6 02.fields.new) <(cut -d '|' -f 3 02.fields.new) | sort -k1,1 > 03a.phenotype.new
+split_and_sort 02.fields.old 3 > 03a.phenotype.old
+split_and_sort 02.fields.new 3 > 03a.phenotype.new
 
-paste <(cut -d '|' -f 1,2,3,5,6 02.fields.old) <(cut -d '|' -f 4 02.fields.old) | sort -k1,1 > 03a.datatype.old
-paste <(cut -d '|' -f 1,2,3,5,6 02.fields.new) <(cut -d '|' -f 4 02.fields.new) | sort -k1,1 > 03a.datatype.new
+split_and_sort 02.fields.old 4 > 03a.datatype.old
+split_and_sort 02.fields.new 4 > 03a.datatype.new
 
-paste <(cut -d '|' -f 1,2,3,4,6 02.fields.old) <(cut -d '|' -f 5 02.fields.old) | sort -k1,1 > 03a.consequence.old
-paste <(cut -d '|' -f 1,2,3,4,6 02.fields.new) <(cut -d '|' -f 5 02.fields.new) | sort -k1,1 > 03a.consequence.new
+split_and_sort 02.fields.old 5 > 03a.consequence.old
+split_and_sort 02.fields.new 5 > 03a.consequence.new
 
 
 for field in phenotype datatype consequence
