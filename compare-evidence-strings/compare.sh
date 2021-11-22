@@ -7,31 +7,34 @@
 echo "Defining functions"
 
 # A function to sort keys in the evidence strings. This makes them more readable and helps comparison through word diff.
-# Also removes several version- and date-related fields which are changed frequently, but do not reflect actual change:
-# * validated_aginst_schema_version
-# * date_asserted
 # The two arguments are input and output JSON files.
 sort_keys () {
-  jq -c -S "." <"$1" \
-    | sed -e 's|,"validated_against_schema_version":"[0-9.]*"||g' \
-    | sed -e 's|"date_asserted":".\{19\}",||g' \
-  > "$2"
+  jq -c -S "." <"$1" > "$2"
 }
 
 # A function to extract all unique identifying fields from the evidence strings. The fields being extracted are:
 # * ClinVar RCV accession
-# * Phenotype
-# * Allele origin
-# * Variant ID (rsID or, if absent, RCV accession)
+# * Variant ID (chr_pos_ref_alt or, if absent, RCV accession)
+# * Phenotype (mapped ID or, if absent, disease from source)
+# * Datatype ID
+# * Functional consequence ID
 # * Ensembl gene ID
 extract_fields () {
   jq '
-    .unique_association_fields.clinvarAccession + "|" +
-    .unique_association_fields.phenotype + "|" +
-    .unique_association_fields.alleleOrigin + "|" +
-    .unique_association_fields.variant_id + "|" +
-    .unique_association_fields.gene
+    .studyId + "|" +
+    .variantId + "|" +
+    (if .diseaseFromSourceMappedId? then .diseaseFromSourceMappedId else .diseaseFromSource | ascii_downcase end) + "|" +
+    .datatypeId + "|" +
+    .variantFunctionalConsequenceId + "|" +
+    .targetFromSourceId
   ' < "$1" | tr -d '"' > "$2"
+}
+
+# Takes file $1 of pipe-delimited fields, splits index $2 into a separate tab-separated column, then sorts the output
+split_and_sort () {
+  awk -v c="$2" '
+    BEGIN{FS="|"; OFS="|"} function mvcol(col) { tmp=$col; for (i=col; i<NF; i++) {$i = $(i+1)}  NF-- } { mvcol(c); print $0"\t"tmp }
+  ' $1 | sort -k1,1
 }
 
 # Computes a word diff between two files using git diff
@@ -44,18 +47,11 @@ compute_git_diff () {
   --color=always \
   --word-diff=color \
   --no-index \
+  --text \
   "$1" "$2"
 }
 
-# Extract only the functional consequence from the evidence string
-extract_functional_consequences () {
-  jq '.evidence.gene2variant.functional_consequence' \
-  | tr -d '"' \
-  | sed -e 's|http://purl.obolibrary.org/obo/||g' \
-        -e 's|http://targetvalidation.org/sequence/||g'
-}
-
-export -f sort_keys extract_fields compute_git_diff extract_functional_consequences
+export -f sort_keys extract_fields split_and_sort compute_git_diff
 
 
 
@@ -131,19 +127,36 @@ echo "  Diff for evidence strings with *unique* association fields"
 cut -f2 08.common > 10.common.old & cut -f3 08.common > 10.common.new & wait
 compute_git_diff 10.common.old 10.common.new > 09.unique-diff
 
-echo "  Extract functional consequences for all changed evidence strings"
-extract_functional_consequences < 10.common.old > 11.consequences.old \
-  & extract_functional_consequences < 10.common.new > 11.consequences.new \
-  & wait
 
-echo "  Identify consequence type transitions"
-paste 11.consequences.old 11.consequences.new \
-  | awk -F$'\t' '$1 != $2' \
-  | sort > 12.consequences-transitions
 
-echo "  Compute frequencies of consequence type transitions"
-uniq -c 12.consequences-transitions | sort -k1,1rn > 99.consequences-transition-frequency
+########################################################################################################################
+echo "Identify evidence strings with changes in phenotype, datatype, or consequence type"
 
+split_and_sort 02.fields.old 3 > 03a.phenotype.old
+split_and_sort 02.fields.new 3 > 03a.phenotype.new
+
+split_and_sort 02.fields.old 4 > 03a.datatype.old
+split_and_sort 02.fields.new 4 > 03a.datatype.new
+
+split_and_sort 02.fields.old 5 > 03a.consequence.old
+split_and_sort 02.fields.new 5 > 03a.consequence.new
+
+
+for field in phenotype datatype consequence
+do
+    cut -f1 03a.${field}.old | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.old \
+	& cut -f1 03a.${field}.new | uniq -c | awk '$1>1 {print $2}' > 04a.non-unique-fields.new \
+	& wait
+    cat 04a.non-unique-fields.old 04a.non-unique-fields.new | sort -u > 05a.all-non-unique-fields
+
+    join -t$'\t' -j 1 -v 2 05a.all-non-unique-fields 03a.${field}.old > 07a.unique.old \
+	& join -t$'\t' -j 1 -v 2 05a.all-non-unique-fields 03a.${field}.new > 07a.unique.new \
+	& wait
+
+    join -t$'\t' -j 1 07a.unique.old 07a.unique.new | awk -F$'\t' '$2 != $3' > 08a.common
+    cut -f1,2 08a.common > 10a.common.old & cut -f1,3 08a.common > 10a.common.new & wait
+    compute_git_diff 10a.common.old 10a.common.new > 09a.unique-diff-${field}
+done
 
 
 ########################################################################################################################
@@ -179,9 +192,14 @@ However, you can see <a href="non-unique.html">the full diff only for those evid
 <b>Statistics for evidence strings with unique association fields</b>
 Deleted: <b><a href="deleted.html">$(wc -l <08.deleted)</a></b>
 Added: <b><a href="added.html">$(wc -l <08.added)</a></b>
+  Of these, those with identifiable changes in unique association fields:
+    <a href="phenotype-changed.html">Phenotype changed</a>
+    <a href="datatype-changed.html">Datatype changed</a>
+    <a href="consequence-changed.html">Consequence changed</a>
+
 Present in both files: <b>$(wc -l <08.common)</b>
   Of them, changed: <b><a href="changed.html">$(awk -F$'\t' '$2 != $3' 08.common | wc -l)</a></b>
-    Of them, have a different consequence: <b><a href="consequences-transition-frequency.html">$(wc -l <12.consequences-transitions)</a></b>
+
 </code></html>
 EOF
 
@@ -189,8 +207,11 @@ EOF
 (echo -e "${COLOR_RED}"; awk '{print $0 "\n"}' 08.deleted; echo -e "${COLOR_RESET}") > 99.deleted
 (echo -e "${COLOR_GREEN}"; awk '{print $0 "\n"}' 08.added; echo -e "${COLOR_RESET}") > 99.added
 (tail -n+5 09.unique-diff | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.changed
+(tail -n+5 09a.unique-diff-phenotype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.phenotype-changed
+(tail -n+5 09a.unique-diff-datatype | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.datatype-changed
+(tail -n+5 09a.unique-diff-consequence | awk '{if ($0 !~ /@@/) {print $0 "\n"}}') > 99.consequence-changed
 
-parallel 'aha --word-wrap <99.{} > {}.html' ::: non-unique deleted added changed consequences-transition-frequency
+parallel 'aha --word-wrap --title "{}" <99.{} > {}.html' ::: non-unique deleted added changed phenotype-changed datatype-changed consequence-changed
 rm -rf report.zip
 zip report.zip ./*.html
 
