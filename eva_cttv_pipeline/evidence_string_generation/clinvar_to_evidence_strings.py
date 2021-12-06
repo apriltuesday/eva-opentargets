@@ -9,7 +9,7 @@ from collections import defaultdict, Counter
 import jsonschema
 
 from consequence_prediction.repeat_expansion_variants import pipeline
-from eva_cttv_pipeline.clinvar_xml_utils import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 logger = logging.getLogger(__package__)
@@ -126,7 +126,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
 
     logger.info('Processing ClinVar records')
-    for clinvar_record in clinvar_xml_utils.ClinVarDataset(clinvar_xml):
+    for clinvar_record in clinvar_xml_io.ClinVarDataset(clinvar_xml):
         report.clinvar_total += 1
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')

@@ -3,7 +3,7 @@
 import argparse
 import re
 
-from eva_cttv_pipeline.clinvar_xml_utils import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 
 parser = argparse.ArgumentParser('Processes ClinVar XML dump and extract all variants, in CHROM:POS:REF:ALT format,'
                                  'for processing by the VEP mapping pipeline.')
@@ -13,7 +13,7 @@ args = parser.parse_args()
 # A regular expression to detect alleles with IUPAC ambiguity bases.
 IUPAC_AMBIGUOUS_SEQUENCE = re.compile(r'[^ACGT]')
 
-for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
+for clinvar_record in clinvar_xml_io.ClinVarDataset(args.clinvar_xml):
     if clinvar_record.measure is None or not clinvar_record.measure.has_complete_coordinates:
         continue
     m = clinvar_record.measure

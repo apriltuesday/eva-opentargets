@@ -7,7 +7,7 @@ import re
 import xml.etree.ElementTree as ElementTree
 from functools import cached_property
 
-from . import clinvar_identifier_parsing
+from .hgvs_parsing import parse_variant_identifier
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -454,8 +454,7 @@ class ClinVarRecordMeasure:
 class ClinVarRecordMeasureHGVS:
 
     def __init__(self, name, explicit_insertion_length):
-        (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = \
-            clinvar_identifier_parsing.parse_variant_identifier(name)
+        (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = parse_variant_identifier(name)
         self.transcript_id = transcript_id
         self.coordinate_span = coordinate_span if coordinate_span is not None else explicit_insertion_length
         self.repeat_unit_length = repeat_unit_length

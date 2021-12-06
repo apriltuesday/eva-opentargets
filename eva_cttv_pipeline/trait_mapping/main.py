@@ -2,7 +2,7 @@ import csv
 import logging
 import multiprocessing
 
-from eva_cttv_pipeline.clinvar_xml_utils.clinvar_xml_utils import ClinVarTrait
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarTrait
 from eva_cttv_pipeline.trait_mapping.output import output_trait
 from eva_cttv_pipeline.trait_mapping.oxo import get_oxo_results
 from eva_cttv_pipeline.trait_mapping.oxo import uris_to_oxo_format

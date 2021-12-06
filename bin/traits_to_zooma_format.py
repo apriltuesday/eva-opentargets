@@ -4,7 +4,7 @@ import argparse
 import itertools
 from time import gmtime, strftime
 
-from eva_cttv_pipeline.clinvar_xml_utils import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 
 
 class OntologyUri:
@@ -62,7 +62,7 @@ def process_clinvar_record(clinvar_record, outfile):
 def main(clinvar_xml, zooma_feedback):
     with open(zooma_feedback, 'wt') as outfile:
         outfile.write('STUDY\tBIOENTITY\tPROPERTY_TYPE\tPROPERTY_VALUE\tSEMANTIC_TAG\tANNOTATOR\tANNOTATION_DATE\n')
-        for clinvar_record in clinvar_xml_utils.ClinVarDataset(clinvar_xml):
+        for clinvar_record in clinvar_xml_io.ClinVarDataset(clinvar_xml):
             process_clinvar_record(clinvar_record, outfile)
 
 
