@@ -7,7 +7,7 @@ import re
 import xml.etree.ElementTree as ElementTree
 from functools import cached_property
 
-from .hgvs_parsing import parse_variant_identifier
+from .clinvar_identifier_parsing import parse_variant_identifier
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
