@@ -33,7 +33,7 @@ class TestCreateEFOTableComponents:
 
         # Trait 1
         assert trait_1[0] == 'ornithine aminotransferase deficiency'  # disease
-        assert 'unclassified familial retinal dystrophy' in trait_1[1]  # child of
+        assert 'inherited retinal dystrophy' in trait_1[1]  # child of
         assert trait_1[7] == 'MeSH:C538071 || MeSH:D015799'  # MeSH cross-refs
         assert trait_1[8] == 'NCIT:C84744'  # NCIT cross-ref
         assert trait_1[12] == 'OMIM:258870'  # OMIM cross-ref
@@ -44,7 +44,7 @@ class TestCreateEFOTableComponents:
 
         # Trait 2
         assert trait_2[0] == 'Gyrate atrophy of choroid and retina'  # disease
-        assert trait_2[1] == 'disease'  # child of
+        assert trait_2[1] == 'Disease'  # child of
         assert 'is a very rare, inherited retinal dystrophy' in trait_2[2]  # description
         assert 'Ornithine aminotransferase deficiency' in trait_2[3]  # synonyms
         assert trait_2[7] == 'MeSH:C537132 || MeSH:C538071 || MeSH:D015799'  # MeSH cross-ref
