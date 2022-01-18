@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -Eeuo pipefail
+export LC_COLLATE=C
 
 # VEP pipeline tests.
 # For the actual test, we're running a set of 2,000 ClinVar variants through VEP and comparing the result with the
