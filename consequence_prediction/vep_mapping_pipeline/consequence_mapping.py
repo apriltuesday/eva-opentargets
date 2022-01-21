@@ -59,6 +59,11 @@ def query_vep(variants, search_distance):
     result = requests.post(ensembl_request_url, headers=headers, data=json.dumps({
         'variants': variants, 'distance': search_distance, 'shift_3prime': 0,
     }))
+
+    if result.status_code == 400:
+        logger.error('Bad request for the following variants:')
+        logger.error(variants)
+
     # If there was an HTTP error, raise an exception. This will be caught by @retry
     result.raise_for_status()
     return result.json()

@@ -36,5 +36,5 @@ class TestSoTerm:
         assert self.test_so_term_b.accession is None
 
     def test_rank(self):
-        assert self.test_so_term_a.rank == 3
-        assert self.test_so_term_b.rank == 34
+        assert self.test_so_term_a.rank == 6
+        assert self.test_so_term_b.rank == 37
