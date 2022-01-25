@@ -1,6 +1,6 @@
 from collections import Counter
 
-from eva_cttv_pipeline import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 from eva_cttv_pipeline.trait_mapping.trait import Trait
 
 
@@ -27,7 +27,7 @@ def parse_trait_names(filepath: str) -> list:
     # Their curation is of highest importance regardless of how many records they are actually associated with.
     nt_expansion_traits = set()
 
-    for clinvar_record in clinvar_xml_utils.ClinVarDataset(filepath):
+    for clinvar_record in clinvar_xml_io.ClinVarDataset(filepath):
         trait_names_and_ids = set((trait.preferred_or_other_valid_name.lower(), trait.identifier)
                                   for trait in clinvar_record.traits_with_valid_names)
         for trait_tuple in trait_names_and_ids:

@@ -7,7 +7,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from eva_cttv_pipeline import clinvar_xml_utils
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 from . import biomart
 
 logging.basicConfig()
@@ -28,10 +28,10 @@ def load_clinvar_data(clinvar_xml):
     # Iterate through ClinVar XML records
     variant_data = []  # To populate the return dataframe (see columns below)
     stats = Counter()
-    for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
+    for i, clinvar_record in enumerate(clinvar_xml_io.ClinVarDataset(clinvar_xml)):
         if i and i % 100000 == 0:
-            total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
-                                              stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
+            total_repeat_expansion_variants = stats[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
+                                              stats[clinvar_xml_io.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
             logger.info(f'Processed {i} records, collected {total_repeat_expansion_variants} repeat expansion variant '
                         f'candidates')
 
@@ -71,8 +71,8 @@ def load_clinvar_data(clinvar_xml):
                 none_to_nan(clinvar_record.measure.hgvs_properties.is_protein_hgvs),
                 none_to_nan(clinvar_record.measure.hgvs_properties.repeat_type)
             ])
-    total_repeat_expansion_variants = stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
-                                      stats[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
+    total_repeat_expansion_variants = stats[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
+                                      stats[clinvar_xml_io.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
     logger.info(f'Done. A total of {i} records, {total_repeat_expansion_variants} repeat expansion variant candidates')
 
     variants = pd.DataFrame(variant_data, columns=('Name',
@@ -236,13 +236,13 @@ def main(clinvar_xml, output_consequences=None, output_dataframe=None):
     # Output ClinVar record statistics
     logger.info(f'''
         Microsatellite records: {sum(s.values())}
-            With complete coordinates: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_DELETION] +
-                                        s[clinvar_xml_utils.ClinVarRecordMeasure.MS_SHORT_EXPANSION] +
-                                        s[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
-                Deletions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_DELETION]}
-                Short insertions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_SHORT_EXPANSION]}
-                Repeat expansions: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
-            No complete coordinates: {s[clinvar_xml_utils.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]}
+            With complete coordinates: {s[clinvar_xml_io.ClinVarRecordMeasure.MS_DELETION] +
+                                        s[clinvar_xml_io.ClinVarRecordMeasure.MS_SHORT_EXPANSION] +
+                                        s[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
+                Deletions: {s[clinvar_xml_io.ClinVarRecordMeasure.MS_DELETION]}
+                Short insertions: {s[clinvar_xml_io.ClinVarRecordMeasure.MS_SHORT_EXPANSION]}
+                Repeat expansions: {s[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION]}
+            No complete coordinates: {s[clinvar_xml_io.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]}
     '''.replace('\n' + ' ' * 8, '\n'))
 
     if variants.empty:

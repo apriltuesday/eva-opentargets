@@ -3,7 +3,7 @@ import gzip
 import logging
 import xml.etree.ElementTree as ElementTree
 
-from eva_cttv_pipeline.clinvar_xml_utils import ClinVarRecord, find_mandatory_unique_element
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarRecord, find_mandatory_unique_element
 from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings import get_consequence_types
 from eva_cttv_pipeline.evidence_string_generation.consequence_type import process_consequence_type_file
 

@@ -4,7 +4,7 @@ import argparse
 from collections import Counter
 import logging
 
-import eva_cttv_pipeline.clinvar_xml_utils as clinvar_xml_utils
+import eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io as clinvar_xml_utils
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ table_inconsistent_moi_ao = SupplementaryTable(
     sort_lambda=lambda x: (x[1], x[2], x[0]))
 
 elements_processed = 0
-for clinvar_record in clinvar_xml_utils.ClinVarDataset(args.clinvar_xml):
+for clinvar_record in clinvar_xml_io.ClinVarDataset(args.clinvar_xml):
     rcv_id = clinvar_record.accession
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
