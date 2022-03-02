@@ -83,6 +83,7 @@ re_description = re.compile(
 )
 
 
+# TODO should be integrated with more general HGVS parsing
 def parse_variant_identifier(variant_name):
     """
     Parses variant identifier and extract certain characteristics:

@@ -360,6 +360,9 @@ class ClinVarRecordMeasure:
     def hgvs(self):
         return [elem.text for elem in self._hgvs_elems]
 
+    @property
+    def current_hgvs(self):
+        return [elem.text for elem in self._hgvs_elems if 'previous' not in elem.attrib['Type'].lower()]
 
     @property
     def toplevel_refseq_hgvs(self):
@@ -452,6 +455,7 @@ class ClinVarRecordMeasure:
 
 
 class ClinVarRecordMeasureHGVS:
+    # TODO integrate this with HgvsVariant
 
     def __init__(self, name, explicit_insertion_length):
         (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = parse_variant_identifier(name)
