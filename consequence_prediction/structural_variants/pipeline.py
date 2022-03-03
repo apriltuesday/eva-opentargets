@@ -29,16 +29,16 @@ def hgvs_to_vep_identifier(hgvs):
     seq = hgvs_variant.sequence_identifier
     if not accepted_by_vep(seq):
         return
+    if not hgvs_variant.has_valid_precise_span():
+        return
     start = hgvs_variant.start
     stop = hgvs_variant.stop
-    if not start or not stop or start > stop + 1:
-        return
     variant_type = hgvs_variant.variant_type
     if variant_type not in {VariantType.DELETION, VariantType.DUPLICATION, VariantType.INSERTION}:
         return
 
     # TODO check the strand
-    return f'{seq} {start} {stop} {variant_type[:3].upper()} + {hgvs}'
+    return f'{seq} {start} {stop} {variant_type.name[:3].upper()} + {hgvs}'
 
 
 def can_process(record):
