@@ -112,7 +112,7 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     repeat_expansion_consequences = repeat_pipeline.main(clinvar_xml_file)
-    # TODO call complex events pipeline
+    structural_consequences = structural_pipeline.main(clinvar_xml_file)
     # TODO explicitly prioritise consequences provided by different pipelines
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file, CT.process_consequence_type_dataframe(repeat_expansion_consequences))
     report = clinvar_to_evidence_strings(

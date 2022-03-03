@@ -133,6 +133,7 @@ class HgvsVariant:
         m = re_hgvs_like_transcript_or_genomic.match(self.hgvs)
         if m:
             # If we don't already have a simple span, we'll take the pivot-based ones
+            # TODO I think this is wrong actually, in particular if the pivot is different this yields incorrect spans
             if not self.has_valid_precise_span() and m.group('start_coord') and m.group('end_coord'):
                 self.start = int(m.group('start_coord'))
                 self.stop = int(m.group('end_coord'))
