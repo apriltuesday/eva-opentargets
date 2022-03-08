@@ -362,7 +362,8 @@ class ClinVarRecordMeasure:
 
     @property
     def current_hgvs(self):
-        return [elem.text for elem in self._hgvs_elems if 'previous' not in elem.attrib['Type'].lower()]
+        return [elem.text for elem in self._hgvs_elems
+                if 'previous' not in elem.attrib['Type'].lower() and elem.text is not None]
 
     @property
     def toplevel_refseq_hgvs(self):

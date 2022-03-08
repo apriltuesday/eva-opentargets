@@ -40,8 +40,8 @@ def parse_repeat_identifier(variant_name):
 
     if hgvs_variant.sequence_type in {SequenceType.GENOMIC, SequenceType.CODING}:
         # We are only interested in RefSeq mRNA transcripts for querying
-        if hgvs_variant.sequence_identifier.startswith('NM'):
-            transcript_id = hgvs_variant.sequence_identifier
+        if hgvs_variant.sequence_identifier_regex.startswith('NM'):
+            transcript_id = hgvs_variant.sequence_identifier_regex
         if hgvs_variant.has_valid_precise_span():
             coordinate_span = hgvs_variant.precise_span()
         # If the repeat unit is present, we can calculate its length directly

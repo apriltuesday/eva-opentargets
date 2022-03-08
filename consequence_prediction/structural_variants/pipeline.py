@@ -26,7 +26,7 @@ def accepted_by_vep(seq):
 def hgvs_to_vep_identifier(hgvs):
     hgvs_variant = HgvsVariant(hgvs)
 
-    seq = hgvs_variant.sequence_identifier
+    seq = hgvs_variant.reference_sequence
     if not accepted_by_vep(seq):
         return
     if not hgvs_variant.has_valid_precise_span():
@@ -46,7 +46,7 @@ def can_process(record):
     To ensure we don't step on other pipeline's toes, this pipeline will not even attempt to map consequences
     for if the measure has complete VCF-style coordinates.
     """
-    return record.measure and record.measure.hgvs and not record.measure.has_complete_coordinates
+    return record.measure and record.measure.current_hgvs and not record.measure.has_complete_coordinates
 
 
 def get_vep_results(clinvar_xml):
@@ -57,7 +57,8 @@ def get_vep_results(clinvar_xml):
             continue
         # We allow possibly querying VEP multiple times for different HGVS expressions in a single measure
         # to maximise coverage, as consequences will be deduplicated later anyway.
-        hgvs_list.extend([h for h in record.measure.current_hgvs if h is not None])
+        # TODO is this worth doing?
+        hgvs_list.extend(record.measure.current_hgvs)
         n += 1
     logger.info(f'{n} records processed with {len(hgvs_list)} HGVS expressions')
 

@@ -30,13 +30,13 @@ class HgvsVariant:
     """Representation of variant as derived from HGVS identifier"""
 
     # Re-usable pieces of regular expressions
-    sequence_identifier = (
+    sequence_identifier_regex = (
         r'^([a-zA-Z][a-zA-Z0-9_.]+)'  # Sequence accession, e.g. NM_001256054.2
         r'(?:\([a-zA-Z0-9_.]+\))?'    # Optional gene symbol, e.g. (C9orf72)
         r':'                          # Delimiter, transcript/variant info
     )
-    any_sequence_type = f'{sequence_identifier}([cgnpmor])\.'
-    any_known_range = f'([0-9]+)_([0-9]+)'
+    any_sequence_type_regex = f'{sequence_identifier_regex}([cgnpmor])\.'
+    any_known_range_regex = f'([0-9]+)_([0-9]+)'
 
     def __init__(self, hgvs):
         self.hgvs = hgvs
@@ -60,7 +60,7 @@ class HgvsVariant:
         return None
 
     def _match_sequence_info(self):
-        regex = re.compile(self.any_sequence_type)
+        regex = re.compile(self.any_sequence_type_regex)
         m = regex.match(self.hgvs)
         if m:
             self.reference_sequence = m.group(1)
@@ -81,7 +81,7 @@ class HgvsVariant:
                 self.sequence_type = SequenceType.RNA
 
     def _match_simple_range(self):
-        regex = re.compile(f'{self.any_sequence_type}{self.any_known_range}([a-zA-Z0-9]*)$')
+        regex = re.compile(f'{self.any_sequence_type_regex}{self.any_known_range_regex}([a-zA-Z0-9]*)$')
         m = regex.match(self.hgvs)
         if m and m.group(3) and m.group(4):
             self.start = int(m.group(3))
@@ -114,7 +114,7 @@ class HgvsVariant:
         # can always extract transcript ID and start coord, and sometimes also end coord and repeat unit sequence.
         # Example: 'NM_001256054.2(C9orf72):c.-45+63_-45+80GGGGCC(2_25)'
         re_hgvs_like_transcript_or_genomic = re.compile(
-            self.any_sequence_type
+            self.any_sequence_type_regex
             + coordinate_pivot_part +        # Start coordinate pivot, optional                     -45
             r'\*?'                           # Sometimes there is an asterisk in front of the
                                              # coordinate (special case, not important)
