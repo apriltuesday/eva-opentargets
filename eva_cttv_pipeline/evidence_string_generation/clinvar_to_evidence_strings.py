@@ -238,7 +238,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'variantFunctionalConsequenceId': consequence_attributes.so_term.accession,
         'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation.
         'variantRsId': clinvar_record.measure.rs_id,
-        'variantHgvs': clinvar_record.measure.preferred_current_hgvs,  # TODO confirm with OT
+        # 'variantHgvs': clinvar_record.measure.preferred_current_hgvs.text,  # TODO confirm with OT
 
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* valid disease names from all traits from that ClinVar record, reported as a
@@ -302,7 +302,9 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
 
     # If there's also no complete coordinates, pair using HGVS
     if clinvar_record_measure.preferred_current_hgvs:
-        return consequence_type_dict[clinvar_record_measure.preferred_current_hgvs]
+        hgvs_id = clinvar_record_measure.preferred_current_hgvs.text
+        if hgvs_id in consequence_type_dict:
+            return consequence_type_dict[hgvs_id]
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.

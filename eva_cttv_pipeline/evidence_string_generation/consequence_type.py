@@ -12,7 +12,7 @@ def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
 
 def process_consequence_type_dataframes(*dataframes):
     """
-    Return a dictionary of consequence information extracted from more or more dataframes.
+    Return a dictionary of consequence information extracted from one or more dataframes.
     """
     consequences_dataframe = pd.concat(df for df in dataframes)
     consequence_type_dict = defaultdict(list)

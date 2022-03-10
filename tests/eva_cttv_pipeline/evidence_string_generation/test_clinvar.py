@@ -57,6 +57,9 @@ class TestClinvarRecordMeasure:
                              'Q96NR8:p.Tyr226Cys',
                              'NP_689656.2:p.Tyr226Cys']
 
+    def test_preferred_current_hgvs(self):
+        assert self.test_crm.preferred_current_hgvs.text == 'NC_000014.9:g.67729209A>G'
+
     def test_rs(self):
         assert self.test_crm.rs_id == 'rs28940313'
 
