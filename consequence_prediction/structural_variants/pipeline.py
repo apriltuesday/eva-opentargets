@@ -6,7 +6,7 @@ import pandas as pd
 from consequence_prediction.vep_mapping_pipeline.consequence_mapping import query_vep, VEP_SHORT_QUERY_DISTANCE, \
     extract_consequences, deduplicate_list
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarDataset
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant, VariantType
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant, VariantType, SequenceType
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -18,27 +18,20 @@ def grouper(iterable, n):
     return [x for x in zip_longest(*args, fillvalue=None) if x is not None]
 
 
-def accepted_by_vep(seq):
-    # TODO be a little more specific here
-    return seq.startswith('NC') or seq.startswith('LRG') or seq.startswith('NW') or seq.startswith('AC')
-
-
-def hgvs_to_vep_identifier(hgvs):
-    hgvs_variant = HgvsVariant(hgvs)
-
-    seq = hgvs_variant.reference_sequence
-    if not accepted_by_vep(seq):
+def hgvs_to_vep_identifier(hgvs: HgvsVariant):
+    if hgvs.sequence_type != SequenceType.GENOMIC:
         return
-    if not hgvs_variant.has_valid_precise_span():
+    seq = hgvs.reference_sequence
+
+    if not hgvs.has_valid_precise_span():
         return
-    start = hgvs_variant.start
-    stop = hgvs_variant.stop
-    variant_type = hgvs_variant.variant_type
+    start = hgvs.start
+    stop = hgvs.stop
+    variant_type = hgvs.variant_type
     if variant_type not in {VariantType.DELETION, VariantType.DUPLICATION, VariantType.INSERTION}:
         return
 
-    # TODO check the strand
-    return f'{seq} {start} {stop} {variant_type.name[:3].upper()} + {hgvs}'
+    return f'{seq} {start} {stop} {variant_type.name[:3].upper()} + {hgvs.text}'
 
 
 def can_process(record):
@@ -46,7 +39,7 @@ def can_process(record):
     To ensure we don't step on other pipeline's toes, this pipeline will not even attempt to map consequences
     for if the measure has complete VCF-style coordinates.
     """
-    return record.measure and record.measure.current_hgvs and not record.measure.has_complete_coordinates
+    return record.measure and record.measure.preferred_current_hgvs and not record.measure.has_complete_coordinates
 
 
 def get_vep_results(clinvar_xml):
@@ -55,10 +48,8 @@ def get_vep_results(clinvar_xml):
     for record in ClinVarDataset(clinvar_xml):
         if not can_process(record):
             continue
-        # We allow possibly querying VEP multiple times for different HGVS expressions in a single measure
-        # to maximise coverage, as consequences will be deduplicated later anyway.
-        # TODO is this worth doing?
-        hgvs_list.extend(record.measure.current_hgvs)
+        # use only the preferred current HGVS
+        hgvs_list.append(record.measure.preferred_current_hgvs)
         n += 1
     logger.info(f'{n} records processed with {len(hgvs_list)} HGVS expressions')
 
@@ -86,10 +77,11 @@ def main(clinvar_xml):
     variant_data = []
     for variant_id, variant_consequences in results_by_variant.items():
         for consequence_to_yield in deduplicate_list(variant_consequences):
-            # TODO confirm what the variant id should be
             variant_id, gene_id, gene_symbol, consequence_term, distance = consequence_to_yield
+            # variant_id here is the entire input to VEP, we only want the HGVS that we passed as an identifier
+            hgvs_id = variant_id.split()[-1]
             # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
-            variant_data.append((variant_id, '1', gene_id, gene_symbol, consequence_term, distance))
+            variant_data.append((hgvs_id, '1', gene_id, gene_symbol, consequence_term, distance))
 
     # Return as a dataframe to be compatible with repeat expansion pipeline
     consequences = pd.DataFrame(variant_data, columns=('VariantID', 'PlaceholderOnes', 'EnsemblGeneID',

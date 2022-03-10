@@ -111,10 +111,12 @@ def validate_evidence_string(ev_string, ot_schema_contents):
 def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
-    repeat_expansion_consequences = repeat_pipeline.main(clinvar_xml_file)
+
+    repeat_consequences = repeat_pipeline.main(clinvar_xml_file)
     structural_consequences = structural_pipeline.main(clinvar_xml_file)
-    # TODO explicitly prioritise consequences provided by different pipelines
-    variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file, CT.process_consequence_type_dataframe(repeat_expansion_consequences))
+    complex_consequences = CT.process_consequence_type_dataframes(repeat_consequences, structural_consequences)
+    variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file, complex_consequences)
+
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
         output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
@@ -236,6 +238,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'variantFunctionalConsequenceId': consequence_attributes.so_term.accession,
         'variantId': clinvar_record.measure.vcf_full_coords,  # CHROM_POS_REF_ALT notation.
         'variantRsId': clinvar_record.measure.rs_id,
+        'variantHgvs': clinvar_record.measure.preferred_current_hgvs,  # TODO confirm with OT
 
         # PHENOTYPE ATTRIBUTES.
         # The alphabetical list of *all* valid disease names from all traits from that ClinVar record, reported as a
@@ -297,7 +300,9 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         if coord_id in consequence_type_dict:
             return consequence_type_dict[coord_id]
 
-    # TODO determine exactly how to incorporate results from other pipelines
+    # If there's also no complete coordinates, pair using HGVS
+    if clinvar_record_measure.preferred_current_hgvs:
+        return consequence_type_dict[clinvar_record_measure.preferred_current_hgvs]
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.

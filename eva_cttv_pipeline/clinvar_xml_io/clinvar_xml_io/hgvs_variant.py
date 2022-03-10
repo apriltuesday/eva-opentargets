@@ -26,20 +26,21 @@ class VariantType(Enum):
     OTHER = auto()  # not intended to be exhaustive
 
 
+# Re-usable pieces of regular expressions
+sequence_identifier_regex = (
+    r'^([a-zA-Z][a-zA-Z0-9_.]+)'  # Sequence accession, e.g. NM_001256054.2
+    r'(?:\([a-zA-Z0-9_.]+\))?'    # Optional gene symbol, e.g. (C9orf72)
+    r':'                          # Delimiter, transcript/variant info
+)
+any_sequence_type_regex = f'{sequence_identifier_regex}([cgnpmor])\.'
+any_known_range_regex = f'([0-9]+)_([0-9]+)'
+
+
 class HgvsVariant:
     """Representation of variant as derived from HGVS identifier"""
 
-    # Re-usable pieces of regular expressions
-    sequence_identifier_regex = (
-        r'^([a-zA-Z][a-zA-Z0-9_.]+)'  # Sequence accession, e.g. NM_001256054.2
-        r'(?:\([a-zA-Z0-9_.]+\))?'    # Optional gene symbol, e.g. (C9orf72)
-        r':'                          # Delimiter, transcript/variant info
-    )
-    any_sequence_type_regex = f'{sequence_identifier_regex}([cgnpmor])\.'
-    any_known_range_regex = f'([0-9]+)_([0-9]+)'
-
-    def __init__(self, hgvs):
-        self.hgvs = hgvs
+    def __init__(self, text):
+        self.text = text
         self.reference_sequence = None
         self.sequence_type = None
         self.variant_type = None
@@ -51,6 +52,9 @@ class HgvsVariant:
         self._match_simple_range()
         self._match_repeat_with_coordinate_pivots()
 
+    def __lt__(self, other):
+        return self.text < other.text
+
     def has_valid_precise_span(self):
         return self.start and self.stop and self.stop > self.start
 
@@ -60,8 +64,8 @@ class HgvsVariant:
         return None
 
     def _match_sequence_info(self):
-        regex = re.compile(self.any_sequence_type_regex)
-        m = regex.match(self.hgvs)
+        regex = re.compile(any_sequence_type_regex)
+        m = regex.match(self.text)
         if m:
             self.reference_sequence = m.group(1)
             seq_type = m.group(2)
@@ -80,9 +84,13 @@ class HgvsVariant:
             elif seq_type == 'r':
                 self.sequence_type = SequenceType.RNA
 
+    def _match_single_position_variant(self):
+        # TODO e.g. NC_000017.11:g.4898892del, NC_000023.10:g.605412C>A
+        pass
+
     def _match_simple_range(self):
-        regex = re.compile(f'{self.any_sequence_type_regex}{self.any_known_range_regex}([a-zA-Z0-9]*)$')
-        m = regex.match(self.hgvs)
+        regex = re.compile(f'{any_sequence_type_regex}{any_known_range_regex}([a-zA-Z0-9]*)$')
+        m = regex.match(self.text)
         if m and m.group(3) and m.group(4):
             self.start = int(m.group(3))
             self.stop = int(m.group(4))
@@ -114,7 +122,7 @@ class HgvsVariant:
         # can always extract transcript ID and start coord, and sometimes also end coord and repeat unit sequence.
         # Example: 'NM_001256054.2(C9orf72):c.-45+63_-45+80GGGGCC(2_25)'
         re_hgvs_like_transcript_or_genomic = re.compile(
-            self.any_sequence_type_regex
+            any_sequence_type_regex
             + coordinate_pivot_part +        # Start coordinate pivot, optional                     -45
             r'\*?'                           # Sometimes there is an asterisk in front of the
                                              # coordinate (special case, not important)
@@ -130,7 +138,7 @@ class HgvsVariant:
             r'(?P<sequence>[{}]*)'.format(   # Repeat unit sequence, optional                       GGGGCC or
                 IUPACAmbiguousDNA.letters)   # IUPAC ambiguity codes are supported                  CGN
         )
-        m = re_hgvs_like_transcript_or_genomic.match(self.hgvs)
+        m = re_hgvs_like_transcript_or_genomic.match(self.text)
         if m:
             # If we don't already have a simple span, we'll take the pivot-based ones
             # TODO I think this is wrong actually, in particular if the pivot is different this yields incorrect spans
