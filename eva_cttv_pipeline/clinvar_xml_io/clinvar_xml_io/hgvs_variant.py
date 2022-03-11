@@ -96,7 +96,7 @@ class HgvsVariant:
             self.stop = int(m.group(4))
             if m.group(5):
                 var_type = m.group(5)
-                if 'del' in var_type and 'delins' not in var_type:
+                if 'del' in var_type and 'delins' not in var_type:  # TODO this isn't working!
                     self.variant_type = VariantType.DELETION
                 elif 'dup' in var_type:
                     self.variant_type = VariantType.DUPLICATION

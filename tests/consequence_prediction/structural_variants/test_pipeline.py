@@ -20,14 +20,16 @@ def run_pipeline(resource_name):
     """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
     input_filename = get_test_resource(resource_name)
     consequences_df = pipeline.main(input_filename)
-    consequences = [[col for col in row] for row in consequences_df.itertuples()]
+    consequences = [[col for col in row] for row in consequences_df.itertuples(index=False)]
     return consequences
 
 
 def test_successful_run():
-    assert run_pipeline('successful.xml.gz') == [
-        ...
-    ]
+    assert sorted(run_pipeline('precise_genomic.xml.gz')) == sorted([
+        ['NC_000016.10:g.72059151_72063259del', '1', 'ENSG00000257017', 'HP', 'splice_polypyrimidine_tract_variant', 0],
+        ['NC_000001.11:g.25271785_25329047del', '1', 'ENSG00000187010', 'RHD', 'splice_polypyrimidine_tract_variant', 0],
+        ['NC_000011.10:g.5226797_5226798insGCC', '1', 'ENSG00000244734', 'HBB', 'coding_sequence_variant', 0]
+    ])
 
 
 def test_has_complete_coordinates():

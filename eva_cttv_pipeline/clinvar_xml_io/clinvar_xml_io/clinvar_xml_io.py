@@ -367,7 +367,7 @@ class ClinVarRecordMeasure:
         }
 
     @cached_property
-    def hgvs(self):
+    def all_hgvs(self):
         return [hgvs for hgvs in self._hgvs_to_types]
 
     @cached_property
