@@ -49,6 +49,7 @@ class HgvsVariant:
         self.stop = None
 
         self._match_sequence_info()
+        self._match_single_position_variant()
         self._match_simple_range()
         self._match_repeat_with_coordinate_pivots()
 
@@ -85,8 +86,16 @@ class HgvsVariant:
                 self.sequence_type = SequenceType.RNA
 
     def _match_single_position_variant(self):
-        # TODO e.g. NC_000017.11:g.4898892del, NC_000023.10:g.605412C>A
-        pass
+        regex = re.compile(f'{any_sequence_type_regex}([0-9]+)([a-zA-Z0-9>]*)')
+        m = regex.match(self.text)
+        if m and m.group(3) and m.group(4):
+            self.start = self.stop = int(m.group(3))
+            var_type = m.group(4)
+            if '>' in var_type:
+                self.variant_type = VariantType.SUBSTITUTION
+                # TODO store ref and alt as well
+            else:
+                self._match_structural_variant_type(var_type)
 
     def _match_simple_range(self):
         regex = re.compile(f'{any_sequence_type_regex}{any_known_range_regex}([a-zA-Z0-9]*)$')
@@ -95,13 +104,15 @@ class HgvsVariant:
             self.start = int(m.group(3))
             self.stop = int(m.group(4))
             if m.group(5):
-                var_type = m.group(5)
-                if 'del' in var_type and 'delins' not in var_type:  # TODO this isn't working!
-                    self.variant_type = VariantType.DELETION
-                elif 'dup' in var_type:
-                    self.variant_type = VariantType.DUPLICATION
-                elif 'ins' in var_type and 'delins' not in var_type:
-                    self.variant_type = VariantType.INSERTION
+                self._match_structural_variant_type(m.group(5))
+
+    def _match_structural_variant_type(self, var_type):
+        if 'del' in var_type and 'delins' not in var_type:
+            self.variant_type = VariantType.DELETION
+        elif 'dup' in var_type:
+            self.variant_type = VariantType.DUPLICATION
+        elif 'ins' in var_type and 'delins' not in var_type:
+            self.variant_type = VariantType.INSERTION
 
     def _match_repeat_with_coordinate_pivots(self):
         # Common part for start and end coordinate pivots. Pivots for introns and other cases where a coordinate in a
