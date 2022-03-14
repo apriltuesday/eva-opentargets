@@ -18,6 +18,9 @@ logger = logging.getLogger(__package__)
 # A regular expression to detect alleles with IUPAC ambiguity bases.
 IUPAC_AMBIGUOUS_SEQUENCE = re.compile(r'[^ACGT]')
 
+# If a structural variant has more than this number of target genes, we omit it as too broad in consequences.
+MAX_TARGET_GENES = 3
+
 # Output file names.
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
 EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
@@ -142,7 +145,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             logger.info(f'{report.clinvar_total} records processed')
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
             report.repeat_expansion_variants += len(get_consequence_types(clinvar_record.measure,
-                                                                          variant_to_gene_mappings))
+                                                                          variant_to_gene_mappings,
+                                                                          include_structural))
 
         # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
         # potentially mappable name).
@@ -158,7 +162,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
         # origins, (2) EFO mappings, and (3) genes where the variant has effect.
         grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
-        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings, include_structural)
         grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                          string_to_efo_mappings)
 
@@ -211,7 +215,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
 
 def generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id, disease_mapped_efo_id,
-                             consequence_attributes, include_structural):
+                             consequence_attributes, include_structural=False):
     """Generates an evidence string based on ClinVar record and some additional attributes."""
     is_somatic = allele_origins == ['somatic']
     evidence_string = {
@@ -268,7 +272,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
     return evidence_string
 
 
-def get_consequence_types(clinvar_record_measure, consequence_type_dict):
+def get_consequence_types(clinvar_record_measure, consequence_type_dict, include_structural=False):
     """Returns the list of functional consequences for a given ClinVar record measure.
 
     This is the place where ClinVar records are paired with the information about gene and functional consequences.
@@ -309,10 +313,14 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
             return consequence_type_dict[coord_id]
 
     # If there's also no complete coordinates, pair using HGVS
-    if clinvar_record_measure.preferred_current_hgvs:
+    if include_structural and clinvar_record_measure.preferred_current_hgvs:
         hgvs_id = clinvar_record_measure.preferred_current_hgvs.text
         if hgvs_id in consequence_type_dict:
-            return consequence_type_dict[hgvs_id]
+            consequences = consequence_type_dict[hgvs_id]
+            if len(consequences) > MAX_TARGET_GENES:
+                logger.warning(f'Skipping variant {hgvs_id} with {len(consequences)} target genes')
+                return []
+            return consequences
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.
