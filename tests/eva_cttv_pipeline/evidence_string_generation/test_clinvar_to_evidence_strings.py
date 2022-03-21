@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ElementTree
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarTrait
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
+from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings import MAX_TARGET_GENES
 from tests.eva_cttv_pipeline.evidence_string_generation import config
 
 EFO_MAPPINGS = clinvar_to_evidence_strings.load_efo_mapping(config.efo_mapping_file)
@@ -124,6 +125,19 @@ class TestGetConsequenceTypes:
         assert clinvar_to_evidence_strings.get_consequence_types(self.test_crm, self.consequence_type_dict)[
                    0] == CT.ConsequenceType('ENSG00000139988', CT.SoTerm('missense_variant')), ''
         assert clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}) == []
+
+    def test_structural_variant_consequences(self):
+        structural_crm = config.get_test_clinvar_record('test_structural_record.xml.gz').measure
+        consequences = [CT.ConsequenceType('ENSG00000075151', CT.SoTerm('splice_polypyrimidine_tract_variant'))]
+        consequence_dict = {structural_crm.preferred_current_hgvs.text: consequences}
+
+        # only get consequences from HGVS if include_structural is True
+        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, consequence_dict, False) == []
+        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, consequence_dict, True) == consequences
+
+        # don't get consequences if there are more than MAX_TARGET_GENES
+        long_consequence_dict = {structural_crm.preferred_current_hgvs.text: consequences * (MAX_TARGET_GENES+1)}
+        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, long_consequence_dict, True) == []
 
 
 class TestGenerateEvidenceStringTest:

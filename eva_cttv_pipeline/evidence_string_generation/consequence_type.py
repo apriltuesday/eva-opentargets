@@ -1,6 +1,8 @@
 from collections import defaultdict
 import logging
 
+import pandas as pd
+
 logger = logging.getLogger(__package__)
 
 
@@ -8,11 +10,32 @@ def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
     consequence_type_dict[variant_id].append(ConsequenceType(ensembl_gene_id, SoTerm(so_term)))
 
 
-def process_consequence_type_file_tsv(snp_2_gene_filepath, consequence_type_dict=None):
+def process_consequence_type_dataframes(*dataframes):
+    """
+    Return a dictionary of consequence information extracted from one or more dataframes.
+    """
+    consequences_dataframe = pd.concat(df for df in dataframes)
+    consequence_type_dict = defaultdict(list)
+    for row in consequences_dataframe.itertuples():
+        variant_id = row[0]
+        ensembl_gene_id = row[2]
+        so_term = row[4]
+
+        process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
+
+    return consequence_type_dict
+
+
+def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
+    """
+    Return a dictionary of consequence information extracted from the given file.
+    If consequence_type_dict is provided then the information will be merge into this dictionary.
+    """
+    logger.info('Loading mapping rs -> ENSG/SOterms')
     if consequence_type_dict is None:
         consequence_type_dict = defaultdict(list)
 
-    with open(snp_2_gene_filepath, "rt") as snp_2_gene_file:
+    with open(snp_2_gene_file, "rt") as snp_2_gene_file:
         for line in snp_2_gene_file:
             line = line.rstrip()
             line_list = line.split("\t")
@@ -31,31 +54,6 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath, consequence_type_dict
 
             process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
-    return consequence_type_dict
-
-
-def process_consequence_type_dataframe(consequences_dataframe):
-    """
-    Return a dictionary of consequence information extracted from the dataframe
-    """
-    consequence_type_dict = defaultdict(list)
-    for row in consequences_dataframe.itertuples():
-        variant_id = row[0]
-        ensembl_gene_id = row[2]
-        so_term = row[4]
-
-        process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
-
-    return consequence_type_dict
-
-
-def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
-    """
-        Return a dictionary of consequence information extracted from the given file.
-        If consequence_type_dict is provided then the information will be merge into this dictionary.
-    """
-    logger.info('Loading mapping rs -> ENSG/SOterms')
-    consequence_type_dict = process_consequence_type_file_tsv(snp_2_gene_file, consequence_type_dict)
     logger.info('{} rs->ENSG/SOterms mappings loaded'.format(len(consequence_type_dict)))
     return consequence_type_dict
 

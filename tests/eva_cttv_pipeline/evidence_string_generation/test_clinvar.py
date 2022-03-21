@@ -48,13 +48,17 @@ class TestClinvarRecordMeasure:
         cls.consequence_type_dict = CT.process_consequence_type_file(config.snp_2_gene_file)
 
     def test_hgvs(self):
-        assert self.test_crm.hgvs == ['NM_152443.3:c.677A>G',
-                                      'NG_008321.1:g.32324A>G',
-                                      'NC_000014.9:g.67729209A>G',
-                                      'NC_000014.8:g.68195926A>G',
-                                      'NM_152443.2:c.677A>G',
-                                      'Q96NR8:p.Tyr226Cys',
-                                      'NP_689656.2:p.Tyr226Cys']
+        text_hgvs = [h.text for h in self.test_crm.all_hgvs]
+        assert text_hgvs == ['NM_152443.3:c.677A>G',
+                             'NG_008321.1:g.32324A>G',
+                             'NC_000014.9:g.67729209A>G',
+                             'NC_000014.8:g.68195926A>G',
+                             'NM_152443.2:c.677A>G',
+                             'Q96NR8:p.Tyr226Cys',
+                             'NP_689656.2:p.Tyr226Cys']
+
+    def test_preferred_current_hgvs(self):
+        assert self.test_crm.preferred_current_hgvs.text == 'NC_000014.9:g.67729209A>G'
 
     def test_rs(self):
         assert self.test_crm.rs_id == 'rs28940313'

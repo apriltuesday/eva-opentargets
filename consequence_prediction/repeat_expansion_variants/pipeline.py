@@ -38,38 +38,39 @@ def load_clinvar_data(clinvar_xml):
         # Skip a record if it does not contain variant information
         if not clinvar_record.measure:
             continue
+        measure = clinvar_record.measure
 
         # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
         # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
         # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
-        stats[clinvar_record.measure.microsatellite_category] += 1
+        stats[measure.microsatellite_category] += 1
         # Skip the record if it's a deletion or a short insertion
-        if not clinvar_record.measure.is_repeat_expansion_variant:
+        if not measure.is_repeat_expansion_variant:
             continue
 
         # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
         # summary format which was used previously.
-        gene_symbols = clinvar_record.measure.preferred_gene_symbols
+        gene_symbols = measure.preferred_gene_symbols
         if not gene_symbols:
             gene_symbols = ['-']
 
         # Extract HGNC ID
-        hgnc_ids = clinvar_record.measure.hgnc_ids
+        hgnc_ids = measure.hgnc_ids
         hgnc_id = hgnc_ids[0] if len(hgnc_ids) == 1 and len(gene_symbols) == 1 else '-'
 
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                clinvar_record.measure.get_variant_name_or_hgvs(),
+                measure.get_variant_name_or_hgvs(),
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id,
                 # TODO use REF and ALT to determine repeat unit length rather than just coordinate span
-                none_to_nan(clinvar_record.measure.hgvs_properties.coordinate_span),
-                none_to_nan(clinvar_record.measure.hgvs_properties.transcript_id),
-                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_unit_length),
-                none_to_nan(clinvar_record.measure.hgvs_properties.is_protein_hgvs),
-                none_to_nan(clinvar_record.measure.hgvs_properties.repeat_type)
+                none_to_nan(measure.repeat_expansion_properties.coordinate_span),
+                none_to_nan(measure.repeat_expansion_properties.transcript_id),
+                none_to_nan(measure.repeat_expansion_properties.repeat_unit_length),
+                none_to_nan(measure.repeat_expansion_properties.is_protein_hgvs),
+                none_to_nan(measure.repeat_expansion_properties.repeat_type)
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                       stats[clinvar_xml_io.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]

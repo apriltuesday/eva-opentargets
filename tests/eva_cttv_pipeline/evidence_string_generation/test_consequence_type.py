@@ -21,7 +21,7 @@ class TestProcessGene:
 class TestProcessConsequenceTypeFileTsv:
     def test__process_consequence_type_file_tsv(self):
         test_consequence_type = CT.ConsequenceType("ENSG00000139988", CT.SoTerm("synonymous_variant"))
-        consequence_type_dict = CT.process_consequence_type_file_tsv(config.snp_2_gene_file)
+        consequence_type_dict = CT.process_consequence_type_file(config.snp_2_gene_file)
         assert consequence_type_dict["14:67729241:C:T"][0] == test_consequence_type
 
 
