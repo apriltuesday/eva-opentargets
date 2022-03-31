@@ -264,7 +264,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         # required by the Open Targets JSON schema.
         'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1] if disease_mapped_efo_id else None,
     }
-    if include_structural:
+    if include_structural and clinvar_record.measure.preferred_current_hgvs:
         evidence_string['variantHgvsId'] = clinvar_record.measure.preferred_current_hgvs.text
 
     # Remove the attributes with empty values (either None or empty lists).

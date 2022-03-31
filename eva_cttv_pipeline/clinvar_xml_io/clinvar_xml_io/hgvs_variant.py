@@ -44,6 +44,7 @@ class HgvsVariant:
         self.reference_sequence = None
         self.sequence_type = None
         self.variant_type = None
+        self.repeat_sequence = None
 
         self.start = None
         self.stop = None
