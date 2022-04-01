@@ -1,8 +1,6 @@
 from collections import defaultdict
 import logging
 
-import pandas as pd
-
 logger = logging.getLogger(__package__)
 
 
