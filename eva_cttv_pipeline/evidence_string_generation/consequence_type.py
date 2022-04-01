@@ -13,15 +13,16 @@ def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
 def process_consequence_type_dataframes(*dataframes):
     """
     Return a dictionary of consequence information extracted from one or more dataframes.
+    Assumes all dataframes are in the same format.
     """
-    consequences_dataframe = pd.concat(df for df in dataframes)
     consequence_type_dict = defaultdict(list)
-    for row in consequences_dataframe.itertuples():
-        variant_id = row[0]
-        ensembl_gene_id = row[2]
-        so_term = row[4]
+    for consequences_dataframe in dataframes:
+        for row in consequences_dataframe.itertuples():
+            variant_id = row[1]
+            ensembl_gene_id = row[3]
+            so_term = row[5]
 
-        process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
+            process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
     return consequence_type_dict
 
