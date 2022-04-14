@@ -57,6 +57,7 @@ class Report:
         # Variant-to-consequence mapping counts.
         self.total_consequence_mappings = sum([len(mappings) for mappings in consequence_mappings.values()])
         self.repeat_expansion_variants = 0
+        self.structural_variants = 0
 
     def collate_report(self):
         # ClinVar tallies.
@@ -90,7 +91,8 @@ class Report:
                 len(self.unmapped_trait_names)}
 
             Total number of variant to consequence mappings\t{self.total_consequence_mappings}
-                Number of repeat expansion variants\t{self.repeat_expansion_variants}'''.replace('\n' + ' ' * 12, '\n')
+                Number of repeat expansion variants\t{self.repeat_expansion_variants}
+                Number of structural variants \t{self.structural_variants}'''.replace('\n' + ' ' * 12, '\n')
 
     def write_unmapped_terms(self, dir_out):
         with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
@@ -143,10 +145,6 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         report.clinvar_total += 1
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')
-        if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
-            report.repeat_expansion_variants += len(get_consequence_types(clinvar_record.measure,
-                                                                          variant_to_gene_mappings,
-                                                                          include_structural))
 
         # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
         # potentially mappable name).
@@ -170,6 +168,12 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         if not consequence_types:
             report.clinvar_skip_no_functional_consequences += 1
             continue
+
+        # Gather consequence mapping counts for variants of interest
+        if clinvar_record.measure.is_repeat_expansion_variant:
+            report.repeat_expansion_variants += len(consequence_types)
+        if is_structural_variant(clinvar_record.measure):
+            report.structural_variants += len(consequence_types)
 
         # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
         # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
@@ -360,6 +364,11 @@ def get_terms_from_file(terms_file_path):
         terms_list = []
 
     return terms_list
+
+
+def is_structural_variant(measure):
+    # Our working definition of "structural variant"
+    return not measure.is_repeat_expansion_variant and not measure.has_complete_coordinates
 
 
 def convert_allele_origins(orig_allele_origins):
