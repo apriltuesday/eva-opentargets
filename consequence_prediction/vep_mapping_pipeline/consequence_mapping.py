@@ -69,11 +69,18 @@ def query_vep(variants, search_distance):
     return result.json()
 
 
+@retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
+def query_consequence_types():
+    url = 'https://rest.ensembl.org/info/variation/consequence_types?content-type=application/json&rank=1'
+    result = requests.get(url)
+    result.raise_for_status()
+    return result.json()
+
+
 def load_consequence_severity_rank():
     """Loads severity rankings for consequence terms."""
-    severity_ranking_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'severity_ranking.txt')
-    severity_ranking = open(severity_ranking_path).read().splitlines()
-    return {term: index for index, term in enumerate(severity_ranking)}
+    severity_ranking = query_consequence_types()
+    return {conseq['SO_term']: int(conseq['consequence_ranking']) for conseq in severity_ranking}
 
 
 def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant, report_distance=False):

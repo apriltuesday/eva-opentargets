@@ -61,6 +61,8 @@ class SoTerm(object):
     """
     Represents a sequence ontology term belonging to a consequence type object.
     Holds information on accession and rank.
+    TODO: API call http://rest.ensembl.org/info/variation/consequence_types?content-type=application/json&rank=1
+     but also add repeat expansion terms
     """
 
     so_accession_name_dict = {'transcript_ablation': 1893,
