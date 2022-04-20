@@ -27,8 +27,7 @@ setup(name='eva_cttv_pipeline',
       install_requires=get_requires(),
       #! TBD: list as a dependency subpackage 'clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils'
       package_data={
-          'eva_cttv_pipeline': get_package_data(),
-          'consequence_prediction': ['vep_mapping_pipeline/severity_ranking.txt']
+          'eva_cttv_pipeline': get_package_data()
       },
       tests_require=get_requires(),
       setup_requires=get_requires(),

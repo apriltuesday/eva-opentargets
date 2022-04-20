@@ -6,8 +6,8 @@ import argparse
 import itertools
 import json
 import logging
-import os
 from collections import defaultdict
+from functools import lru_cache
 
 import requests
 import sys
@@ -71,6 +71,7 @@ def query_vep(variants, search_distance):
     return result.json()
 
 
+@lru_cache
 @retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
 def query_consequence_types():
     url = 'https://rest.ensembl.org/info/variation/consequence_types?content-type=application/json&rank=1'
@@ -79,8 +80,12 @@ def query_consequence_types():
     return result.json()
 
 
-def load_consequence_severity_rank():
-    """Loads severity rankings for consequence terms."""
+def get_so_accessions():
+    consequence_type_results = query_consequence_types()
+    return {conseq['SO_term']: conseq['SO_accession'] for conseq in consequence_type_results}
+
+
+def get_severity_ranking():
     consequence_type_results = query_consequence_types()
     # Some terms have the same rank, for these we sort lexicographically within a rank to get a stable ordering.
     ranking_dict = defaultdict(list)
@@ -89,7 +94,12 @@ def load_consequence_severity_rank():
     severity_ranking = []
     for rank in sorted(ranking_dict.keys()):
         severity_ranking.extend(sorted(ranking_dict[rank]))
-    return {term: index for index, term in enumerate(severity_ranking)}
+    return severity_ranking
+
+
+def load_consequence_severity_rank():
+    """Loads severity rankings for consequence terms."""
+    return {term: index for index, term in enumerate(get_severity_ranking())}
 
 
 def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant, report_distance=False):
