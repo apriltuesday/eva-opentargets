@@ -1,8 +1,7 @@
 from collections import defaultdict
 import logging
 
-from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking, \
-    get_so_accessions
+from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking, get_so_accessions
 
 logger = logging.getLogger(__package__)
 
