@@ -7,6 +7,8 @@ import itertools
 import json
 import logging
 import os
+from collections import defaultdict
+
 import requests
 import sys
 
@@ -79,8 +81,15 @@ def query_consequence_types():
 
 def load_consequence_severity_rank():
     """Loads severity rankings for consequence terms."""
-    severity_ranking = query_consequence_types()
-    return {conseq['SO_term']: int(conseq['consequence_ranking']) for conseq in severity_ranking}
+    consequence_type_results = query_consequence_types()
+    # Some terms have the same rank, for these we sort lexicographically within a rank to get a stable ordering.
+    ranking_dict = defaultdict(list)
+    for conseq in consequence_type_results:
+        ranking_dict[int(conseq['consequence_ranking'])].append(conseq['SO_term'])
+    severity_ranking = []
+    for rank in sorted(ranking_dict.keys()):
+        severity_ranking.extend(sorted(ranking_dict[rank]))
+    return {term: index for index, term in enumerate(severity_ranking)}
 
 
 def extract_consequences(vep_results, acceptable_biotypes, only_closest, results_by_variant, report_distance=False):
