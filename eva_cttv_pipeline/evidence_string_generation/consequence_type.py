@@ -4,7 +4,7 @@ import logging
 import requests
 from retry import retry
 
-from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking, get_so_accessions
+from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking
 
 logger = logging.getLogger(__package__)
 
