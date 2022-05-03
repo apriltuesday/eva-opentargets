@@ -80,11 +80,6 @@ def query_consequence_types():
     return result.json()
 
 
-def get_so_accessions():
-    consequence_type_results = query_consequence_types()
-    return {conseq['SO_term']: conseq['SO_accession'] for conseq in consequence_type_results}
-
-
 def get_severity_ranking():
     consequence_type_results = query_consequence_types()
     # Some terms have the same rank, for these we sort lexicographically within a rank to get a stable ordering.

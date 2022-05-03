@@ -3,6 +3,7 @@ from collections import defaultdict
 import pandas as pd
 
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
+from eva_cttv_pipeline.evidence_string_generation.consequence_type import get_so_accession_dict
 from tests.eva_cttv_pipeline.evidence_string_generation import config
 
 
@@ -52,3 +53,8 @@ def test_repeat_expansion_so_term():
     so_term = CT.SoTerm('short_tandem_repeat_expansion')
     assert so_term.accession == 'SO_0002162'
     assert so_term.rank == 40
+
+
+def test_get_so_accession_dict():
+    results = get_so_accession_dict(page_size=100)
+    assert len(results) == 217

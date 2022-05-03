@@ -1,7 +1,10 @@
 from collections import defaultdict
 import logging
 
-from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking, get_so_accessions
+import requests
+from retry import retry
+
+from consequence_prediction.vep_mapping_pipeline.consequence_mapping import get_severity_ranking
 
 logger = logging.getLogger(__package__)
 
@@ -59,16 +62,34 @@ def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
     return consequence_type_dict
 
 
+@retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
+def get_so_accession_dict(page_size=500):
+    """Get name and accession of all hierarchical descendents of sequence_variant in the Sequence Ontology."""
+    sequence_variant_id = 'SO:0001060'
+    url = f'https://www.ebi.ac.uk/ols/api/ontologies/so/hierarchicalDescendants?id={sequence_variant_id}&size={page_size}'
+    has_next = True
+    results = []
+    while has_next:
+        response = requests.get(url)
+        response.raise_for_status()
+        response_json = response.json()
+        results += response_json['_embedded']['terms']
+        has_next = 'next' in response_json['_links']
+        if has_next:
+            url = response_json['_links']['next']['href']
+    return {
+        r['label']: r['short_form']
+        for r in results
+    }
+
+
 class SoTerm(object):
     """
     Represents a sequence ontology term belonging to a consequence type object.
     Holds information on accession and rank.
     """
 
-    so_accession_name_dict = dict(get_so_accessions(), **{
-        'trinucleotide_repeat_expansion': 'SO:0002165',
-        'short_tandem_repeat_expansion': 'SO:0002162'
-    })
+    so_accession_name_dict = get_so_accession_dict()
 
     ranked_so_names_list = get_severity_ranking()
 
@@ -82,7 +103,7 @@ class SoTerm(object):
     @property
     def accession(self):
         if self._so_accession is not None:
-            return self._so_accession.replace(':', '_')
+            return self._so_accession
         else:
             return None
 
