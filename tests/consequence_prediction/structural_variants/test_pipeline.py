@@ -26,9 +26,9 @@ def run_pipeline(resource_name):
 
 def test_successful_run():
     assert sorted(run_pipeline('precise_genomic.xml.gz')) == sorted([
-        ['NC_000016.10:g.72059151_72063259del', '1', 'ENSG00000257017', 'HP', 'stop_lost', 0],
-        ['NC_000001.11:g.25271785_25329047del', '1', 'ENSG00000187010', 'RHD', 'stop_lost', 0],
-        ['NC_000011.10:g.5226797_5226798insGCC', '1', 'ENSG00000244734', 'HBB', 'coding_sequence_variant', 0]
+        ['NC_000016.10:g.72059151_72063259del', 'ENSG00000257017', 'HP', 'stop_lost'],
+        ['NC_000001.11:g.25271785_25329047del', 'ENSG00000187010', 'RHD', 'stop_lost'],
+        ['NC_000011.10:g.5226797_5226798insGCC', 'ENSG00000244734', 'HBB', 'coding_sequence_variant']
     ])
 
 

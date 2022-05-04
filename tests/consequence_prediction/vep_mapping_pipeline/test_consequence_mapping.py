@@ -38,7 +38,6 @@ def test_extract_consequences():
         acceptable_biotypes=['protein_coding'],
     )
     assert results == {'10 27169969 . C A': [
-        ('10 27169969 . C A', 'ENSG00000120539', 'MASTL', 'missense_variant', 0),
-        ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant', 0),
+        ('10 27169969 . C A', 'ENSG00000120539', 'MASTL', 'missense_variant'),
+        ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant'),
     ]}
-

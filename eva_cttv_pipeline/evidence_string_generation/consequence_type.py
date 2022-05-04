@@ -22,8 +22,8 @@ def process_consequence_type_dataframes(*dataframes):
     for consequences_dataframe in dataframes:
         for row in consequences_dataframe.itertuples():
             variant_id = row[1]
-            ensembl_gene_id = row[3]
-            so_term = row[5]
+            ensembl_gene_id = row[2]
+            so_term = row[4]
 
             process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
@@ -44,13 +44,13 @@ def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
             line = line.rstrip()
             line_list = line.split("\t")
 
-            if len(line_list) < 6:
+            if len(line_list) < 4:
                 logger.warning('Skip invalid line in snp_2_gene file: {}'.format(line))
                 continue
 
             variant_id = line_list[0]
-            ensembl_gene_id = line_list[2]
-            so_term = line_list[4]
+            ensembl_gene_id = line_list[1]
+            so_term = line_list[3]
 
             if ensembl_gene_id == 'NA':
                 logger.warning('Skip line with missing gene ID: {}'.format(line))

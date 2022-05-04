@@ -20,9 +20,8 @@ logging.basicConfig()
 logger = logging.getLogger('consequence_mapping')
 logger.setLevel(logging.INFO)
 
-# The "distance to the nearest gene" parameters, used to query VEP in first and second iterations, respectively.
+# The "distance to the nearest gene" parameters, used to query VEP.
 VEP_SHORT_QUERY_DISTANCE = 5000
-VEP_LONG_QUERY_DISTANCE = 500000
 
 
 def deduplicate_list(lst):
@@ -46,7 +45,7 @@ def vep_id_to_colon_id(vep_id):
 
 
 @retry(tries=10, delay=5, backoff=1.2, jitter=(1, 3), logger=logger)
-def query_vep(variants, search_distance):
+def query_vep(variants, search_distance=VEP_SHORT_QUERY_DISTANCE):
     """Query VEP and return results in JSON format. Upstream/downstream genes are searched up to a given distance."""
     ensembl_request_url = 'https://rest.ensembl.org/vep/human/region'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
@@ -109,6 +108,12 @@ def extract_consequences(vep_results, acceptable_biotypes):
         if not consequences:
             continue
 
+        # Split by overlapping/distant and by gene
+        # TODO
+        overlapping_consequences = [c for c in consequences if 'distance' not in c]
+        distant_consequences = [c for c in consequences if 'distance' in c]
+
+        # TODO Apply this part of the strategy to only distant consequences
         # Flatten the list of consequence terms and find the most severe one
         all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
         all_consequence_terms.sort(key=lambda term: consequence_term_severity_rank[term])
@@ -122,7 +127,7 @@ def extract_consequences(vep_results, acceptable_biotypes):
 
         # Return a subset of fields (required for output) of filtered consequences
         results_by_variant[variant_identifier].extend([
-            (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term, 0)
+            (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term)
             for c in consequences
         ])
 
@@ -145,7 +150,7 @@ def process_variants(variants):
 
     # Query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
     # up to a standard distance (5000 nucleotides either way, which is default for VEP) from the variant.
-    vep_results = query_vep(variants=variants, search_distance=VEP_SHORT_QUERY_DISTANCE)
+    vep_results = query_vep(variants=variants)
     results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
 
     # See if there are variants with no consequences up to the default distance
@@ -170,9 +175,8 @@ def main():
 
     # Query VEP with all variants at once (for the purpose of efficiency), print out the consequences to STDOUT.
     consequences = process_variants(variants_to_query)
-    for variant_id, gene_id, gene_symbol, consequence_term, distance in consequences:
-        # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
-        print('\t'.join([vep_id_to_colon_id(variant_id), '1', gene_id, gene_symbol, consequence_term, str(distance)]))
+    for variant_id, gene_id, gene_symbol, consequence_term in consequences:
+        print('\t'.join([vep_id_to_colon_id(variant_id), gene_id, gene_symbol, consequence_term]))
 
     logger.info('Successfully processed {} variants'.format(len(variants_to_query)))
 
