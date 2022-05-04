@@ -70,10 +70,7 @@ def get_vep_results(clinvar_xml):
 
 def main(clinvar_xml):
     vep_results = get_vep_results(clinvar_xml)
-    results_by_variant = {}
-    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
-                                              only_closest=False, results_by_variant=results_by_variant,
-                                              report_distance=False)
+    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
     variant_data = []
     for variant_id, variant_consequences in results_by_variant.items():
         for consequence_to_yield in deduplicate_list(variant_consequences):

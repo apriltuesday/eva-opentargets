@@ -33,51 +33,12 @@ def test_extract_consequences():
             ]
         }
     ]
-    results = {}
-    extract_consequences(
+    results = extract_consequences(
         vep_results=vep_results,
         acceptable_biotypes=['protein_coding'],
-        only_closest=False,
-        results_by_variant=results,
-        report_distance=False,
     )
     assert results == {'10 27169969 . C A': [
         ('10 27169969 . C A', 'ENSG00000120539', 'MASTL', 'missense_variant', 0),
         ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant', 0),
     ]}
 
-
-def test_extract_consequences_only_closest():
-    """Verifies that extract_consequences excludes more distant consequences when only_closest flag is set."""
-    vep_results = [
-        {
-            'input': '6 1611781 . C CACGGCG',
-            'transcript_consequences': [
-                {
-                    'gene_symbol': 'FOXC1',
-                    'gene_id': 'ENSG00000054598',
-                    'biotype': 'protein_coding',
-                    'distance': 42,
-                    'consequence_terms': ['downstream_gene_variant'],
-                },
-                {  # more distant consequence of the same severity should be excluded
-                    'gene_symbol': 'FOXCUT',
-                    'gene_id': 'ENSG00000280916',
-                    'biotype': 'protein_coding',
-                    'distance': 4427,
-                    'consequence_terms': ['downstream_gene_variant']
-                }
-            ],
-        }
-    ]
-    results = {}
-    extract_consequences(
-        vep_results=vep_results,
-        acceptable_biotypes=['protein_coding'],
-        only_closest=True,
-        results_by_variant=results,
-        report_distance=True,
-    )
-    assert results == {'6 1611781 . C CACGGCG': [
-        ('6 1611781 . C CACGGCG', 'ENSG00000054598', 'FOXC1', 'downstream_gene_variant', 42)
-    ]}
