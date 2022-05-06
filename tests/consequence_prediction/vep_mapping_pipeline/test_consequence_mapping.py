@@ -18,10 +18,21 @@ def test_extract_consequences():
                     'biotype': 'protein_coding',
                     'consequence_terms': ['missense_variant']
                 },
-                {  # less severe consequences should be filtered out
+                {  # less severe consequence on same gene should be filtered out
+                    'gene_id': 'ENSG00000120538',
+                    'biotype': 'protein_coding',
+                    'consequence_terms': ['stop_retained_variant']
+                },
+                {  # less severe consequence on distinct gene should be retained
+                    'gene_id': 'ENSG00000120537',
+                    'biotype': 'protein_coding',
+                    'consequence_terms': ['stop_retained_variant']
+                },
+                {  # non-overlapping consequences should be filtered out
                     'gene_symbol': 'ACBD5',
                     'gene_id': 'ENSG00000107897',
                     'biotype': 'protein_coding',
+                    'distance': 5,
                     'consequence_terms': ['3_prime_UTR_variant']
                 },
                 {  # other biotypes should be filtered out
@@ -40,4 +51,5 @@ def test_extract_consequences():
     assert results == {'10 27169969 . C A': [
         ('10 27169969 . C A', 'ENSG00000120539', 'MASTL', 'missense_variant'),
         ('10 27169969 . C A', 'ENSG00000120538', '', 'missense_variant'),
+        ('10 27169969 . C A', 'ENSG00000120537', '', 'stop_retained_variant'),
     ]}

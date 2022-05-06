@@ -108,28 +108,38 @@ def extract_consequences(vep_results, acceptable_biotypes):
         if not consequences:
             continue
 
-        # Split by overlapping/distant and by gene
-        # TODO
+        # If there is no 'distance' attribute in VEP results, it means the variant overlaps the gene.
         overlapping_consequences = [c for c in consequences if 'distance' not in c]
-        distant_consequences = [c for c in consequences if 'distance' in c]
 
-        # TODO Apply this part of the strategy to only distant consequences
-        # Flatten the list of consequence terms and find the most severe one
-        all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
-        all_consequence_terms.sort(key=lambda term: consequence_term_severity_rank[term])
-        most_severe_consequence_term = all_consequence_terms[0]
+        # For genes overlapping the variant, we report the most severe consequence per gene.
+        if overlapping_consequences:
+            consequences_per_gene = defaultdict(list)
+            for c in overlapping_consequences:
+                key = (c['gene_id'], c.get('gene_symbol', ''))
+                consequences_per_gene[key].extend(term for term in c['consequence_terms'])
+            for (gene_id, gene_symbol), terms in consequences_per_gene.items():
+                most_severe_consequence_term = min(terms, key=lambda term: consequence_term_severity_rank[term])
+                results_by_variant[variant_identifier].append(
+                    (variant_identifier, gene_id, gene_symbol, most_severe_consequence_term)
+                )
 
-        # Keep only consequences which include the most severe consequence term; sort by increasing order of distance.
-        # If there is no 'distance' attribute in VEP results, it means that it is not applicable as the variant resides
-        # *inside* the gene; hence, in this case the distance is set to 0.
-        consequences = [c for c in consequences if most_severe_consequence_term in c['consequence_terms']]
-        consequences.sort(key=lambda consequence: abs(consequence.get('distance', 0)))
+        # If there are no consequences on overlapping genes, we take the overall most severe consequence and all genes
+        # associated with that consequence
+        else:
+            # Flatten the list of consequence terms and find the most severe one
+            all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
+            all_consequence_terms.sort(key=lambda term: consequence_term_severity_rank[term])
+            most_severe_consequence_term = all_consequence_terms[0]
 
-        # Return a subset of fields (required for output) of filtered consequences
-        results_by_variant[variant_identifier].extend([
-            (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term)
-            for c in consequences
-        ])
+            # Keep only consequences which include the most severe consequence term.
+            consequences = [c for c in consequences if most_severe_consequence_term in c['consequence_terms']]
+            consequences.sort(key=lambda consequence: abs(consequence.get('distance', 0)))
+
+            # Return a subset of fields (required for output) of filtered consequences
+            results_by_variant[variant_identifier].extend([
+                (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term)
+                for c in consequences
+            ])
 
     return results_by_variant
 
@@ -147,7 +157,6 @@ def process_variants(variants):
     """Given a list of variant IDs, return a list of consequence types (each including Ensembl gene name & ID and a
     functional consequence code) for a given variant.
     """
-
     # Query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
     # up to a standard distance (5000 nucleotides either way, which is default for VEP) from the variant.
     vep_results = query_vep(variants=variants)
