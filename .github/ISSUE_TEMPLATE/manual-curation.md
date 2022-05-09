@@ -1,8 +1,8 @@
 ---
 name: Manual curation
-about: Template for manual curation issue
-title: Manual curation for [YYYY.MM] release
-labels: ''
+about: Template for manual curation processing issue
+title: Manual curation for YYYY.MM release
+labels: Processing
 assignees: ''
 
 ---
