@@ -54,13 +54,13 @@ def test_explicit_coordinates():
     """Repeat expansion events with complete coordinates must be processed with the correct type."""
     assert sorted(run_pipeline('explicit_coords.xml.gz')) == sorted([
         # CGC expansion, trinucleotide.
-        ['RCV001051772', '1', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion', '0'],
+        ['RCV001051772', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion'],
         # CCGGGACCGAGA (12 base unit) expansion, also to be considered a trinucleotide expansion.
-        ['RCV000722291', '1', 'ENSG00000142599', 'RERE', 'trinucleotide_repeat_expansion', '0'],
+        ['RCV000722291', 'ENSG00000142599', 'RERE', 'trinucleotide_repeat_expansion'],
         # CT expansion, non-trinucleotide.
-        ['RCV000292700', '1', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion', '0'],
+        ['RCV000292700', 'ENSG00000163554', 'SPTA1', 'short_tandem_repeat_expansion'],
         # TCAT expansion, non-trinucleotide but could be mistaken for one (3 units of 4 = 12, divisible by 3).
-        ['RCV000122358', '1', 'ENSG00000135100', 'HNF1A', 'short_tandem_repeat_expansion', '0'],
+        ['RCV000122358', 'ENSG00000135100', 'HNF1A', 'short_tandem_repeat_expansion'],
     ])
 
 
@@ -68,7 +68,7 @@ def test_no_explicit_coordinates():
     """Repeat expansion events without complete coordinates must also be processed and parsed."""
     assert run_pipeline('no_explicit_coords.xml.gz') == [
         # NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)]) should be parsed as a trinucleotide expansion
-        ['RCV000192035', '1', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion', '0'],
+        ['RCV000192035', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion'],
     ]
 
 
@@ -76,9 +76,9 @@ def test_alternative_identifiers():
     """Protein HGVS and human-readable identifiers should also be processed."""
     assert sorted(run_pipeline('alternatives.xml.gz')) == sorted([
         # NP_003915.2:p.Ala260(5_9) is protein hgvs and assumed to be trinucleotide expansion
-        ['RCV000006377', '1', 'ENSG00000109132', 'PHOX2B', 'trinucleotide_repeat_expansion', '0'],
+        ['RCV000006377', 'ENSG00000109132', 'PHOX2B', 'trinucleotide_repeat_expansion'],
         # ATXN2, (CAG)n REPEAT EXPANSION is inferred to be trinucleotide from the repeat unit length
-        ['RCV000008583', '1', 'ENSG00000204842', 'ATXN2', 'trinucleotide_repeat_expansion', '0']
+        ['RCV000008583', 'ENSG00000204842', 'ATXN2', 'trinucleotide_repeat_expansion']
     ])
 
 
@@ -86,14 +86,14 @@ def test_missing_names():
     """Records that are missing variant names are still processed using HGVS identifier."""
     results = run_pipeline('missing_names.xml.gz')
     assert len(results) == 7
-    assert all(r[4] == 'short_tandem_repeat_expansion' for r in results)
+    assert all(r[3] == 'short_tandem_repeat_expansion' for r in results)
 
 
 def test_missing_names_and_hgvs():
     """Records that are missing variant names and HGVS should use coordinate span from alleles instead."""
     assert sorted(run_pipeline('missing_names_and_hgvs.xml.gz')) == [
         # ref=T, alt=TGAAAGAAAGAAAGAAAGAAA => correctly classified as short tandem repeat
-        ['RCV001355211', '1', 'ENSG00000109861', 'CTSC', 'short_tandem_repeat_expansion', '0'],
+        ['RCV001355211', 'ENSG00000109861', 'CTSC', 'short_tandem_repeat_expansion'],
         # ref=T, alt=TACACACACACAC => classified as trinucleotide repeat without repeating unit inference.
-        ['RCV001356600', '1', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion', '0']
+        ['RCV001356600', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion']
     ]

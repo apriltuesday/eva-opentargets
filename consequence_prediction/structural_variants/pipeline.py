@@ -3,8 +3,8 @@ from itertools import zip_longest
 
 import pandas as pd
 
-from consequence_prediction.vep_mapping_pipeline.consequence_mapping import query_vep, VEP_SHORT_QUERY_DISTANCE, \
-    extract_consequences, deduplicate_list
+from consequence_prediction.vep_mapping_pipeline.consequence_mapping import query_vep, extract_consequences, \
+    deduplicate_list
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarDataset
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant, VariantType, SequenceType
 
@@ -61,7 +61,7 @@ def get_vep_results(clinvar_xml):
     i = 0
     vep_results = []
     for group in grouper(variants, n=200):
-        vep_results.extend(query_vep(variants=group, search_distance=VEP_SHORT_QUERY_DISTANCE))
+        vep_results.extend(query_vep(variants=group))
         i += 1
         logger.info(f'Done with batch {i}')
 
@@ -70,20 +70,16 @@ def get_vep_results(clinvar_xml):
 
 def main(clinvar_xml):
     vep_results = get_vep_results(clinvar_xml)
-    results_by_variant = {}
-    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
-                                              only_closest=False, results_by_variant=results_by_variant,
-                                              report_distance=False)
+    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
     variant_data = []
     for variant_id, variant_consequences in results_by_variant.items():
         for consequence_to_yield in deduplicate_list(variant_consequences):
-            variant_id, gene_id, gene_symbol, consequence_term, distance = consequence_to_yield
+            variant_id, gene_id, gene_symbol, consequence_term = consequence_to_yield
             # variant_id here is the entire input to VEP, we only want the HGVS that we passed as an identifier
             hgvs_id = variant_id.split()[-1]
-            # The second column, set statically to 1, is not used, and is maintained for compatibility purposes
-            variant_data.append((hgvs_id, '1', gene_id, gene_symbol, consequence_term, distance))
+            variant_data.append((hgvs_id, gene_id, gene_symbol, consequence_term))
 
     # Return as a dataframe to be compatible with repeat expansion pipeline
-    consequences = pd.DataFrame(variant_data, columns=('VariantID', 'PlaceholderOnes', 'EnsemblGeneID',
-                                                       'EnsemblGeneName', 'ConsequenceTerm', 'Distance'))
+    consequences = pd.DataFrame(variant_data, columns=('VariantID', 'EnsemblGeneID',
+                                                       'EnsemblGeneName', 'ConsequenceTerm'))
     return consequences

@@ -196,12 +196,9 @@ def extract_consequences(variants):
     # Get rid of sets
     consequences['RepeatType'] = consequences['RepeatType'].apply(list)
     consequences = consequences.explode('RepeatType')
-    # Form a six-column file compatible with the consequence mapping pipeline, for example:
-    # RCV000005966    1    ENSG00000156475    PPP2R2B    trinucleotide_repeat_expansion    0
-    consequences['PlaceholderOnes'] = 1
-    consequences['PlaceholderZeroes'] = 0
-    consequences = consequences[['RCVaccession', 'PlaceholderOnes', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType',
-                                 'PlaceholderZeroes']]
+    # Form a four-column file compatible with the consequence mapping pipeline, for example:
+    # RCV000005966    ENSG00000156475    PPP2R2B    trinucleotide_repeat_expansion
+    consequences = consequences[['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType']]
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
     # Check that there are no empty cells in the final consequences table
     assert consequences.isnull().to_numpy().sum() == 0
