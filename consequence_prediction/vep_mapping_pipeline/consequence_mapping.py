@@ -88,6 +88,37 @@ def load_consequence_severity_rank():
     return {term: index for index, term in enumerate(get_severity_ranking())}
 
 
+def most_severe_consequence(consequence_terms, consequence_term_severity_rank):
+    return min(consequence_terms, key=lambda term: consequence_term_severity_rank[term])
+
+
+def most_severe_consequence_per_gene(variant_identifier, consequences):
+    results = []
+    consequence_term_severity_rank = load_consequence_severity_rank()
+    consequences_per_gene = defaultdict(list)
+    for c in consequences:
+        key = (c['gene_id'], c.get('gene_symbol', ''))
+        consequences_per_gene[key].extend(term for term in c['consequence_terms'])
+    for (gene_id, gene_symbol), terms in consequences_per_gene.items():
+        most_severe_consequence_term = most_severe_consequence(terms, consequence_term_severity_rank)
+        results.append((variant_identifier, gene_id, gene_symbol, most_severe_consequence_term))
+    return results
+
+
+def overall_most_severe_consequence(variant_identifier, consequences):
+    results = []
+    consequence_term_severity_rank = load_consequence_severity_rank()
+    # Flatten the list of consequence terms and find the most severe one
+    all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
+    most_severe_consequence_term = most_severe_consequence(all_consequence_terms, consequence_term_severity_rank)
+
+    # Keep only consequences which include the most severe consequence term.
+    for c in consequences:
+        if most_severe_consequence_term in c['consequence_terms']:
+            results.append((variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term))
+    return results
+
+
 def extract_consequences(vep_results, acceptable_biotypes):
     """Given VEP results, return a list of consequences matching certain criteria.
 
@@ -97,7 +128,6 @@ def extract_consequences(vep_results, acceptable_biotypes):
             https://www.ensembl.org/info/genome/genebuild/biotypes.html). Consequences for other transcript biotypes
             will be ignored.
     """
-    consequence_term_severity_rank = load_consequence_severity_rank()
     results_by_variant = defaultdict(list)
     for result in vep_results:
         variant_identifier = result['input']
@@ -113,33 +143,12 @@ def extract_consequences(vep_results, acceptable_biotypes):
 
         # For genes overlapping the variant, we report the most severe consequence per gene.
         if overlapping_consequences:
-            consequences_per_gene = defaultdict(list)
-            for c in overlapping_consequences:
-                key = (c['gene_id'], c.get('gene_symbol', ''))
-                consequences_per_gene[key].extend(term for term in c['consequence_terms'])
-            for (gene_id, gene_symbol), terms in consequences_per_gene.items():
-                most_severe_consequence_term = min(terms, key=lambda term: consequence_term_severity_rank[term])
-                results_by_variant[variant_identifier].append(
-                    (variant_identifier, gene_id, gene_symbol, most_severe_consequence_term)
-                )
-
+            consequences_for_variant = most_severe_consequence_per_gene(variant_identifier, overlapping_consequences)
         # If there are no consequences on overlapping genes, we take the overall most severe consequence and all genes
         # associated with that consequence
         else:
-            # Flatten the list of consequence terms and find the most severe one
-            all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
-            all_consequence_terms.sort(key=lambda term: consequence_term_severity_rank[term])
-            most_severe_consequence_term = all_consequence_terms[0]
-
-            # Keep only consequences which include the most severe consequence term.
-            consequences = [c for c in consequences if most_severe_consequence_term in c['consequence_terms']]
-            consequences.sort(key=lambda consequence: abs(consequence.get('distance', 0)))
-
-            # Return a subset of fields (required for output) of filtered consequences
-            results_by_variant[variant_identifier].extend([
-                (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term)
-                for c in consequences
-            ])
+            consequences_for_variant = overall_most_severe_consequence(variant_identifier, consequences)
+        results_by_variant[variant_identifier].extend(consequences_for_variant)
 
     return results_by_variant
 
