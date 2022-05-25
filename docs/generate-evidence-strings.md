@@ -61,7 +61,8 @@ ${BSUB_CMDLINE} -K -M 10G \
     --efo-mapping  ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
     --gene-mapping ${BATCH_ROOT}/gene_mapping/consequences_vep.tsv \
     --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
-    --out          ${BATCH_ROOT}/evidence_strings/
+    --out          ${BATCH_ROOT}/evidence_strings/ \
+    --include-structural
 
 # Check that the generated evidence strings do not contain any duplicated evidence strings. 
 #    For every evidence string, we group the value of fields datatypeId, studyId, 
