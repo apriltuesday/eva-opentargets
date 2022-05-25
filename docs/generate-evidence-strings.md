@@ -18,7 +18,7 @@ Next, set up the protocol-specific environment:
 export OT_RELEASE=YYYY-MM
 
 # Open Targets JSON schema version.
-export OT_SCHEMA_VERSION=2.2.3
+export OT_SCHEMA_VERSION=2.2.5
 ```
 
 ### Check and correct known problematic mappings
