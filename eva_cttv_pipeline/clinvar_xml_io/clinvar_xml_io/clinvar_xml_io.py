@@ -179,10 +179,10 @@ class ClinVarRecord:
     @property
     def clinical_significance_list(self):
         """The normalised list of all clinical significance values. The original value is (1) split into multiple values
-        by two delimiters: ('/', ', '), (2) converted into lowercase and (3) sorted lexicographically. Example:
+        by 3 delimiters: ('/', ', ', '; '), (2) converted into lowercase and (3) sorted lexicographically. Example:
         'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor']. See /data-exploration/
         clinvar-variant-types/README.md for further explanation."""
-        return sorted(re.split('/|, ', self.clinical_significance_raw.lower().replace('_', ' ')))
+        return sorted(re.split('/|, |; ', self.clinical_significance_raw.lower().replace('_', ' ')))
 
     @property
     def allele_origins(self):
@@ -399,6 +399,9 @@ class ClinVarRecordMeasure:
         elif self.current_hgvs:
             current_genomic = sorted(self.current_hgvs & self.genomic_hgvs)
             if current_genomic:
+                for hgvs in current_genomic:
+                    if hgvs.reference_sequence == self.sequence_location_helper('Accession'):
+                        return hgvs
                 return current_genomic[0]
             return sorted(self.current_hgvs)[0]
         return None
