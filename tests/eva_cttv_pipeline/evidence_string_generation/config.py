@@ -2,7 +2,7 @@ import os
 
 from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 
-OT_SCHEMA_VERSION = "2.2.5"
+OT_SCHEMA_VERSION = "2.2.6"
 
 test_dir = os.path.dirname(__file__)
 efo_mapping_file = os.path.join(test_dir, 'resources', 'string_to_ontology_mappings.tsv')
