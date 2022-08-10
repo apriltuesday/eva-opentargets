@@ -21,10 +21,7 @@ export OT_RELEASE=YYYY-MM
 export OT_SCHEMA_VERSION=2.2.6
 ```
 
-### Check and correct known problematic mappings
-There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
-
-## 2. Process data
+## 1. Process data
 The protocol is automated. See specific section comments for details.
 
 ```bash
@@ -82,7 +79,7 @@ ${BSUB_CMDLINE} -K \
     --zooma-feedback ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
 ```
 
-## 3. Manual follow-up actions
+## 2. Manual follow-up actions
 
 ### Check that generated evidence strings do not contain any duplicates
 The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the file `${BATCH_ROOT}/evidence_strings/duplicates.tsv` should be empty. Check that this is the case.
