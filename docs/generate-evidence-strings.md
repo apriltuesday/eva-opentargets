@@ -22,67 +22,29 @@ export OT_SCHEMA_VERSION=2.2.6
 ```
 
 ## 1. Process data
-The protocol is automated. See specific section comments for details.
+
+First create the directory structure for holding all files for the current batch.
 
 ```bash
-# Create directory structure for holding all files for the current batch.
 export BATCH_ROOT=${BATCH_ROOT_BASE}/batch-${OT_RELEASE}
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 mkdir -p clinvar gene_mapping evidence_strings logs
+```
 
-# Download ClinVar data. We always use the most recent XML dump, which contains all data for the release.
-wget \
-  -O ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-  https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
-
-# Download the Open Targets JSON schema.
-wget \
-  -O ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
-  https://raw.githubusercontent.com/opentargets/json_schema/${OT_SCHEMA_VERSION}/opentargets.json
-
-# Run ClinVar variants through VEP and map them to genes and functional consequences.
-${BSUB_CMDLINE} -K -M 10G \
-  -o ${BATCH_ROOT}/logs/consequence_vep.out \
-  -e ${BATCH_ROOT}/logs/consequence_vep.err \
-  bash ${CODE_ROOT}/consequence_prediction/run_consequence_mapping.sh \
-    ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-    ${BATCH_ROOT}/gene_mapping/consequences_vep.tsv
-
-# Generate the evidence strings for submission to Open Targets.
-${BSUB_CMDLINE} -K -M 10G \
-  -o ${BATCH_ROOT}/logs/evidence_string_generation.out \
-  -e ${BATCH_ROOT}/logs/evidence_string_generation.err \
-  python3 ${CODE_ROOT}/bin/evidence_string_generation.py \
-    --clinvar-xml  ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-    --efo-mapping  ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
-    --gene-mapping ${BATCH_ROOT}/gene_mapping/consequences_vep.tsv \
-    --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
-    --out          ${BATCH_ROOT}/evidence_strings/ \
-    --include-structural
-
-# Check that the generated evidence strings do not contain any duplicated evidence strings. 
-#    For every evidence string, we group the value of fields datatypeId, studyId, 
-#    targetFromSourceId, variantId, variantFunctionalConsequenceId and diseaseFromSourceMappedId, 
-#    all separated by tabs, sorted and saved at duplicates.tsv if found duplicated. 
-jq --arg sep $'\t' -jr \
-  '.datatypeId,$sep,.studyId,$sep,.targetFromSourceId,$sep,.variantId,$sep,.variantFunctionalConsequenceId,$sep,.diseaseFromSourceMappedId,$sep,.diseaseFromSource,"\n"' \
-  ${BATCH_ROOT}/evidence_strings/evidence_strings.json \
-  | sort | uniq -d > ${BATCH_ROOT}/evidence_strings/duplicates.tsv
-
-# Convert MedGen and OMIM cross-references into ZOOMA format.
-${BSUB_CMDLINE} -K \
-  -o ${BATCH_ROOT}/logs/traits_to_zooma_format.out \
-  -e ${BATCH_ROOT}/logs/traits_to_zooma_format.err \
-  python3 ${CODE_ROOT}/bin/traits_to_zooma_format.py \
-    --clinvar-xml    ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
-    --zooma-feedback ${BATCH_ROOT}/clinvar/clinvar_xrefs.txt
+Then from `BATCH_ROOT` run the automated pipeline:
+```bash
+nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.nf \
+  --batch_root ${BATCH_ROOT} \
+  --schema ${OT_SCHEMA_VERSION} \
+  -c ~/opentargets-nextflow.config
+  -resume
 ```
 
 ## 2. Manual follow-up actions
 
 ### Check that generated evidence strings do not contain any duplicates
-The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the file `${BATCH_ROOT}/evidence_strings/duplicates.tsv` should be empty. Check that this is the case.
+The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the automated pipeline should fail with an error if duplicates are detected.
 
 A repeated evidence string will have identical values for these five fields:
 * **datatypeId** - Identifier of the type of data we are associating, varying between somatic and non-somatic ClinVar records (*e.g.* ``somatic_mutation`` or ``genetic_association`` respectively). 

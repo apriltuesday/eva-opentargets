@@ -20,6 +20,8 @@ def process_consequence_type_dataframes(*dataframes):
     """
     consequence_type_dict = defaultdict(list)
     for consequences_dataframe in dataframes:
+        if consequences_dataframe is None:
+            continue
         for row in consequences_dataframe.itertuples():
             variant_id = row[1]
             ensembl_gene_id = row[2]

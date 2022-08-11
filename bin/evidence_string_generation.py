@@ -10,7 +10,7 @@ parser.add_argument('--gene-mapping', help='Variant to gene & consequence mappin
 parser.add_argument('--ot-schema',    help='OpenTargets schema JSON',                required=True)
 parser.add_argument('--out',          help='Output directory',                       required=True)
 parser.add_argument('--include-structural', help='Use structural variants consequence prediction pipeline',
-                    action='store_true', default=False, required=False)
+                    action='store_true', default=True, required=False)
 
 
 if __name__ == '__main__':
