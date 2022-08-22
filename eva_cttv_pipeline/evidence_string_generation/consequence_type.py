@@ -13,25 +13,6 @@ def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
     consequence_type_dict[variant_id].append(ConsequenceType(ensembl_gene_id, SoTerm(so_term)))
 
 
-def process_consequence_type_dataframes(*dataframes):
-    """
-    Return a dictionary of consequence information extracted from one or more dataframes.
-    Assumes all dataframes are in the same format.
-    """
-    consequence_type_dict = defaultdict(list)
-    for consequences_dataframe in dataframes:
-        if consequences_dataframe is None:
-            continue
-        for row in consequences_dataframe.itertuples():
-            variant_id = row[1]
-            ensembl_gene_id = row[2]
-            so_term = row[4]
-
-            process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
-
-    return consequence_type_dict
-
-
 def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
     """
     Return a dictionary of consequence information extracted from the given file.
@@ -90,7 +71,6 @@ class SoTerm(object):
     Represents a sequence ontology term belonging to a consequence type object.
     Holds information on accession and rank.
     """
-
     so_accession_name_dict = get_so_accession_dict()
 
     ranked_so_names_list = get_severity_ranking()

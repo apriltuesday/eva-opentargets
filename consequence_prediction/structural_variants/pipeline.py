@@ -68,7 +68,16 @@ def get_vep_results(clinvar_xml):
     return vep_results
 
 
-def main(clinvar_xml):
+def generate_consequences_file(consequences, output_consequences):
+    """Output final table."""
+    if consequences.empty:
+        logger.info('There are no records ready for output')
+        return
+    # Write the consequences table. This is used by the main evidence string generation pipeline.
+    consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
+
+
+def main(clinvar_xml, output_consequences=None):
     vep_results = get_vep_results(clinvar_xml)
     results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
     variant_data = []
@@ -82,4 +91,6 @@ def main(clinvar_xml):
     # Return as a dataframe to be compatible with repeat expansion pipeline
     consequences = pd.DataFrame(variant_data, columns=('VariantID', 'EnsemblGeneID',
                                                        'EnsemblGeneName', 'ConsequenceTerm'))
+    if output_consequences is not None:
+        generate_consequences_file(consequences, output_consequences)
     return consequences

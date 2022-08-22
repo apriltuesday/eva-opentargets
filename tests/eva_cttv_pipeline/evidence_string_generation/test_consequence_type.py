@@ -25,18 +25,6 @@ def test_process_consequence_type_file_tsv():
     assert consequence_type_dict["14:67729241:C:T"][0] == test_consequence_type
 
 
-def test_process_consequence_type_dataframes():
-    dataframe_1 = pd.DataFrame(
-        [('NC_000011.10:g.5226797_5226798insGCC', 'ENSG00000244734', 'HBB', 'coding_sequence_variant')],
-        columns=('VariantID', 'EnsemblGeneID', 'EnsemblGeneName', 'ConsequenceTerm'))
-    dataframe_2 = pd.DataFrame(
-        [('RCV001051772', 'ENSG00000130711', 'PRDM12', 'trinucleotide_repeat_expansion')],
-        columns=('1', '2', '3', '4'))  # column names can be anything
-    consequence_type_dict = CT.process_consequence_type_dataframes(dataframe_1, dataframe_2)
-    assert consequence_type_dict['NC_000011.10:g.5226797_5226798insGCC'][0].ensembl_gene_id == 'ENSG00000244734'
-    assert consequence_type_dict['RCV001051772'][0].ensembl_gene_id == 'ENSG00000130711'
-
-
 def test_ensembl_so_term():
     so_term = CT.SoTerm('stop_gained')
     assert so_term.accession == 'SO_0001587'

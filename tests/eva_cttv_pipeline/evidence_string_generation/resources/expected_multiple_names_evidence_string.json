@@ -23,6 +23,7 @@
   "studyId": "RCV000415158",
   "targetFromSourceId": "ENSG00000139988",
   "variantFunctionalConsequenceId": "SO_0001583",
+  "variantHgvsId": "NC_000007.14:g.94423102G>A",
   "variantId": "7_94423102_G_A",
   "variantRsId": "rs1057518967"
 }

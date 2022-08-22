@@ -27,8 +27,9 @@ if (!params.batch_root || !params.schema) {
 }
 batchRoot = params.batch_root
 
+
 /*
- * Main workflow
+ * Main workflow.
  */
 workflow {
     if (params.clinvar != null) {
@@ -38,10 +39,16 @@ workflow {
     }
     downloadJsonSchema()
 
-    runSnp(clinvarXml)
+    runSnpIndel(clinvarXml)
+    runRepeat(clinvarXml)
+    runStructural(clinvarXml)
+    combineConsequences(runSnpIndel.out.consequencesSnp,
+                        runRepeat.out.consequencesRepeat,
+                        runStructural.out.consequencesStructural)
+    
     generateEvidence(clinvarXml,
                      downloadJsonSchema.out.jsonSchema,
-                     runSnp.out.consequenceMappingsSnp)
+                     combineConsequences.out.consequencesCombined)
     checkDuplicates(generateEvidence.out.evidenceStrings)
 
     convertXrefs(clinvarXml)
@@ -79,7 +86,7 @@ process downloadJsonSchema {
  * Run simple variants (SNPs and other variants with complete coordinates) through VEP and map them
  * to genes and functional consequences.
  */
-process runSnp {
+process runSnpIndel {
     clusterOptions "-o ${batchRoot}/logs/consequence_vep.out \
                     -e ${batchRoot}/logs/consequence_vep.err"
 
@@ -92,7 +99,7 @@ process runSnp {
     path clinvarXml
 
     output:
-    path "consequences_snp.tsv", emit: consequenceMappingsSnp
+    path "consequences_snp.tsv", emit: consequencesSnp
 
     script:
     """
@@ -106,7 +113,83 @@ process runSnp {
         --tmpdir .           `# Store temporary files in the current directory to avoid /tmp overflow`    \
         \${PYTHON_BIN} "\${CODE_ROOT}/consequence_prediction/vep_mapping_pipeline/consequence_mapping.py" \
     | sort -u > consequences_snp.tsv
+    """
+}
 
+/*
+ * Extract repeat expansion variants from ClinVar and map them to genes.
+ */
+process runRepeat {
+   clusterOptions "-o ${batchRoot}/logs/consequence_repeat.out \
+                   -e ${batchRoot}/logs/consequence_repeat.err"
+
+   publishDir "${batchRoot}/gene_mapping",
+       overwrite: true,
+       mode: "copy",
+       pattern: "*.tsv"
+
+   input:
+   path clinvarXml
+
+   output:
+   path "consequences_repeat.tsv", emit: consequencesRepeat
+
+   script:
+   """
+   \${PYTHON_BIN} \${CODE_ROOT}/consequence_prediction/run_repeat_expansion_variants.py \
+        --clinvar-xml ${clinvarXml} \
+        --output-consequences consequences_repeat.tsv
+
+    # create an empty file if nothing generated
+    [[ -f consequences_repeat.tsv ]] || touch consequences_repeat.tsv
+   """
+}
+
+/*
+ * Run consequence and gene mapping for structural variants (i.e. no complete coordinates and not
+ * known repeat expansions).
+ */
+process runStructural {
+   clusterOptions "-o ${batchRoot}/logs/consequence_structural.out \
+                   -e ${batchRoot}/logs/consequence_structural.err"
+
+   publishDir "${batchRoot}/gene_mapping",
+       overwrite: true,
+       mode: "copy",
+       pattern: "*.tsv"
+
+   input:
+   path clinvarXml
+
+   output:
+   path "consequences_structural.tsv", emit: consequencesStructural
+
+   script:
+   """
+   \${PYTHON_BIN} \${CODE_ROOT}/consequence_prediction/run_structural_variants.py \
+        --clinvar-xml ${clinvarXml} \
+        --output-consequences consequences_structural.tsv
+
+    # create an empty file if nothing generated
+    [[ -f consequences_structural.tsv ]] || touch consequences_structural.tsv
+   """
+}
+
+/*
+ * Unite results of consequence mapping.
+ */
+process combineConsequences {
+    input:
+    path consequencesSnp
+    path consequencesRepeat
+    path consequencesStructural
+
+    output:
+    path "consequences_combined.tsv", emit: consequencesCombined
+
+    script:
+    """
+    cat ${consequencesRepeat} ${consequencesSnp} ${consequencesStructural} > consequences_combined.tsv
     """
 }
 
