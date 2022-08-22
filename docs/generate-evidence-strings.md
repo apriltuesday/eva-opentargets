@@ -23,21 +23,19 @@ export OT_SCHEMA_VERSION=2.2.6
 
 ## 1. Process data
 
-First create the directory structure for holding all files for the current batch.
+The protocol is automated. See specific section comments for details.
 
 ```bash
+# Create directory structure for holding all files for the current batch.
 export BATCH_ROOT=${BATCH_ROOT_BASE}/batch-${OT_RELEASE}
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 mkdir -p clinvar gene_mapping evidence_strings logs
-```
 
-Then from `BATCH_ROOT` run the automated pipeline:
-```bash
+# Run the nextflow pipeline, resuming execution if necessary.
 nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.nf \
   --batch_root ${BATCH_ROOT} \
   --schema ${OT_SCHEMA_VERSION} \
-  -c ~/opentargets-nextflow.config
   -resume
 ```
 

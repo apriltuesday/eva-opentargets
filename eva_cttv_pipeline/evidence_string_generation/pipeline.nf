@@ -5,9 +5,10 @@ nextflow.enable.dsl=2
 
 def helpMessage() {
     log.info"""
+    Generate ClinVar evidence strings for Open Targets.
     
     Params:
-        --batch_root     Directory for current batch
+        --batch_root    Directory for current batch
         --schema        Open Targets JSON schema version
         --clinvar       ClinVar XML file (optional, will download latest if omitted)
     """
@@ -66,6 +67,14 @@ process downloadJsonSchema {
 }
 
 process runSnp {
+    clusterOptions "-o ${batchRoot}/logs/consequence_vep.out \
+                    -e ${batchRoot}/logs/consequence_vep.err"
+
+    publishDir "${batchRoot}/gene_mapping",
+        overwrite: true,
+        mode: "copy",
+        pattern: "*.tsv"
+
     input:
     path clinvarXml
 
@@ -86,14 +95,11 @@ process runSnp {
     | sort -u > consequences_snp.tsv
 
     """
-    // TODO logs for this
 }
 
 process generateEvidence {
-    publishDir "${batchRoot}/logs",
-        overwrite: true,
-        mode: "copy",
-        pattern: "*.log"
+    clusterOptions "-o ${batchRoot}/logs/evidence_string_generation.out \
+                    -e ${batchRoot}/logs/evidence_string_generation.err"
 
     publishDir "${batchRoot}/evidence_strings",
         overwrite: true,
@@ -115,8 +121,7 @@ process generateEvidence {
         --efo-mapping \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
         --gene-mapping ${consequenceMappings} \
         --ot-schema ${jsonSchema} \
-        --out . \
-        > evidence_string_generation.log
+        --out .
     """
 }
 
@@ -134,10 +139,8 @@ process checkDuplicates {
 }
 
 process convertXrefs {
-    publishDir "${batchRoot}/logs",
-        overwrite: true,
-        mode: "copy",
-        pattern: "*.log"
+    clusterOptions "-o ${batchRoot}/logs/traits_to_zooma_format.out \
+                    -e ${batchRoot}/logs/traits_to_zooma_format.err"
 
     publishDir "${batchRoot}/clinvar",
         overwrite: true,
@@ -152,8 +155,7 @@ process convertXrefs {
 
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/traits_to_zooma_format.py \
-        --clinvar-xml    ${clinvarXml} \
-        --zooma-feedback clinvar_xrefs.txt \
-        > traits_to_zooma_format.log
+        --clinvar-xml ${clinvarXml} \
+        --zooma-feedback clinvar_xrefs.txt
     """
 }
