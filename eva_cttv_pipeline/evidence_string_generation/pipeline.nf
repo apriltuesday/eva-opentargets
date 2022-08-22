@@ -27,6 +27,9 @@ if (!params.batch_root || !params.schema) {
 }
 batchRoot = params.batch_root
 
+/*
+ * Main workflow
+ */
 workflow {
     if (params.clinvar != null) {
         clinvarXml = Channel.fromPath(params.clinvar)
@@ -44,6 +47,9 @@ workflow {
     convertXrefs(clinvarXml)
 }
 
+/*
+ * Download ClinVar data, using the most recent XML dump.
+ */
 process downloadClinvar {
     output:
     path "clinvar.xml.gz", emit: clinvarXml
@@ -55,6 +61,9 @@ process downloadClinvar {
     """
 }
 
+/*
+ * Download the Open Targets JSON schema.
+ */
 process downloadJsonSchema {
     output:
     path "opentargets-${params.schema}.json", emit: jsonSchema
@@ -66,6 +75,10 @@ process downloadJsonSchema {
     """
 }
 
+/*
+ * Run simple variants (SNPs and other variants with complete coordinates) through VEP and map them
+ * to genes and functional consequences.
+ */
 process runSnp {
     clusterOptions "-o ${batchRoot}/logs/consequence_vep.out \
                     -e ${batchRoot}/logs/consequence_vep.err"
@@ -97,6 +110,9 @@ process runSnp {
     """
 }
 
+/*
+ * Generate the evidence strings for submission to Open Targets.
+ */
 process generateEvidence {
     clusterOptions "-o ${batchRoot}/logs/evidence_string_generation.out \
                     -e ${batchRoot}/logs/evidence_string_generation.err"
@@ -125,6 +141,9 @@ process generateEvidence {
     """
 }
 
+/*
+ * Check that the generated evidence strings do not contain any duplicated evidence strings.
+ */
 process checkDuplicates {
     input:
     path evidenceStrings
@@ -138,6 +157,9 @@ process checkDuplicates {
     """
 }
 
+/*
+ * Convert MedGen and OMIM cross-references into ZOOMA format.
+ */
 process convertXrefs {
     clusterOptions "-o ${batchRoot}/logs/traits_to_zooma_format.out \
                     -e ${batchRoot}/logs/traits_to_zooma_format.err"
