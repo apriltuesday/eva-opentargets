@@ -7,6 +7,6 @@ assignees: ''
 
 ---
 
-**Deadline for submission: **
+**Deadline for submission:**
 
 Refer to [documentation](https://github.com/EBIvariation/eva-opentargets/blob/master/docs/generate-evidence-strings.md) for full description of steps.
