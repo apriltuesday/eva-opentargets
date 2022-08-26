@@ -87,8 +87,8 @@ process downloadJsonSchema {
  * to genes and functional consequences.
  */
 process runSnpIndel {
-    clusterOptions "-o ${batchRoot}/logs/consequence_vep.out \
-                    -e ${batchRoot}/logs/consequence_vep.err"
+    clusterOptions "-o ${batchRoot}/logs/consequence_snp.out \
+                    -e ${batchRoot}/logs/consequence_snp.err"
 
     publishDir "${batchRoot}/gene_mapping",
         overwrite: true,
