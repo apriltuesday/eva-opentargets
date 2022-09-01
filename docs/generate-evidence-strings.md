@@ -38,9 +38,7 @@ nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.
   -resume
 ```
 
-## 2. Manual follow-up actions
-
-### Check that generated evidence strings do not contain any duplicates
+### Note on duplication checks
 The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the automated pipeline should fail with an error if duplicates are detected.
 
 A repeated evidence string will have identical values for these five fields:
@@ -52,6 +50,8 @@ A repeated evidence string will have identical values for these five fields:
 * **diseaseFromSourceMappedId** - Associated phenotype to such variant (*e.g.* ``Orphanet_2337``, which corresponds to a type of keratoderma). 
 
 Nevertheless, we also report evidence strings in which  ``diseaseFromSourceMappedId`` may be empty (``diseaseFromSourceMappedId: null``) - i.e. the phenotype has not been mapped to an ontology yet. Therefore, to check for duplicates we also take into account the field ``diseaseFromSource``, which is the string describing the phenotype within ClinVar records (and is never missing in any evidence string).
+
+## 2. Manual follow-up actions
 
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.

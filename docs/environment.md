@@ -1,6 +1,6 @@
 # Setting up the common environment
 
-1. Log in to the LSF cluster, where all data processing must take place.
+1. Log in to the LSF cluster (currently `codon`), where all data processing must take place.
 1. Using a `become` command, switch to a common EVA production user instead of your personal account.
 1. Adjust and execute the commands below. They will set up the environment, fetch and build the code. Notes:
     - The first six variables are installation-specific and are blanked in this repository. You can get the values for the EVA installation from the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md).
