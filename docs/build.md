@@ -52,6 +52,14 @@ export PYTHONPATH=${INSTALL_PATH}
 
 The installed Python version can then be called with either `python` or `python3`. You can also use either `pip` or `pip3` to install packages into this local distribution.
 
+## Nextflow installation
+
+The evidence string generation pipeline uses Nextflow, which itself relies on Java. You can install in the current directory as follows:
+```bash
+wget -qO- https://get.nextflow.io | bash
+```
+You can then include this in your `$PATH` variable if necessary, or invoke the executable directly.  For more details on installing Nextflow, see the [documentation](https://www.nextflow.io/docs/latest/getstarted.html).
+
 ## Deploying local OLS installation
 During the preparation of 2019_04 release, which had to be synchronized with EFO v3, OLS had to be deployed locally because the production deployment of OLS on www.ebi.ac.uk/ols only supported EFO v2 at the time. This can be done using the following command (substitute the image version as appropriate):
 

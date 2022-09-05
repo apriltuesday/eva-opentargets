@@ -8,8 +8,6 @@ from collections import defaultdict, Counter
 
 import jsonschema
 
-from consequence_prediction.repeat_expansion_variants import pipeline as repeat_pipeline
-from consequence_prediction.structural_variants import pipeline as structural_pipeline
 from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
@@ -113,29 +111,20 @@ def validate_evidence_string(ev_string, ot_schema_contents):
         sys.exit(1)
 
 
-def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out,
-                    include_structural=False):
+def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
-
-    repeat_consequences = repeat_pipeline.main(clinvar_xml_file)
-    if include_structural:
-        structural_consequences = structural_pipeline.main(clinvar_xml_file)
-        complex_consequences = CT.process_consequence_type_dataframes(repeat_consequences, structural_consequences)
-    else:
-        complex_consequences = CT.process_consequence_type_dataframes(repeat_consequences)
-    variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file, complex_consequences)
+    variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
-        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME),
-        include_structural=include_structural)
+        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
     print(report.collate_report())
     report.write_unmapped_terms(dir_out)
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
-                                output_evidence_strings, include_structural):
+                                output_evidence_strings):
     report = Report(trait_mappings=string_to_efo_mappings, consequence_mappings=variant_to_gene_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
@@ -160,7 +149,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
         # origins, (2) EFO mappings, and (3) genes where the variant has effect.
         grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
-        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings, include_structural)
+        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
         grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                          string_to_efo_mappings)
 
@@ -192,8 +181,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                 grouped_allele_origins, grouped_diseases, consequence_types):
             disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
             evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
-                                                       disease_mapped_efo_id, consequence_attributes,
-                                                       include_structural=include_structural)
+                                                       disease_mapped_efo_id, consequence_attributes)
 
             # Validate and immediately output the evidence string (not keeping everything in memory).
             validate_evidence_string(evidence_string, ot_schema_contents)
@@ -219,7 +207,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
 
 def generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id, disease_mapped_efo_id,
-                             consequence_attributes, include_structural=False):
+                             consequence_attributes):
     """Generates an evidence string based on ClinVar record and some additional attributes."""
     is_somatic = allele_origins == ['somatic']
     evidence_string = {
@@ -268,7 +256,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         # required by the Open Targets JSON schema.
         'diseaseFromSourceMappedId': disease_mapped_efo_id.split('/')[-1] if disease_mapped_efo_id else None,
     }
-    if include_structural and clinvar_record.measure.preferred_current_hgvs:
+    if clinvar_record.measure.preferred_current_hgvs:
         evidence_string['variantHgvsId'] = clinvar_record.measure.preferred_current_hgvs.text
 
     # Remove the attributes with empty values (either None or empty lists).
@@ -276,7 +264,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
     return evidence_string
 
 
-def get_consequence_types(clinvar_record_measure, consequence_type_dict, include_structural=False):
+def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     """Returns the list of functional consequences for a given ClinVar record measure.
 
     This is the place where ClinVar records are paired with the information about gene and functional consequences.
@@ -317,7 +305,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict, include
             return consequence_type_dict[coord_id]
 
     # If there's also no complete coordinates, pair using HGVS
-    if include_structural and clinvar_record_measure.preferred_current_hgvs:
+    if clinvar_record_measure.preferred_current_hgvs:
         hgvs_id = clinvar_record_measure.preferred_current_hgvs.text
         if hgvs_id in consequence_type_dict:
             consequences = consequence_type_dict[hgvs_id]
