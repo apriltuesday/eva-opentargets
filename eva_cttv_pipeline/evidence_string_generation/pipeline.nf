@@ -233,10 +233,10 @@ process checkDuplicates {
 
     script:
     """
-    (jq --arg sep \$'\t' -jr \
-        '.datatypeId,\$sep,.studyId,\$sep,.targetFromSourceId,\$sep,.variantId,\$sep,.variantFunctionalConsequenceId,\$sep,.diseaseFromSourceMappedId,\sep,.diseaseFromSource,"\n"' \
-        ${evidenceStrings} | sort | uniq -d > duplicates.tsv) \
-    || [[ -z duplicates.tsv ]]
+    jq --arg sep \$'\t' -jr \
+        '.datatypeId,\$sep,.studyId,\$sep,.targetFromSourceId,\$sep,.variantId,\$sep,.variantFunctionalConsequenceId,\$sep,.diseaseFromSourceMappedId,\$sep,.diseaseFromSource,"\n"' \
+        ${evidenceStrings} | sort | uniq -d > duplicates.tsv
+    [[ ! -s duplicates.tsv ]]
     """
 }
 
