@@ -61,3 +61,7 @@ local.properties
 
 # Python
 *.pyc
+
+# Nextflow
+.nextflow*
+work/
