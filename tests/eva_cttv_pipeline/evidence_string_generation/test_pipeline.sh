@@ -6,11 +6,7 @@ export LC_COLLATE=C
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export CODE_ROOT="$(dirname $(dirname $(dirname "${SCRIPT_DIR}")))"
 
-# TODO put this in one place only
-OT_SCHEMA_VERSION=2.2.8
-
-# TODO should come from GH actions
-export PYTHON_BIN=${CODE_ROOT}/env/bin/python
+export PYTHON_BIN=python
 export BATCH_ROOT_BASE=${SCRIPT_DIR}/resources/end2end
 
 CWD=${PWD}
@@ -20,7 +16,7 @@ cd ${BATCH_ROOT}
 
 nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.nf \
   --batch_root ${BATCH_ROOT} \
-  --schema ${OT_SCHEMA_VERSION} \
+  --schema $(cat "${CODE_ROOT}/OT_SCHEMA_VERSION") \
   --clinvar ${BATCH_ROOT_BASE}/input.xml.gz \
   -resume
 

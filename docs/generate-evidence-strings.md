@@ -5,7 +5,7 @@
 ### Check if the pipeline needs to be updated
 Open Targets will circulate an email several weeks before the data submission deadline which will contain the version of the [JSON schema](https://github.com/opentargets/json_schema) to be used. Examine the changes, and modify this pipeline to accommodate them if necessary.
 
-Regardless of whether any changes were made, update the `OT_SCHEMA_VERSION` value both in this document and in the [test files](/tests/eva_cttv_pipeline/evidence_string_generation/config.py).
+Regardless of whether any changes were made, update the `OT_SCHEMA_VERSION` value in [this file](/OT_SCHEMA_VERSION), which is used both in this protocol and the tests.
 
 ### Set up the environment
 First, [set up the common environment.](environment.md)
@@ -18,7 +18,7 @@ Next, set up the protocol-specific environment:
 export OT_RELEASE=YYYY-MM
 
 # Open Targets JSON schema version.
-export OT_SCHEMA_VERSION=2.2.8
+export OT_SCHEMA_VERSION=$(cat "${CODE_ROOT}/OT_SCHEMA_VERSION")
 ```
 
 ## 1. Process data
