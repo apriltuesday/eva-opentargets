@@ -37,7 +37,7 @@ test:
     - apt-get -y install openssh-client
     - eval "$(ssh-agent)"
     - echo "$EVA_ETL_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${CLUSTER_USER}@${LOGIN_NODE} "${SOFTWARE_PATH}/eva-opentargets/${ENVIRONMENT_NAME}_deployment/deploy.sh ${DEPLOY_POINT}"
+    - ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${CLUSTER_USER}@${LOGIN_NODE} "${SOFTWARE_PATH}/eva-opentargets/deploy.sh ${DEPLOY_POINT} ${ENVIRONMENT_NAME}"
   dependencies:
     - test
 
