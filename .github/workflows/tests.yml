@@ -40,7 +40,7 @@ jobs:
       run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k "not integration"
 
     - name: Integration tests for all pipelines
-      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k integration
+      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction --cov-append tests -k integration
 
     - name: End-to-end test of evidence string generation pipeline
       run: bash tests/eva_cttv_pipeline/evidence_string_generation/test_pipeline.sh
