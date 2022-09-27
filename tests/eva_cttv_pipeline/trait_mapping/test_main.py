@@ -5,6 +5,8 @@ manually extracted from the main ClinVar XML to check specific cases."""
 import os
 import tempfile
 
+import pytest
+
 from eva_cttv_pipeline.trait_mapping.main import main
 
 
@@ -49,6 +51,7 @@ def run_pipeline(resource_name):
     return output_traits, output_mappings, output_curation
 
 
+@pytest.mark.integration
 def test_main():
     """Basic sanity test of output files, using a random sample of records."""
     output_traits, output_mappings, output_curation = run_pipeline('sample.xml.gz')

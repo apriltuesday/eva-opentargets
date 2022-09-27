@@ -28,17 +28,24 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test 1. Main pipeline and repeat expansion pipeline
-      run: |
         python setup.py install
-        python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests
-
-    - name: Test 2. VEP mapping pipeline
+    - name: Install Nextflow
       run: |
-        bash tests/consequence_prediction/vep_mapping_pipeline/test_vep_pipeline.sh
+        mkdir /tmp/nextflow && cd /tmp/nextflow
+        wget -qO- get.nextflow.io | bash
+        echo "/tmp/nextflow" >> $GITHUB_PATH
+        cd -
+
+    - name: Unit tests for all pipelines
+      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k "not integration"
+
+    - name: Integration tests for all pipelines
+      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k integration
+
+    - name: End-to-end test of evidence string generation pipeline
+      run: bash tests/eva_cttv_pipeline/evidence_string_generation/test_pipeline.sh
     
     - name: Upload the coverage data to Coveralls
       env: 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        coveralls
+      run: coveralls

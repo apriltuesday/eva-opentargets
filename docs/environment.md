@@ -2,10 +2,9 @@
 
 1. Log in to the LSF cluster (currently `codon`), where all data processing must take place.
 1. Using a `become` command, switch to a common EVA production user instead of your personal account.
-1. Adjust and execute the commands below. They will set up the environment, fetch and build the code. Notes:
+1. Adjust and execute the commands below to set up the environment. Notes:
     - The first six variables are installation-specific and are blanked in this repository. You can get the values for the EVA installation from the [private repository](https://github.com/EBIvariation/configuration/blob/master/open-targets-configuration.md).
-    - By modifying the `GIT_REMOTE` and `GIT_BRANCH` variables, you can run an arbitrary version of the pipeline. This can be used for development and debugging. By default it will fetch the master branch from the main pipeline repository.
-    - Running these commands will overwrite any local changes you had in the repository copy on the cluster.
+    - These instructions use the Gitlab deployment of the pipeline onto the cluster. To use another installation just modify `CODE_ROOT` and `PYTHON_BIN` accordingly.
 
 ```bash
 # This variable should point to the directory where the clone of this repository is located on the cluster
@@ -32,21 +31,6 @@ export BSUB_CMDLINE="bsub"
 # Setting up paths
 export PATH=${PYTHON_INSTALL_PATH}:${BCFTOOLS_INSTALL_PATH}:${NEXTFLOW_INSTALL_PATH}:$PATH
 export PYTHONPATH=${PYTHON_INSTALL_PATH}
-
-# External service paths
-CLINVAR_PATH_BASE="ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar"
-
-export GIT_REMOTE=origin
-export GIT_BRANCH=master
-
-cd ${CODE_ROOT}
-git fetch ${GIT_REMOTE}
-git checkout ${GIT_BRANCH}
-git reset --hard ${GIT_REMOTE}/${GIT_BRANCH}
-source env/bin/activate
-python3 -m pip -q install --upgrade pip setuptools
-python3 -m pip -q install -r requirements.txt
-python3 setup.py install
 
 # Location of Python executable, pointing to the virtualenv
 export PYTHON_BIN=${CODE_ROOT}/env/bin/python
