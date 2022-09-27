@@ -187,7 +187,7 @@ def generate_consequences_file(consequences, output_consequences):
 def extract_consequences(variants):
     # Generate consequences table
     consequences = variants[variants['RecordIsComplete']] \
-        .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'])['RepeatType'] \
+        .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'], group_keys=False)['RepeatType'] \
         .apply(set).reset_index(name='RepeatType')
     if consequences.empty:
         return consequences

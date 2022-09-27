@@ -36,10 +36,13 @@ jobs:
         echo "/tmp/nextflow" >> $GITHUB_PATH
         cd -
 
-    - name: Test 1. Unit tests for all pipelines
-      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests
+    - name: Unit tests for all pipelines
+      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k "not integration"
 
-    - name: Test 2. End-to-end test of evidence string generation pipeline
+    - name: Integration tests for all pipelines
+      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction tests -k integration
+
+    - name: End-to-end test of evidence string generation pipeline
       run: bash tests/eva_cttv_pipeline/evidence_string_generation/test_pipeline.sh
     
     - name: Upload the coverage data to Coveralls
