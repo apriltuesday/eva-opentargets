@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+# pretty print xml
+def pprint(x):
+    print(ElementTree.tostring(x, encoding='unicode'))
+
+
 def iterate_cvs_from_xml(clinvar_xml):
     """Similar to iterate_rcv_from_xml in clinvar_xml_utils, but keeps the entire ClinVarSet XML element.
     This allows us to construct a valid ClinVar XML for easy future processing."""
@@ -29,7 +34,7 @@ def filter_xml(input_xml, output_xml, filter_fct, max_num=None):
     """ Filter input_xml by boolean condition defined by filter_fct and write to output_xml.
     If max_num is given, will write at most max_num records, otherwise writes all."""
     header = b'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <ReleaseSet Dated="2020-03-02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Type="full" xsi:noNamespaceSchemaLocation="http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_1.60.xsd">
+    <ReleaseSet Dated="." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Type="full" xsi:noNamespaceSchemaLocation="http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_1.60.xsd">
     '''
     count = 0
     with gzip.open(output_xml, 'wb') as output_file:
