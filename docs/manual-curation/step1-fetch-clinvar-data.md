@@ -18,14 +18,14 @@ wget -q \
 cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 12G \
   -o ${CURATION_RELEASE_ROOT}/log.trait_mapping.out \
   -e ${CURATION_RELEASE_ROOT}/log.trait_mapping.err \
-  python3 bin/trait_mapping.py \
+  ${PYTHON_BIN} bin/trait_mapping.py \
   -i ${CURATION_RELEASE_ROOT}/ClinVarFullRelease_00-latest.xml.gz \
   -u ${CURATION_RELEASE_ROOT}/traits_for_curator_platform.csv \
   -o ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   -c ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv
 
 # Create the final table for manual curation
-cd ${CODE_ROOT} && python3 bin/trait_mapping/create_table_for_manual_curation.py \
+cd ${CODE_ROOT} && ${PYTHON_BIN} bin/trait_mapping/create_table_for_manual_curation.py \
   --traits-for-curation ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv \
   --previous-mappings ${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
   --output ${CURATION_RELEASE_ROOT}/table_for_manual_curation.tsv
