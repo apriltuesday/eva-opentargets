@@ -7,9 +7,9 @@ import eva_cttv_pipeline.trait_mapping.main as main
 def launch():
     parser = ArgParser(sys.argv)
 
-    main.main(parser.input_filepath, parser.output_traits_filepath, parser.output_mappings_filepath,
-              parser.output_curation_filepath, parser.filters, parser.zooma_host,
-              parser.oxo_target_list, parser.oxo_distance)
+    main.process_traits(parser.input_traits_filepath, parser.output_mappings_filepath,
+                        parser.output_curation_filepath, parser.filters, parser.zooma_host,
+                        parser.oxo_target_list, parser.oxo_distance)
 
 
 class ArgParser:
@@ -21,9 +21,7 @@ class ArgParser:
                 """
         parser = argparse.ArgumentParser(description=description)
 
-        parser.add_argument("-i", dest="input_filepath", required=True,
-                            help="ClinVar XML dump file. One record per line.")
-        parser.add_argument("-u", dest="output_traits_filepath", required=True,
+        parser.add_argument("-i", dest="input_traits_filepath", required=True,
                             help="path to output file for all traits, for use with curation platform")
         parser.add_argument("-o", dest="output_mappings_filepath", required=True,
                             help="path to output file for mappings")
@@ -44,8 +42,7 @@ class ArgParser:
 
         args = parser.parse_args(args=argv[1:])
 
-        self.input_filepath = args.input_filepath
-        self.output_traits_filepath = args.output_traits_filepath
+        self.input_traits_filepath = args.input_traits_filepath
         self.output_mappings_filepath = args.output_mappings_filepath
         self.output_curation_filepath = args.output_curation_filepath
 

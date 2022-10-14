@@ -66,29 +66,48 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
     return trait
 
 
-def output_traits_for_curator(trait_list, output_filepath):
-    """Output traits as a CSV file for Curator."""
+def output_traits_to_csv(trait_list, output_filepath, for_platform=False):
+    """Output traits as a CSV file."""
     with open(output_filepath, 'w') as output_file:
         writer = csv.writer(output_file, delimiter=',')
-        writer.writerow(['text', 'upstreamId', 'priority'])
+        if for_platform:
+            writer.writerow(['text', 'upstreamId', 'priority'])
         for trait in trait_list:
-            writer.writerow([trait.name, trait.identifier, trait.frequency])
+            row = [trait.name, trait.identifier, trait.frequency]
+            if not for_platform:
+                row.append(trait.associated_with_nt_expansion)
+            writer.writerow(row)
 
 
-def main(input_filepath, output_traits_filepath, output_mappings_filepath, output_curation_filepath, filters,
-         zooma_host, oxo_target_list, oxo_distance):
+def read_traits_from_csv(curator_filepath):
+    traits = []
+    with open(curator_filepath, 'r') as input_file:
+        reader = csv.reader(input_file, delimiter=',', )
+        next(reader)
+        for row in reader:
+            traits.append(Trait(row[0], row[1], int(row[2]), row[3] == 'True'))
+    return traits
+
+
+def parse_traits(input_filepath, output_traits_filepath, output_for_platform=None):
     logger.info('Started parsing trait names')
     trait_list = parse_trait_names(input_filepath)
     logger.info("Loaded {} trait names".format(len(trait_list)))
     # Remove non-specific trait names which should never be output
     trait_list = [trait for trait in trait_list if trait.name.lower() not in ClinVarTrait.NONSPECIFIC_TRAITS]
-    output_traits_for_curator(trait_list, output_traits_filepath)
-    logger.info("Output {} valid trait names for Curator".format(len(trait_list)))
+    output_traits_to_csv(trait_list, output_traits_filepath)
+    logger.info("Output {} valid trait names".format(len(trait_list)))
+    # Output an extra csv file for curation platform if path is provided
+    if output_for_platform:
+        output_traits_to_csv(trait_list, output_for_platform, True)
 
+
+def process_traits(traits_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host,
+                   oxo_target_list, oxo_distance):
+    trait_list = read_traits_from_csv(traits_filepath)
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
             open(output_curation_filepath, "wt") as curation_file:
         mapping_writer = csv.writer(mapping_file, delimiter="\t")
-        mapping_writer.writerow(["#clinvar_trait_name", "uri", "label"])
         curation_writer = csv.writer(curation_file, delimiter="\t")
 
         logger.info('Processing trait names in parallel')
