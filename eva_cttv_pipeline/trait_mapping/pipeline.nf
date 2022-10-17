@@ -10,7 +10,7 @@ def helpMessage() {
     Params:
         --curation_root     Directory for current batch
         --clinvar           ClinVar XML file (optional, will download latest if omitted)
-        --chunk_size        Chunk size to split traits into (default 100)
+        --chunk_size        Chunk size to split traits into (default 1000)
         --max_forks         Max number of processes to run in parallel (default 10)
     """
 }
@@ -18,7 +18,7 @@ def helpMessage() {
 params.help = null
 params.curation_root = null
 params.clinvar = null
-params.chunk_size = 100
+params.chunk_size = 1000
 params.max_forks = 10
 
 if (params.help) {
@@ -67,9 +67,6 @@ process downloadClinvar {
  * Parse traits from ClinVar XML.
  */
 process parseTraits {
-   clusterOptions "-o ${curationRoot}/trait_parsing.out \
-                   -e ${curationRoot}/trait_parsing.err"
-
     input:
     path clinvarXml
 
@@ -104,9 +101,8 @@ process splitTraits {
  * Process traits through Zooma and OLS.
  */
 process processTraits {
-    clusterOptions "-o ${curationRoot}/trait_mapping.out \
-                    -e ${curationRoot}/trait_mapping.err"
     maxForks params.max_forks
+    errorStrategy 'finish'
 
     input:
     each path(traitChunk)
