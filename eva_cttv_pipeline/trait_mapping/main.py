@@ -79,11 +79,10 @@ def output_traits_to_csv(trait_list, output_filepath, for_platform=False):
             writer.writerow(row)
 
 
-def read_traits_from_csv(curator_filepath):
+def read_traits_from_csv(traits_filepath):
     traits = []
-    with open(curator_filepath, 'r') as input_file:
-        reader = csv.reader(input_file, delimiter=',', )
-        next(reader)
+    with open(traits_filepath, 'r') as input_file:
+        reader = csv.reader(input_file, delimiter=',')
         for row in reader:
             traits.append(Trait(row[0], row[1], int(row[2]), row[3] == 'True'))
     return traits
@@ -105,6 +104,7 @@ def parse_traits(input_filepath, output_traits_filepath, output_for_platform=Non
 def process_traits(traits_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host,
                    oxo_target_list, oxo_distance):
     trait_list = read_traits_from_csv(traits_filepath)
+    logger.info(f'Read {len(trait_list)} traits from file')
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
             open(output_curation_filepath, "wt") as curation_file:
         mapping_writer = csv.writer(mapping_file, delimiter="\t")
