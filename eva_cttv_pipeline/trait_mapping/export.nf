@@ -41,7 +41,7 @@ workflow {
 }
 
 /*
- *
+ * Extract the relevant columns from the input CSV.
  */
 process exportTable {
     publishDir "${curationRoot}",
