@@ -22,7 +22,7 @@ class ArgParser:
         parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument("-i", dest="input_traits_filepath", required=True,
-                            help="path to output file for all traits, for use with curation platform")
+                            help="path to input file for all traits")
         parser.add_argument("-o", dest="output_mappings_filepath", required=True,
                             help="path to output file for mappings")
         parser.add_argument("-c", dest="output_curation_filepath", required=True,

@@ -67,7 +67,7 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
 
 
 def output_traits_to_csv(trait_list, output_filepath, for_platform=False):
-    """Output traits as a CSV file."""
+    """Output traits as a CSV file, formatted for curation platform integration if required."""
     with open(output_filepath, 'w') as output_file:
         writer = csv.writer(output_file, delimiter=',')
         if for_platform:
