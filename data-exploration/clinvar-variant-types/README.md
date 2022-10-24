@@ -2,7 +2,7 @@
 
 The script in this directory parses the ClinVar XML data dump and constructs several diagrams and tables which illustrate how variation and disease data are represented. This helps guide the design of the pipeline and its output structure.
 
-The data was last updated on **2021-05-27.** Graphs can be enlarged by clicking on them.
+The data was last updated on **2022-10-24.** Graphs can be enlarged by clicking on them.
 
 
 
@@ -69,15 +69,6 @@ Supplementary tables:
 These fields reflect the strength of evidence supporting the assertion of variant/disease association contained in the ClinVar record.
 
 ![](diagrams/star-rating.png)
-
-### Distribution of records by star rating
-Star rating|Count
-:--|:--
-☆☆☆☆|167118
-★☆☆☆|1022556
-★★☆☆|72589
-★★★☆|12226
-★★★★|42
 
 
 
