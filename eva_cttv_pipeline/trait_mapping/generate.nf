@@ -46,7 +46,6 @@ workflow {
     collectAutomatedMappings(processTraits.out.automatedTraits.collect())
     collectCurationTraits(processTraits.out.traitsForCuration.collect())
     createCurationTable(collectCurationTraits.out.curationTraits)
-    finaliseTable(createCurationTable.out.curationTable)
 }
 
 /*
@@ -162,43 +161,22 @@ process collectCurationTraits {
  * Create the table for manual curation.
  */
 process createCurationTable {
-    input:
-    path curationTraits
-
-    output:
-    path "table_for_manual_curation.tsv", emit: curationTable
-
-    script:
-    """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/create_table_for_manual_curation.py \
-        --traits-for-curation ${curationTraits} \
-        --previous-mappings \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
-        --output table_for_manual_curation.tsv
-    """
-
-}
-
-/*
- * Finalise the table for Google Sheets by sorting and limiting the number of columns.
- */
-process finaliseTable {
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
         pattern: "*.tsv"
 
     input:
-    path curationTable
+    path curationTraits
 
     output:
-    path "google_sheets_table.tsv"
+    path "google_sheets_table.tsv", emit: curationTable
 
     script:
     """
-    # The first sort key is reverse column 3 (notes), to prioritise the variants with special notes. The second sort key
-    # is column 2 (frequency), also in reverse. Note that the number of columns in the output table is limited to 50,
-    # because only a few traits have that many mappings, and in virtually all cases these extra mappings are not meaningful.
-    # However, having a very large table degrades the performance of Google Sheets substantially.
-    cut -f-50 ${curationTable} | sort -t\$'\t' -k3,3r -k2,2rn > google_sheets_table.tsv
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/create_table_for_manual_curation.py \
+        --traits-for-curation ${curationTraits} \
+        --previous-mappings \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
+        --previous-comments \${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv \
+        --output google_sheets_table.tsv
     """
-}

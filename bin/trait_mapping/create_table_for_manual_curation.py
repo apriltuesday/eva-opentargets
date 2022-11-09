@@ -2,6 +2,8 @@
 
 import argparse
 
+import pandas as pd
+
 from eva_cttv_pipeline.trait_mapping.ols import (
     get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo,
 )
@@ -39,25 +41,37 @@ if __name__ == '__main__':
         help='Table with all mappings previously issued by EVA. TSV with columns: ClinVar trait name; ontology URI; '
              'ontology label (not used)')
     parser.add_argument(
+        '-c', '--previous-comments',
+        help='Table with last round of curator comments. TSV with columns: ClinVar trait name; comments')
+    parser.add_argument(
         '-o', '--output',
         help='Output TSV to be loaded in Google Sheets for manual curation')
     args = parser.parse_args()
-    outfile = open(args.output, 'w')
 
     # Load all previous mappings: ClinVar trait name to ontology URI
     previous_mappings = dict(line.rstrip().split('\t')[:2] for line in open(args.previous_mappings))
 
+    # Load previous curator comments: ClinVar trait name to comment string
+    previous_comments = pd.read_csv(args.previous_comments, sep='\t', header=None)
+    previous_comments = dict(zip(previous_comments[0], previous_comments[1]))
+
     # Process all mappings which require manual curation
+    rows = []
     for line in open(args.traits_for_curation):
         fields = line.split('\t')
         fields[-1] = fields[-1].rstrip()  # To avoid stripping the entire field if it's empty
         trait_name, trait_freq, notes = fields[:3]
-        mappings = fields[3:]
+        # Add previous curator comment if present
+        if trait_name in previous_comments:
+            notes = f'"{notes}\n{previous_comments[trait_name]}"'
+        # Use maximum of 50 mappings to improve Google Sheets performance
+        mappings = fields[3:53]
         previous_mapping = find_previous_mapping(trait_name, previous_mappings)
         exact_mapping = find_exact_mapping(trait_name, mappings)
-        out_line = '\t'.join(
-            [trait_name, trait_freq, notes, previous_mapping, exact_mapping] + mappings
-        ) + '\n'
-        outfile.write(out_line)
+        rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping] + mappings)
 
-    outfile.close()
+    rows.sort(key=lambda x: (x[2], int(x[1])), reverse=True)
+    with open(args.output, 'w') as outfile:
+        for row in rows:
+            out_line = '\t'.join(row) + '\n'
+            outfile.write(out_line)
