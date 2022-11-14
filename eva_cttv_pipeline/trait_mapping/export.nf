@@ -192,5 +192,6 @@ process updateLinks {
     """
     ln -s -f ${curationRoot}/trait_names_to_ontology_mappings.tsv \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv
     ln -s -f ${curationRoot}/eva_clinvar.txt \${BATCH_ROOT_BASE}/manual_curation/eva_clinvar.txt
+    ln -s -f ${curationRoot}/curator_comments.tsv \${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv
     """
 }
