@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.repeat_variant import parse_all_identifiers, \
+    repeat_type_from_length
 from . import biomart
 
 logging.basicConfig()
@@ -58,19 +60,20 @@ def load_clinvar_data(clinvar_xml):
         hgnc_ids = measure.hgnc_ids
         hgnc_id = hgnc_ids[0] if len(hgnc_ids) == 1 and len(gene_symbols) == 1 else '-'
 
+        repeat_type, transcript_id = parse_all_identifiers(measure)
+        # If no identifier yields a repeat type, try to infer from elsewhere in the measure
+        if not repeat_type and measure.explicit_insertion_length:
+            repeat_type = repeat_type_from_length(measure.explicit_insertion_length)
+
         # Append data strings
         for gene_symbol in gene_symbols:
             variant_data.append([
-                measure.get_variant_name_or_hgvs(),
+                measure.preferred_or_other_name,
                 clinvar_record.accession,
                 gene_symbol,
                 hgnc_id,
-                # TODO use REF and ALT to determine repeat unit length rather than just coordinate span
-                none_to_nan(measure.repeat_expansion_properties.coordinate_span),
-                none_to_nan(measure.repeat_expansion_properties.transcript_id),
-                none_to_nan(measure.repeat_expansion_properties.repeat_unit_length),
-                none_to_nan(measure.repeat_expansion_properties.is_protein_hgvs),
-                none_to_nan(measure.repeat_expansion_properties.repeat_type)
+                none_to_nan(transcript_id),
+                none_to_nan(repeat_type)
             ])
     total_repeat_expansion_variants = stats[clinvar_xml_io.ClinVarRecordMeasure.MS_REPEAT_EXPANSION] + \
                                       stats[clinvar_xml_io.ClinVarRecordMeasure.MS_NO_COMPLETE_COORDS]
@@ -80,10 +83,7 @@ def load_clinvar_data(clinvar_xml):
                                                    'RCVaccession',
                                                    'GeneSymbol',
                                                    'HGNC_ID',
-                                                   'CoordinateSpan',
                                                    'TranscriptID',
-                                                   'RepeatUnitLength',
-                                                   'IsProteinHGVS',
                                                    'RepeatType'))
 
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
@@ -208,8 +208,7 @@ def extract_consequences(variants):
 def generate_all_variants_file(output_dataframe, variants):
     # Rearrange order of dataframe columns
     variants = variants[
-        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID',
-         'RepeatUnitLength', 'CoordinateSpan', 'IsProteinHGVS', 'TranscriptID',
+        ['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID', 'TranscriptID',
          'EnsemblGeneID', 'EnsemblGeneName', 'EnsemblChromosomeName', 'GeneAnnotationSource',
          'RepeatType', 'RecordIsComplete']
     ]
