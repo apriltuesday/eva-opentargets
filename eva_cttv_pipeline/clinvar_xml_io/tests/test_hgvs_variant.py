@@ -27,3 +27,17 @@ def test_coordinate_pivots():
     assert h.stop == 80
     assert h.repeat_sequence == 'GGGGCC'
     assert h.precise_span() == 80 - 63 + 1
+
+
+def test_unknown_spans_with_known_endpoints():
+    # No known span if start > stop (technically not well-formed HGVS)
+    h = HgvsVariant('NC_000011.8:g.42_13del')
+    assert h.start == 42
+    assert h.stop == 13
+    assert h.precise_span() is None
+
+    # Similarly for coordinate pivots (which is well-formed HGVS, but not yet supported)
+    h = HgvsVariant('NM_000548.3(TSC2):c.5068+27_5069-47dup34')
+    assert h.start == 27
+    assert h.stop == -47
+    assert h.precise_span() is None
