@@ -9,8 +9,6 @@ from functools import cached_property
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant
 
-from .repeat_variant import RepeatExpansionVariant
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -485,7 +483,3 @@ class ClinVarRecordMeasure:
         if self.toplevel_refseq_hgvs:
             return self.toplevel_refseq_hgvs.text
         return None
-
-    @cached_property
-    def repeat_expansion_properties(self):
-        return RepeatExpansionVariant(self.get_variant_name_or_hgvs(), self.explicit_insertion_length)

@@ -83,10 +83,14 @@ def test_alternative_identifiers():
 
 
 def test_missing_names():
-    """Records that are missing variant names are still processed using HGVS identifier."""
-    results = run_pipeline('missing_names.xml.gz')
-    assert len(results) == 7
-    assert all(r[3] == 'short_tandem_repeat_expansion' for r in results)
+    """Records with missing or unparseable variant names are still processed using HGVS identifier."""
+    assert sorted(run_pipeline('missing_names.xml.gz')) == sorted([
+        ['RCV000006519', 'ENSG00000230223', 'ATXN8OS', 'trinucleotide_repeat_expansion'],
+        ['RCV000087738', 'ENSG00000141543', 'EIF4A3', 'trinucleotide_repeat_expansion'],
+        ['RCV001356600', 'ENSG00000136869', 'TLR4', 'short_tandem_repeat_expansion'],
+        ['RCV001357106', 'ENSG00000214253', 'FIS1', 'short_tandem_repeat_expansion'],
+        ['RCV001358198', 'ENSG00000171552', 'BCL2L1', 'short_tandem_repeat_expansion']
+    ])
 
 
 def test_missing_names_and_hgvs():

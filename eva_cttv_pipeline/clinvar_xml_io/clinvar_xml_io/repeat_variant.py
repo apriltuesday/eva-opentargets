@@ -3,6 +3,7 @@ import re
 
 from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
 
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarRecordMeasure
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant, SequenceType
 
 logging.basicConfig()
@@ -10,11 +11,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Human-readable description notation. This pattern is used for about a dozen variants. From it we only
-# extract the repeat unit sequence. Example: 'ATXN8, (CAG)n REPEAT EXPANSION'
+# extract the repeat unit sequence.
+# Examples: 'ATXN8, (CAG)n REPEAT EXPANSION' or 'TNRC6A, 5-BP INS, TTTCA(n) REPEAT EXPANSION'
 re_description = re.compile(
-    r'\('
+    r'\(?'
     r'(?P<sequence>[{}]+)'.format(IUPACAmbiguousDNA.letters) +
-    r'\)n'
+    r'\)?\(?n\)?'
     r'(?: REPEAT)? EXPANSION'
 )
 
@@ -64,44 +66,51 @@ def parse_repeat_identifier(variant_name):
     return transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs
 
 
-class RepeatExpansionVariant:
-    """Contains information specific to parsing measures representing repeat expansion variants."""
+def repeat_type_from_length(length):
+    if length:
+        return 'trinucleotide_repeat_expansion' if length % 3 == 0 else 'short_tandem_repeat_expansion'
+    return None
 
-    def __init__(self, name, explicit_insertion_length):
-        (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = parse_repeat_identifier(name)
-        self.transcript_id = transcript_id
-        self.coordinate_span = coordinate_span if coordinate_span is not None else explicit_insertion_length
-        self.repeat_unit_length = repeat_unit_length
-        self.is_protein_hgvs = is_protein_hgvs
-        self.name = name
 
-    @property
-    def repeat_type(self):
-        """Based on all available information about a variant, determine its type. The resulting type can be:
-            * trinucleotide_repeat_expansion, corresponding to SO:0002165
-            * short_tandem_repeat_expansion, corresponding to SO:0002162
-            * None (not able to determine)
-        """
+def infer_repeat_type_and_transcript_id(identifier):
+    """
+    Determine transcript ID and repeat type from a variant identifier (HGVS-like or other name).
+    The resulting type can be:
+        * trinucleotide_repeat_expansion, corresponding to SO:0002165
+        * short_tandem_repeat_expansion, corresponding to SO:0002162
+        * None (not able to determine)
+    """
+    (transcript_id, coordinate_span, repeat_unit_length, is_protein_hgvs) = parse_repeat_identifier(identifier)
+
+    if is_protein_hgvs:
+        # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
+        repeat_type = 'trinucleotide_repeat_expansion'
+    else:
+        # As a priority, use the repeat unit length determined directly from the HGVS-like base sequence
+        # If not available, fall back to using start and end coordinate difference
+        repeat_type = repeat_type_from_length(repeat_unit_length)
+        if not repeat_type:
+            repeat_type = repeat_type_from_length(coordinate_span)
+
+    # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be
+    # processed as a repeat *expansion* variant. The reason such records are present at this stage is that for
+    # records without explicit allele sequences we cannot verify whether they definitely represent expansions.
+    if identifier and (identifier.endswith('del') or identifier.endswith('del)')):
         repeat_type = None
 
-        if self.is_protein_hgvs:
-            # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
-            repeat_type = 'trinucleotide_repeat_expansion'
-        else:
-            # As a priority, use the repeat unit length determined directly from the HGVS-like base sequence
-            # If not available, fall back to using and end coordinate difference
-            repeat_unit_length = self.repeat_unit_length
-            if repeat_unit_length is None:
-                repeat_unit_length = self.coordinate_span
-            # Determine repeat type based on repeat unit length
-            if repeat_unit_length is not None:
-                if repeat_unit_length % 3 == 0:
-                    repeat_type = 'trinucleotide_repeat_expansion'
-                else:
-                    repeat_type = 'short_tandem_repeat_expansion'
-        # Check if the HGVS-like name of the variant contains a simple deletion. In this case, it should not be
-        # processed as a repeat *expansion* variant. The reason such records are present at this stage is that for
-        # records without explicit allele sequences we cannot verify whether they definitely represent expansions.
-        if self.name and (self.name.endswith('del') or self.name.endswith('del)')):
-            repeat_type = None
-        return repeat_type
+    return repeat_type, transcript_id
+
+
+def parse_all_identifiers(clinvar_measure: ClinVarRecordMeasure):
+    """Attempt to parse all identifiers (HGVS expressions and names) in a measure to get repeat type and transcript id.
+    Repeat type must be present if possible, transcript id is useful if present."""
+    # TODO should we prioritise these in some way?
+    all_names = [clinvar_measure.get_variant_name_or_hgvs()] +\
+                [hgvs.text for hgvs in clinvar_measure.current_hgvs] +\
+                clinvar_measure.all_names
+    for name in all_names:
+        repeat_type, transcript_id = infer_repeat_type_and_transcript_id(name)
+        if repeat_type:
+            return repeat_type, transcript_id
+
+    return None, None
