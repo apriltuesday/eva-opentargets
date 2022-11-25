@@ -104,16 +104,11 @@ def infer_repeat_type_and_transcript_id(identifier):
 def parse_all_identifiers(clinvar_measure: ClinVarRecordMeasure):
     """Attempt to parse all identifiers (HGVS expressions and names) in a measure to get repeat type and transcript id.
     Repeat type must be present if possible, transcript id is useful if present."""
-    repeat_type, transcript_id = infer_repeat_type_and_transcript_id(clinvar_measure.get_variant_name_or_hgvs())
-    if repeat_type:
-        return repeat_type, transcript_id
-
     # TODO should we prioritise these in some way?
-    for hgvs in clinvar_measure.current_hgvs:
-        repeat_type, transcript_id = infer_repeat_type_and_transcript_id(hgvs.text)
-        if repeat_type:
-            return repeat_type, transcript_id
-    for name in clinvar_measure.all_names:
+    all_names = [clinvar_measure.get_variant_name_or_hgvs()] +\
+                [hgvs.text for hgvs in clinvar_measure.current_hgvs] +\
+                clinvar_measure.all_names
+    for name in all_names:
         repeat_type, transcript_id = infer_repeat_type_and_transcript_id(name)
         if repeat_type:
             return repeat_type, transcript_id
