@@ -180,3 +180,4 @@ process createCurationTable {
         --previous-comments \${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv \
         --output google_sheets_table.tsv
     """
+}
