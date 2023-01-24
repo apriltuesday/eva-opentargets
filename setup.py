@@ -10,7 +10,7 @@ def get_requires():
 
 
 setup(name='eva_cttv_pipeline',
-      version='2.7.2',
+      version='2.7.3',
       packages=find_packages(),
       install_requires=get_requires(),
       #! TBD: list as a dependency subpackage 'clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils'
