@@ -61,7 +61,7 @@ There are also a few version numbers to record. For EFO version, compare the rel
 ### Submit evidence strings
 The evidence string file (`evidence_strings.json`) must be uploaded to the [Open Targets Google Cloud Storage](https://console.cloud.google.com/storage/browser/otar012-eva/) and be named in the format `cttv012-[yyyy]-[mm]-[dd].json.gz` (e.g. `cttv012-2020-10-21.json.gz`).
 
-Once the upload is complete, send an email to Open Targets (helpdesk [at] opentargets.org) containing the following information from the [metrics spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/):
+Once the upload is complete, send an email to Open Targets (data [at] opentargets.org) containing the following information from the [metrics spreadsheet](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/):
 * The number of submitted evidence strings
 * The ClinVar release date
 * The Ensembl release
