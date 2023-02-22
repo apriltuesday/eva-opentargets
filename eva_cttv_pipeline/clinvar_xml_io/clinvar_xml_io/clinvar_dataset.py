@@ -2,7 +2,7 @@ import gzip
 import logging
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_record import ClinVarRecord
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.utils import iterate_rcv_from_xml
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import iterate_rcv_from_xml
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

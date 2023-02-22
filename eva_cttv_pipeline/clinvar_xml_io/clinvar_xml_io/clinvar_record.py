@@ -1,13 +1,10 @@
-import gzip
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
-from functools import cached_property
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_trait import ClinVarTrait
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.utils import find_elements, find_optional_unique_element, \
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import find_elements, find_optional_unique_element, \
     find_mandatory_unique_element
 
 logger = logging.getLogger(__name__)

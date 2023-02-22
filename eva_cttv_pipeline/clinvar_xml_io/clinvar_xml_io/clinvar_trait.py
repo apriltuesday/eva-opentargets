@@ -1,6 +1,6 @@
 import logging
 
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.utils import find_elements, find_optional_unique_element
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import find_elements, find_optional_unique_element
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

@@ -42,9 +42,3 @@ def find_optional_unique_element(node, xpath):
     not found."""
     elements = find_elements(node, xpath, allow_zero=True, allow_multiple=False)
     return elements[0] if elements else None
-
-
-# TODO move this
-def pubmed_refs_to_urls(pubmed_refs):
-    """Convert a list of PubMed identifiers to complete URLs."""
-    return [f'http://europepmc.org/abstract/MED/{r}' for r in pubmed_refs]
