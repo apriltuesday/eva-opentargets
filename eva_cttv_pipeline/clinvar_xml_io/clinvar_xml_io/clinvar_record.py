@@ -52,19 +52,16 @@ class ClinVarRecord:
         #   the type of be either a "CompoundHeterozygote" or a "Diplotype"
         variant_measure = find_optional_unique_element(self.rcv, './MeasureSet[@Type="Variant"]/Measure')
         if not variant_measure:
-            # TODO this might be a bit weird
-            #  In general if we can't process something, the attribute needs to be None (for our pipeline to keep working)
-            #  But when we output things we need to include everything it started with (?)
             self.measure = None
         else:
             self.measure = ClinVarRecordMeasure(variant_measure, self)
 
     def __str__(self):
-        # TODO
-        ...
-
-    def summary(self):
         return f'ClinVarRecord object with accession {self.accession}'
+
+    def write(self, output):
+        # TODO allow additional annotations to the original XML
+        output.write(ElementTree.tostring(self.rcv))
 
     @property
     def accession(self):
