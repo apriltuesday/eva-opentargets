@@ -28,9 +28,9 @@ class ClinVarDataset:
         with gzip.open(output_xml, 'wb') as output_file:
             output_file.write(header)
             for record in self:
-                output_file.write(b'<ClinVarSet>\n')
+                output_file.write(b'<ClinVarSet>\n  ')
                 record.write(output_file)
-                output_file.write(b'\n</ClinVarSet>')
+                output_file.write(b'</ClinVarSet>\n')
                 count += 1
 
             output_file.write(b'\n</ReleaseSet>')
