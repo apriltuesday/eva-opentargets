@@ -1,0 +1,44 @@
+import gzip
+import logging
+import xml.etree.ElementTree as ElementTree
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+def iterate_rcv_from_xml(clinvar_xml):
+    """Iterates through the gzipped ClinVar XML and yields complete <ReferenceClinVarAssertion> records."""
+    with gzip.open(clinvar_xml, 'rt') as fh:
+        for event, elem in ElementTree.iterparse(fh):
+            # Wait until we have built a complete ClinVarSet element
+            if elem.tag != 'ClinVarSet':
+                continue
+
+            # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of
+            # ClinVar. There should only be one such record per ClinVarSet.
+            rcv = find_mandatory_unique_element(elem, 'ReferenceClinVarAssertion')
+
+            # Return the complete record and then remove the processed element from the tree to save memory
+            yield rcv
+            elem.clear()
+
+
+def find_elements(node, xpath, allow_zero=True, allow_multiple=True):
+    """Attempt to find child elements in a node by xpath. Raise exceptions if conditions are violated. Return a
+    (possibly empty) list of elements."""
+    all_elements = node.findall(xpath)
+    if (len(all_elements) == 0 and not allow_zero) or (len(all_elements) > 1 and not allow_multiple):
+        raise AssertionError(f'Found {len(all_elements)} instances of {xpath} in {node}, which is not allowed')
+    return all_elements
+
+
+def find_mandatory_unique_element(node, xpath):
+    """Attempt to find a child element by xpath which must have exactly one occurrence, otherwise throw an exception."""
+    return find_elements(node, xpath, allow_zero=False, allow_multiple=False)[0]
+
+
+def find_optional_unique_element(node, xpath):
+    """Attempt to find a child element by xpath which must have either 0 or 1 occurrence. Return the element, or None if
+    not found."""
+    elements = find_elements(node, xpath, allow_zero=True, allow_multiple=False)
+    return elements[0] if elements else None
