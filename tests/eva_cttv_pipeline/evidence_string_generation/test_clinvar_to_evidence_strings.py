@@ -20,7 +20,7 @@ class TestGetMappingsTest:
         cls.gene_mappings = GENE_MAPPINGS
 
     def test_efo_mapping(self):
-        assert len(self.efo_mappings) == 9
+        assert len(self.efo_mappings) == 10
 
         assert self.efo_mappings['renal-hepatic-pancreatic dysplasia 2'][0] == (
             'http://www.orpha.net/ORDO/Orphanet_294415', 'Renal-hepatic-pancreatic dysplasia')
@@ -35,7 +35,7 @@ class TestGetMappingsTest:
             ('http://www.ebi.ac.uk/efo/EFO_0001645', 'coronary heart disease')]
 
     def test_consequence_type_dict(self):
-        assert len(self.gene_mappings) == 21
+        assert len(self.gene_mappings) == 22
 
         assert '14:67727191:G:A' in self.gene_mappings
         assert '14:67727197:C:T' in self.gene_mappings
