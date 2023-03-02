@@ -5,27 +5,27 @@ nextflow.enable.dsl=2
 
 def helpMessage() {
     log.info"""
-    Generate ClinVar evidence strings for Open Targets.
+    Generate ClinVar evidence strings for Open Targets, or annotated ClinVar XML.
     
     Params:
-        --batch_root    Directory for current batch
-        --schema        Open Targets JSON schema version
+        --output_dir    Directory for output
+        --schema        Open Targets JSON schema version (optional, will output XML if omitted)
         --clinvar       ClinVar XML file (optional, will download latest if omitted)
     """
 }
 
 params.help = null
-params.batch_root = null
+params.output_dir = null
 params.schema = null
 params.clinvar = null
 
 if (params.help) {
     exit 0, helpMessage()
 }
-if (!params.batch_root || !params.schema) {
+if (!params.output_dir) {
     exit 1, helpMessage()
 }
-batchRoot = params.batch_root
+batchRoot = params.output_dir
 
 
 /*
@@ -37,21 +37,29 @@ workflow {
     } else {
         clinvarXml = downloadClinvar()
     }
-    downloadJsonSchema()
 
+    // Functional consequences
     runSnpIndel(clinvarXml)
     runRepeat(clinvarXml)
     runStructural(clinvarXml)
     combineConsequences(runSnpIndel.out.consequencesSnp,
                         runRepeat.out.consequencesRepeat,
                         runStructural.out.consequencesStructural)
-    
-    generateEvidence(clinvarXml,
-                     downloadJsonSchema.out.jsonSchema,
-                     combineConsequences.out.consequencesCombined)
-    checkDuplicates(generateEvidence.out.evidenceStrings)
 
-    convertXrefs(clinvarXml)
+    if (params.schema != null) {
+        // Open Targets evidence string output
+        downloadJsonSchema()
+        generateEvidence(clinvarXml,
+                         downloadJsonSchema.out.jsonSchema,
+                         combineConsequences.out.consequencesCombined)
+
+        checkDuplicates(generateEvidence.out.evidenceStrings)
+        convertXrefs(clinvarXml)
+
+    } else {
+        // Annotated ClinVar XML output
+        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined)
+    }
 }
 
 /*
@@ -190,6 +198,35 @@ process combineConsequences {
     script:
     """
     cat ${consequencesRepeat} ${consequencesSnp} ${consequencesStructural} > consequences_combined.tsv
+    """
+}
+
+/*
+ * Generate annotated ClinVar XML
+ */
+process generateAnnotatedXml {
+    clusterOptions "-o ${batchRoot}/logs/annotated_xml_generation.out \
+                    -e ${batchRoot}/logs/annotated_xml_generation.err"
+
+    publishDir "${batchRoot}",
+        overwrite: true,
+        mode: "copy",
+        pattern: "*.xml.gz"
+
+    input:
+    path clinvarXml
+    path consequenceMappings
+
+    output:
+    path "annotated_clinvar.xml.gz"
+
+    script:
+    """
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
+        --clinvar-xml ${clinvarXml} \
+        --efo-mapping \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
+        --gene-mapping ${consequenceMappings} \
+        --output-xml annotated_clinvar.xml.gz
     """
 }
 

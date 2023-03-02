@@ -33,7 +33,7 @@ mkdir -p clinvar gene_mapping evidence_strings logs
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
 nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.nf \
-  --batch_root ${BATCH_ROOT} \
+  --output_dir ${BATCH_ROOT} \
   --schema ${OT_SCHEMA_VERSION} \
   -resume
 ```

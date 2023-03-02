@@ -15,7 +15,7 @@ mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 
 nextflow run ${CODE_ROOT}/eva_cttv_pipeline/evidence_string_generation/pipeline.nf \
-  --batch_root ${BATCH_ROOT} \
+  --output_dir ${BATCH_ROOT} \
   --schema $(cat "${CODE_ROOT}/OT_SCHEMA_VERSION") \
   --clinvar ${BATCH_ROOT_BASE}/input.xml.gz \
   -resume
