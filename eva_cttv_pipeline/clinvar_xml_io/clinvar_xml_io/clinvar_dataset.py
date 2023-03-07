@@ -10,7 +10,7 @@ logger.setLevel(logging.INFO)
 
 
 class ClinVarDataset:
-    """Iterate through records in ClinVar XML dump and convert them into internal ClinVarRecord representation."""
+    """Iterate through records (RCVS) in ClinVar XML dump and convert them into internal ClinVarRecord representation."""
     def __init__(self, clinvar_xml):
         self.clinvar_xml = clinvar_xml
         self.header = f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

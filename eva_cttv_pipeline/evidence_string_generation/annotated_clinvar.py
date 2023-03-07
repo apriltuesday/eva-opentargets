@@ -12,7 +12,8 @@ PROVIDER = 'ClinVarXmlPipeline'
 
 
 class AnnotatingClinVarDataset(ClinVarDataset):
-    """This class provides the ability to annotate ClinVar records with EFO mappings and consequence mappings."""
+    """This class provides the ability to parse ClinVar records (RCVs) and annotate them with EFO mappings and
+    consequence mappings on the fly."""
 
     def __init__(self, clinvar_xml, string_to_efo_mappings, variant_to_gene_mappings):
         super().__init__(clinvar_xml)
@@ -76,8 +77,8 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file):
-    """Generate an annotated ClinVar XML file based on EFO mappings file and gene mapping file (as documented in
-    clinvar_to_evidence_strings."""
+    """Generate an annotated XML file of ClinVar RCVs based on EFO mappings file and gene mapping file (as documented in
+    clinvar_to_evidence_strings)."""
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
