@@ -8,11 +8,14 @@ logger.setLevel(logging.INFO)
 
 def parse_header_attributes(clinvar_xml):
     """Parses out attributes to the root-level ReleaseSet element and returns them as a dict."""
+    attrib = None
     with gzip.open(clinvar_xml, 'rt') as fh:
         for event, elem in ElementTree.iterparse(fh):
             if elem.tag == 'ReleaseSet':
                 attrib = elem.attrib
                 break
+    if not attrib:
+        return {}
     # Resolve xsi:noNamespaceSchemaLocation="...", which is parsed strangely by ElementTree
     updated_attrib = {}
     for attr, val in attrib.items():
