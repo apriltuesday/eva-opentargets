@@ -8,7 +8,7 @@ from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings im
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 
 
-PROVIDER = 'ClinVarXmlPipeline'
+PROCESSOR = 'CMAT'
 
 
 class AnnotatingClinVarDataset(ClinVarDataset):
@@ -17,10 +17,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
     def __init__(self, clinvar_xml, string_to_efo_mappings, variant_to_gene_mappings):
         super().__init__(clinvar_xml)
-        self.header = f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ReleaseSet Dated="{self.today()}" ProcessedBy="{PROVIDER}" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Type="full" xsi:noNamespaceSchemaLocation="http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_1.60.xsd">
-'''
-        self.header = self.header.encode('utf-8')
+        self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
 
@@ -56,7 +53,7 @@ class EfoMappedClinVarTrait(ClinVarTrait):
         for efo_id in efo_ids:
             if efo_id.startswith('http'):
                 efo_id = efo_id.split('/')[-1].replace('_', ':')
-            efo_elts.append(ET.Element('XRef', attrib={'ID': efo_id, 'DB': 'EFO', 'providedBy': PROVIDER}))
+            efo_elts.append(ET.Element('XRef', attrib={'ID': efo_id, 'DB': 'EFO', 'providedBy': PROCESSOR}))
         self.trait_xml.extend(efo_elts)
 
 
@@ -66,7 +63,7 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
         consequence_elts = []
         for consequence_attributes in consequences:
             attr_set_elt = ET.Element('AttributeSet')
-            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence', 'providedBy': PROVIDER})
+            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence', 'providedBy': PROCESSOR})
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
             so_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.so_term.accession.replace('_', ':'),
                                                 'DB': 'Sequence Ontology'})

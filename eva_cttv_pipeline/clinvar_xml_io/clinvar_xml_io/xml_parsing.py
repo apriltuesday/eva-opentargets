@@ -6,6 +6,24 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def parse_header_attributes(clinvar_xml):
+    """Parses out attributes to the root-level ReleaseSet element and returns them as a dict."""
+    with gzip.open(clinvar_xml, 'rt') as fh:
+        for event, elem in ElementTree.iterparse(fh):
+            if elem.tag == 'ReleaseSet':
+                attrib = elem.attrib
+                break
+    # Resolve xsi:noNamespaceSchemaLocation="...", which is parsed strangely by ElementTree
+    updated_attrib = {}
+    for attr, val in attrib.items():
+        if attr == '{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation':
+            updated_attrib['xmlns:xsi'] = 'http://www.w3.org/2001/XMLSchema-instance'
+            updated_attrib['xsi:noNamespaceSchemaLocation'] = val
+        else:
+            updated_attrib[attr] = val
+    return updated_attrib
+
+
 def iterate_rcv_from_xml(clinvar_xml):
     """Iterates through the gzipped ClinVar XML and yields complete <ReferenceClinVarAssertion> records."""
     with gzip.open(clinvar_xml, 'rt') as fh:
