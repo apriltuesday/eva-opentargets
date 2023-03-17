@@ -1,6 +1,7 @@
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
+from xml.dom import minidom
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_trait import ClinVarTrait
@@ -57,7 +58,13 @@ class ClinVarRecord:
         return f'ClinVarRecord object with accession {self.accession}'
 
     def write(self, output):
-        output.write(ElementTree.tostring(self.rcv))
+        xml_str = minidom.parseString(ElementTree.tostring(self.rcv)).toprettyxml(indent='  ', encoding='utf-8')
+        # version 3.8 adds superfluous root
+        if xml_str.startswith(b'<?xml'):
+            xml_str = re.sub(b'<\?xml.*?>', b'', xml_str)
+        xml_str = b'  '.join([s for s in xml_str.strip().splitlines(True) if s.strip()])
+        xml_str += b'\n'
+        output.write(xml_str)
 
     @property
     def accession(self):
