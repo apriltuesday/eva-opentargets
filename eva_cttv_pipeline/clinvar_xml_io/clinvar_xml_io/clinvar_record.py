@@ -1,6 +1,7 @@
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
+from xml.dom import minidom
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.clinvar_trait import ClinVarTrait
@@ -33,14 +34,14 @@ class ClinVarRecord:
     # Some allele origin terms in ClinVar are essentially conveying lack of information and are thus not useful.
     NONSPECIFIC_ALLELE_ORIGINS = {'unknown', 'not provided', 'not applicable', 'tested-inconclusive', 'not-reported'}
 
-    def __init__(self, rcv):
+    def __init__(self, rcv, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
         """Initialise a ClinVar record object from an RCV XML record."""
         self.rcv = rcv
 
         # Add a list of traits
         self.trait_set = []
         for trait in find_elements(self.rcv, './TraitSet/Trait'):
-            self.trait_set.append(ClinVarTrait(trait, self))
+            self.trait_set.append(trait_class(trait, self))
 
         # We are currently only processing MeasureSets of type Variant which are included directly in the RCV record.
         # Some other options (currently not supported) are:
@@ -51,14 +52,19 @@ class ClinVarRecord:
         if not variant_measure:
             self.measure = None
         else:
-            self.measure = ClinVarRecordMeasure(variant_measure, self)
+            self.measure = measure_class(variant_measure, self)
 
     def __str__(self):
         return f'ClinVarRecord object with accession {self.accession}'
 
     def write(self, output):
-        # TODO allow additional annotations to the original XML
-        output.write(ElementTree.tostring(self.rcv))
+        xml_str = minidom.parseString(ElementTree.tostring(self.rcv)).toprettyxml(indent='  ', encoding='utf-8')
+        # version 3.8 adds superfluous root
+        if xml_str.startswith(b'<?xml'):
+            xml_str = re.sub(b'<\?xml.*?>', b'', xml_str)
+        xml_str = b'  '.join([s for s in xml_str.strip().splitlines(True) if s.strip()])
+        xml_str += b'\n'
+        output.write(xml_str)
 
     @property
     def accession(self):
