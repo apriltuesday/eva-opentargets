@@ -48,6 +48,8 @@ class HgvsVariant:
 
         self.start = None
         self.stop = None
+        self.ref = None
+        self.alt = None
 
         self._match_sequence_info()
         self._match_single_position_variant()
@@ -94,7 +96,9 @@ class HgvsVariant:
             var_type = m.group(4)
             if '>' in var_type:
                 self.variant_type = VariantType.SUBSTITUTION
-                # TODO store ref and alt as well
+                sub_match = re.match('([a-zA-Z]+)>([a-zA-Z]+)', var_type)
+                self.ref = sub_match.group(1)
+                self.alt = sub_match.group(2)
             else:
                 self._match_structural_variant_type(var_type)
 
