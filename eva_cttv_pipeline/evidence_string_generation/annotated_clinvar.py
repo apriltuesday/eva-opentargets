@@ -20,6 +20,13 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
+        self.record_counts = {
+            'total': 0,
+            'has_supported_measure': 0,
+            'has_consequences': 0,
+            'has_supported_trait': 0,
+            'has_efo_mappings': 0
+        }
 
     def __iter__(self):
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
@@ -28,16 +35,35 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             yield record
 
     def annotate(self, record):
+        self.record_counts['total'] += 1
+
         # Functional consequences for measure
         if record.measure:
+            self.record_counts['has_supported_measure'] += 1
             consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
-            record.measure.add_ensembl_annotations(consequence_types)
+            if consequence_types:
+                self.record_counts['has_consequences'] += 1
+                record.measure.add_ensembl_annotations(consequence_types)
+
         # EFO terms for trait
+        if record.traits_with_valid_names:
+            self.record_counts['has_supported_trait'] += 1
+        record_has_efo = False
         for trait in record.traits_with_valid_names:
             efo_ids = []
             for trait_name in trait.all_names:
                 efo_ids.extend(efo_id for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
-            trait.add_efo_mappings(efo_ids)
+            if efo_ids:
+                record_has_efo = True
+                trait.add_efo_mappings(efo_ids)
+        if record_has_efo:
+            self.record_counts['has_efo_mappings'] += 1
+
+    def report(self):
+        print('\nRecord counts:')
+        for key, val in self.record_counts.items():
+            print(f'{key: <21} {val}')
+        print()
 
 
 class AnnotatedClinVarRecord(ClinVarRecord):
@@ -81,3 +107,4 @@ def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapp
 
     dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings)
     dataset.write(output_xml_file)
+    dataset.report()
