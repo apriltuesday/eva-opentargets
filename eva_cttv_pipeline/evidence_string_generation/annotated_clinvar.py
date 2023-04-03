@@ -20,6 +20,10 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
+        self.record_counts = {}
+
+    def __iter__(self):
+        # Initialise counts
         self.record_counts = {
             'total': 0,
             'has_supported_measure': 0,
@@ -27,8 +31,6 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'has_supported_trait': 0,
             'has_efo_mappings': 0
         }
-
-    def __iter__(self):
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
             self.annotate(record)
