@@ -17,6 +17,9 @@ class ClinVarTrait:
         'reclassified - variant of unknown significance', 'see cases', 'variant of unknown significance'
     }
 
+    # These database identifiers are directly importable into EFO
+    EFO_ALIGNED_ONTOLOGIES = {'Human Phenotype Ontology', 'EFO', 'Orphanet', 'MONDO'}
+
     def __init__(self, trait_xml, clinvar_record):
         self.trait_xml = trait_xml
         self.clinvar_record = clinvar_record
@@ -83,3 +86,12 @@ class ClinVarTrait:
         else:
             logger.warning(f'Multiple MedGen IDs for {self}: {medgen_ids}')
             return medgen_ids[0]
+
+    @property
+    def efo_aligned_ids(self):
+        """Returns current EFO or EFO-aligned ids."""
+        mappings = set()
+        for db, identifier, status in self.xrefs:
+            if status == 'current' and db in self.EFO_ALIGNED_ONTOLOGIES:
+                mappings.add(identifier)
+        return mappings

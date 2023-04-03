@@ -20,15 +20,27 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
-        self.record_counts = {}
+
+        self.overall_counts = {}
+        self.cmat_counts = {}
+        self.clinvar_counts = {}
 
     def __iter__(self):
         # Initialise counts
-        self.record_counts = {
+        self.overall_counts = {
             'total': 0,
             'has_supported_measure': 0,
-            'has_consequences': 0,
             'has_supported_trait': 0,
+        }
+        self.cmat_counts = {
+            'has_gene': 0,
+            'has_consequences': 0,
+            'has_efo_mappings': 0
+        }
+        self.clinvar_counts = {
+            'has_gene': 0,
+            'has_consequences': 0,
+            'has_any_mappings': 0,
             'has_efo_mappings': 0
         }
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
@@ -37,35 +49,74 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             yield record
 
     def annotate(self, record):
-        self.record_counts['total'] += 1
+        self.overall_counts['total'] += 1
 
         # Functional consequences for measure
         if record.measure:
-            self.record_counts['has_supported_measure'] += 1
-            consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
-            if consequence_types:
-                self.record_counts['has_consequences'] += 1
-                record.measure.add_ensembl_annotations(consequence_types)
+            self.overall_counts['has_supported_measure'] += 1
+            self.annotate_and_count_measure(record)
 
         # EFO terms for trait
         if record.traits_with_valid_names:
-            self.record_counts['has_supported_trait'] += 1
-        record_has_efo = False
+            self.overall_counts['has_supported_trait'] += 1
+            self.annotate_and_count_traits(record)
+
+    def annotate_and_count_measure(self, record):
+        consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
+        record.measure.add_ensembl_annotations(consequence_types)
+
+        annotated_genes = {ct.ensembl_gene_id for ct in consequence_types if ct.ensembl_gene_id}
+        annotated_conseqs = {ct.so_term for ct in consequence_types if ct.so_term}
+        if annotated_genes:
+            self.cmat_counts['has_gene'] += 1
+        if annotated_conseqs:
+            self.cmat_counts['has_consequences'] += 1
+
+        if record.measure.preferred_gene_symbols:
+            self.clinvar_counts['has_gene'] += 1
+        if record.measure.so_terms:
+            self.clinvar_counts['has_consequences'] += 1
+
+    def annotate_and_count_traits(self, record):
+        has_existing_id = False
+        has_existing_efo = False
+        has_annotated_efo = False
+
         for trait in record.traits_with_valid_names:
             efo_ids = []
             for trait_name in trait.all_names:
-                efo_ids.extend(efo_id for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
+                efo_ids.extend(
+                    efo_id for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
             if efo_ids:
-                record_has_efo = True
+                has_annotated_efo = True
                 trait.add_efo_mappings(efo_ids)
-        if record_has_efo:
-            self.record_counts['has_efo_mappings'] += 1
+
+            if trait.xrefs:
+                has_existing_id = True
+            if trait.efo_aligned_ids:
+                has_existing_efo = True
+
+        if has_existing_id:
+            self.clinvar_counts['has_any_mappings'] += 1
+        if has_existing_efo:
+            self.clinvar_counts['has_efo_mappings'] += 1
+        if has_annotated_efo:
+            self.cmat_counts['has_efo_mappings'] += 1
 
     def report(self):
-        print('\nRecord counts:')
-        for key, val in self.record_counts.items():
-            print(f'{key: <21} {val}')
+        print('\nOverall counts:')
+        self.print_counter(self.overall_counts)
+        print('\nClinVar counts:')
+        self.print_counter(self.clinvar_counts)
+        print('\nCMAT counts:')
+        self.print_counter(self.cmat_counts)
         print()
+
+    @staticmethod
+    def print_counter(counter):
+        max_len = len(max(counter.keys(), key=lambda x: len(x)))
+        for k, v in counter.items():
+            print(f'{k: <{max_len}} {v}')
 
 
 class AnnotatedClinVarRecord(ClinVarRecord):
