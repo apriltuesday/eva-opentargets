@@ -24,7 +24,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.overall_counts = {}
         self.cmat_counts = {}
         self.clinvar_counts = {}
-        self.scores = {}
+        self.match_counts = {}
+        self.f1_scores = {}
 
     def __iter__(self):
         # Initialise counts
@@ -44,18 +45,23 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'has_any_mappings': 0,
             'has_efo_mappings': 0
         }
-        self.scores = {
-            'avg_traits_f1': 0,
-            'avg_genes_f1': 0,
-            'avg_conseqs_f1': 0
+        self.match_counts = {
+            'genes': 0,
+            'conseqs': 0,
+            'traits': 0
+        }
+        self.f1_scores = {
+            'genes': 0,
+            'conseqs': 0,
+            'traits': 0
         }
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
             self.annotate(record)
             yield record
         # Compute averages for scores
-        for key in self.scores:
-            self.scores[key] /= self.overall_counts['total']
+        for key in self.f1_scores:
+            self.f1_scores[key] /= self.match_counts[key]
 
     def annotate(self, record):
         self.overall_counts['total'] += 1
@@ -84,9 +90,14 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.clinvar_counts['has_gene'] += 1
         if record.measure.so_terms:
             self.clinvar_counts['has_consequences'] += 1
-        # TODO need to map genes!
-        self.scores['avg_genes_f1'] += self.f1_score(set(record.measure.hgnc_ids), annotated_genes)
-        self.scores['avg_conseqs_f1'] += self.f1_score(record.measure.so_terms, annotated_conseqs)
+
+        if record.measure.hgnc_ids and annotated_genes:
+            # TODO need to map genes - try using gene symbol / gene name
+            self.f1_scores['genes'] += self.f1_score(set(record.measure.hgnc_ids), annotated_genes)
+            self.match_counts['genes'] += 1
+        if record.measure.so_terms and annotated_conseqs:
+            self.f1_scores['conseqs'] += self.f1_score(record.measure.so_terms, annotated_conseqs)
+            self.match_counts['conseqs'] += 1
 
     def annotate_and_count_traits(self, record):
         has_existing_id = False
@@ -114,7 +125,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.clinvar_counts['has_efo_mappings'] += 1
         if annotated_efo_ids:
             self.cmat_counts['has_efo_mappings'] += 1
-        self.scores['avg_traits_f1'] += self.f1_score(existing_efo_ids, annotated_efo_ids)
+
+        if annotated_efo_ids and existing_efo_ids:
+            # TODO potentially will need to match these, e.g. with OLS
+            self.f1_scores['traits'] += self.f1_score(existing_efo_ids, annotated_efo_ids)
+            self.match_counts['traits'] += 1
 
     def report(self):
         print('\nOverall counts:')
@@ -123,8 +138,10 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.print_counter(self.clinvar_counts)
         print('\nCMAT counts:')
         self.print_counter(self.cmat_counts)
-        print('\nScores:')
-        self.print_counter(self.scores)
+        print('\nRecords with both ClinVar and CMAT annotations present:')
+        self.print_counter(self.match_counts)
+        print('\nF1 scores (averaged over records with both annotations present):')
+        self.print_counter(self.f1_scores)
         print()
 
     @staticmethod
@@ -135,6 +152,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
     @staticmethod
     def f1_score(ground_truth_set, predicted_set):
+        if len(ground_truth_set) == 0 and len(predicted_set) == 0:
+            return 0
         tp = len(predicted_set & ground_truth_set)
         fp = len(predicted_set - ground_truth_set)
         fn = len(ground_truth_set - predicted_set)

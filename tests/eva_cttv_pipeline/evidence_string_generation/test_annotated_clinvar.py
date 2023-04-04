@@ -12,6 +12,7 @@ EPSILON = 1e-6
 def test_f1_score():
     assert abs(AnnotatingClinVarDataset.f1_score({1, 2}, {1}) - 2/3) < EPSILON
     assert abs(AnnotatingClinVarDataset.f1_score({1, 2}, {2, 1}) - 1) < EPSILON
+    assert AnnotatingClinVarDataset.f1_score({}, {}) == 0
 
 
 def test_generate_annotated_xml():
