@@ -24,6 +24,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.overall_counts = {}
         self.cmat_counts = {}
         self.clinvar_counts = {}
+        self.scores = {}
 
     def __iter__(self):
         # Initialise counts
@@ -43,20 +44,26 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'has_any_mappings': 0,
             'has_efo_mappings': 0
         }
+        self.scores = {
+            'avg_traits_f1': 0,
+            'avg_genes_f1': 0,
+            'avg_conseqs_f1': 0
+        }
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
             self.annotate(record)
             yield record
+        # Compute averages for scores
+        for key in self.scores:
+            self.scores[key] /= self.overall_counts['total']
 
     def annotate(self, record):
         self.overall_counts['total'] += 1
-
         # Functional consequences for measure
         if record.measure:
             self.overall_counts['has_supported_measure'] += 1
             self.annotate_and_count_measure(record)
-
-        # EFO terms for trait
+        # EFO terms for traits
         if record.traits_with_valid_names:
             self.overall_counts['has_supported_trait'] += 1
             self.annotate_and_count_traits(record)
@@ -66,42 +73,48 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         record.measure.add_ensembl_annotations(consequence_types)
 
         annotated_genes = {ct.ensembl_gene_id for ct in consequence_types if ct.ensembl_gene_id}
-        annotated_conseqs = {ct.so_term for ct in consequence_types if ct.so_term}
+        annotated_conseqs = {EnsemblAnnotatedClinVarMeasure.format_so_term(ct.so_term)
+                             for ct in consequence_types if ct.so_term}
         if annotated_genes:
             self.cmat_counts['has_gene'] += 1
         if annotated_conseqs:
             self.cmat_counts['has_consequences'] += 1
 
-        if record.measure.preferred_gene_symbols:
+        if record.measure.hgnc_ids:
             self.clinvar_counts['has_gene'] += 1
         if record.measure.so_terms:
             self.clinvar_counts['has_consequences'] += 1
+        # TODO need to map genes!
+        self.scores['avg_genes_f1'] += self.f1_score(set(record.measure.hgnc_ids), annotated_genes)
+        self.scores['avg_conseqs_f1'] += self.f1_score(record.measure.so_terms, annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
         has_existing_id = False
-        has_existing_efo = False
-        has_annotated_efo = False
+        existing_efo_ids = set()
+        annotated_efo_ids = set()
 
         for trait in record.traits_with_valid_names:
             efo_ids = []
             for trait_name in trait.all_names:
                 efo_ids.extend(
-                    efo_id for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
+                    EfoMappedClinVarTrait.format_efo_id(efo_id)
+                    for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
             if efo_ids:
-                has_annotated_efo = True
                 trait.add_efo_mappings(efo_ids)
+                annotated_efo_ids.update(efo_ids)
 
             if trait.xrefs:
                 has_existing_id = True
             if trait.efo_aligned_ids:
-                has_existing_efo = True
+                existing_efo_ids.update(trait.efo_aligned_ids)
 
         if has_existing_id:
             self.clinvar_counts['has_any_mappings'] += 1
-        if has_existing_efo:
+        if existing_efo_ids:
             self.clinvar_counts['has_efo_mappings'] += 1
-        if has_annotated_efo:
+        if annotated_efo_ids:
             self.cmat_counts['has_efo_mappings'] += 1
+        self.scores['avg_traits_f1'] += self.f1_score(existing_efo_ids, annotated_efo_ids)
 
     def report(self):
         print('\nOverall counts:')
@@ -110,6 +123,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.print_counter(self.clinvar_counts)
         print('\nCMAT counts:')
         self.print_counter(self.cmat_counts)
+        print('\nScores:')
+        self.print_counter(self.scores)
         print()
 
     @staticmethod
@@ -117,6 +132,13 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         max_len = len(max(counter.keys(), key=lambda x: len(x)))
         for k, v in counter.items():
             print(f'{k: <{max_len}} {v}')
+
+    @staticmethod
+    def f1_score(ground_truth_set, predicted_set):
+        tp = len(predicted_set & ground_truth_set)
+        fp = len(predicted_set - ground_truth_set)
+        fn = len(ground_truth_set - predicted_set)
+        return 2*tp / (2*tp + fp + fn)
 
 
 class AnnotatedClinVarRecord(ClinVarRecord):
@@ -130,10 +152,15 @@ class EfoMappedClinVarTrait(ClinVarTrait):
     def add_efo_mappings(self, efo_ids):
         efo_elts = []
         for efo_id in efo_ids:
-            if efo_id.startswith('http'):
-                efo_id = efo_id.split('/')[-1].replace('_', ':')
+            efo_id = self.format_efo_id(efo_id)
             efo_elts.append(ET.Element('XRef', attrib={'ID': efo_id, 'DB': 'EFO', 'providedBy': PROCESSOR}))
         self.trait_xml.extend(efo_elts)
+
+    @staticmethod
+    def format_efo_id(efo_id):
+        if efo_id.startswith('http'):
+            return efo_id.split('/')[-1].replace('_', ':')
+        return efo_id
 
 
 class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
@@ -144,12 +171,16 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
             attr_set_elt = ET.Element('AttributeSet')
             attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence', 'providedBy': PROCESSOR})
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
-            so_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.so_term.accession.replace('_', ':'),
+            so_elt = ET.Element('XRef', attrib={'ID': self.format_so_term(consequence_attributes.so_term),
                                                 'DB': 'Sequence Ontology'})
             ensembl_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_gene_id, 'DB': 'Ensembl'})
             attr_set_elt.extend((attribute_elt, so_elt, ensembl_elt))
             consequence_elts.append(attr_set_elt)
         self.measure_xml.extend(consequence_elts)
+
+    @staticmethod
+    def format_so_term(so_term):
+        return so_term.accession.replace('_', ':')
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file):

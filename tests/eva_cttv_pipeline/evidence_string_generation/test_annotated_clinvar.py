@@ -2,9 +2,16 @@ import gzip
 import os
 import re
 
-from eva_cttv_pipeline.evidence_string_generation.annotated_clinvar import generate_annotated_clinvar_xml
+from eva_cttv_pipeline.evidence_string_generation.annotated_clinvar import generate_annotated_clinvar_xml, \
+    AnnotatingClinVarDataset
 
 resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
+EPSILON = 1e-6
+
+
+def test_f1_score():
+    assert abs(AnnotatingClinVarDataset.f1_score({1, 2}, {1}) - 2/3) < EPSILON
+    assert abs(AnnotatingClinVarDataset.f1_score({1, 2}, {2, 1}) - 1) < EPSILON
 
 
 def test_generate_annotated_xml():
