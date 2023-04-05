@@ -6,7 +6,7 @@ from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import iterate_
 from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings import load_efo_mapping, \
     get_consequence_types
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-
+from eva_cttv_pipeline.evidence_string_generation.set_metrics import SetComparisonMetrics
 
 PROCESSOR = 'CMAT'
 
@@ -20,12 +20,10 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
-
         self.overall_counts = {}
-        self.cmat_counts = {}
-        self.clinvar_counts = {}
-        self.match_counts = {}
-        self.f1_scores = {}
+        self.gene_metrics = None
+        self.conseq_metrics = None
+        self.trait_metrics = None
 
     def __iter__(self):
         # Initialise counts
@@ -34,34 +32,19 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'has_supported_measure': 0,
             'has_supported_trait': 0,
         }
-        self.cmat_counts = {
-            'has_gene': 0,
-            'has_consequences': 0,
-            'has_efo_mappings': 0
-        }
-        self.clinvar_counts = {
-            'has_gene': 0,
-            'has_consequences': 0,
-            'has_any_mappings': 0,
-            'has_efo_mappings': 0
-        }
-        self.match_counts = {
-            'genes': 0,
-            'conseqs': 0,
-            'traits': 0
-        }
-        self.f1_scores = {
-            'genes': 0,
-            'conseqs': 0,
-            'traits': 0
-        }
+        self.gene_metrics = SetComparisonMetrics()
+        self.conseq_metrics = SetComparisonMetrics()
+        self.trait_metrics = SetComparisonMetrics()
+
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
             self.annotate(record)
             yield record
-        # Compute averages for scores
-        for key in self.f1_scores:
-            self.f1_scores[key] /= self.match_counts[key]
+
+        # Finalise - computes averages, etc.
+        self.gene_metrics.finalise()
+        self.conseq_metrics.finalise()
+        self.trait_metrics.finalise()
 
     def annotate(self, record):
         self.overall_counts['total'] += 1
@@ -81,23 +64,10 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         annotated_genes = {ct.ensembl_gene_id for ct in consequence_types if ct.ensembl_gene_id}
         annotated_conseqs = {EnsemblAnnotatedClinVarMeasure.format_so_term(ct.so_term)
                              for ct in consequence_types if ct.so_term}
-        if annotated_genes:
-            self.cmat_counts['has_gene'] += 1
-        if annotated_conseqs:
-            self.cmat_counts['has_consequences'] += 1
 
-        if record.measure.hgnc_ids:
-            self.clinvar_counts['has_gene'] += 1
-        if record.measure.so_terms:
-            self.clinvar_counts['has_consequences'] += 1
-
-        if record.measure.hgnc_ids and annotated_genes:
-            # TODO need to map genes - try using gene symbol / gene name
-            self.f1_scores['genes'] += self.f1_score(set(record.measure.hgnc_ids), annotated_genes)
-            self.match_counts['genes'] += 1
-        if record.measure.so_terms and annotated_conseqs:
-            self.f1_scores['conseqs'] += self.f1_score(record.measure.so_terms, annotated_conseqs)
-            self.match_counts['conseqs'] += 1
+        # TODO need to map genes - try using gene symbol / gene name
+        self.gene_metrics.count_and_score(cv_set=record.measure.hgnc_ids, cmat_set=annotated_genes)
+        self.conseq_metrics.count_and_score(cv_set=record.measure.so_terms, cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
         has_existing_id = False
@@ -119,29 +89,21 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             if trait.efo_aligned_ids:
                 existing_efo_ids.update(trait.efo_aligned_ids)
 
-        if has_existing_id:
-            self.clinvar_counts['has_any_mappings'] += 1
-        if existing_efo_ids:
-            self.clinvar_counts['has_efo_mappings'] += 1
-        if annotated_efo_ids:
-            self.cmat_counts['has_efo_mappings'] += 1
-
-        if annotated_efo_ids and existing_efo_ids:
-            # TODO potentially will need to match these, e.g. with OLS
-            self.f1_scores['traits'] += self.f1_score(existing_efo_ids, annotated_efo_ids)
-            self.match_counts['traits'] += 1
+        # TODO potentially will need to match these, e.g. with OLS
+        self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
+        # TODO what about has_any_mappings?
+        # if has_existing_id:
+        #     self.clinvar_counts['has_any_mappings'] += 1
 
     def report(self):
         print('\nOverall counts:')
         self.print_counter(self.overall_counts)
-        print('\nClinVar counts:')
-        self.print_counter(self.clinvar_counts)
-        print('\nCMAT counts:')
-        self.print_counter(self.cmat_counts)
-        print('\nRecords with both ClinVar and CMAT annotations present:')
-        self.print_counter(self.match_counts)
-        print('\nF1 scores (averaged over records with both annotations present):')
-        self.print_counter(self.f1_scores)
+        print('\nGene annotations:')
+        self.gene_metrics.report()
+        print('\nFunctional consequences:')
+        self.conseq_metrics.report()
+        print('\nTrait mappings:')
+        self.trait_metrics.report()
         print()
 
     @staticmethod
@@ -149,15 +111,6 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         max_len = len(max(counter.keys(), key=lambda x: len(x)))
         for k, v in counter.items():
             print(f'{k: <{max_len}} {v}')
-
-    @staticmethod
-    def f1_score(ground_truth_set, predicted_set):
-        if len(ground_truth_set) == 0 and len(predicted_set) == 0:
-            return 0
-        tp = len(predicted_set & ground_truth_set)
-        fp = len(predicted_set - ground_truth_set)
-        fn = len(ground_truth_set - predicted_set)
-        return 2*tp / (2*tp + fp + fn)
 
 
 class AnnotatedClinVarRecord(ClinVarRecord):
