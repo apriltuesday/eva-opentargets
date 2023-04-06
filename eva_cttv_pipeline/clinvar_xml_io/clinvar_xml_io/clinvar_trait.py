@@ -93,5 +93,7 @@ class ClinVarTrait:
         mappings = set()
         for db, identifier, status in self.xrefs:
             if status == 'current' and db in self.EFO_ALIGNED_ONTOLOGIES:
+                if db == 'Orphanet':
+                    identifier = f'Orphanet:{identifier}'
                 mappings.add(identifier)
         return mappings
