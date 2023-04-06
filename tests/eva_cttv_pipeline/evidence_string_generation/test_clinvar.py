@@ -76,4 +76,4 @@ class TestClinvarRecordMeasure:
         assert self.test_crm.pubmed_refs == []
 
     def test_so_terms(self):
-        assert self.test_crm.so_terms == {'SO:0001583'}
+        assert self.test_crm.existing_so_terms == {'SO:0001583'}

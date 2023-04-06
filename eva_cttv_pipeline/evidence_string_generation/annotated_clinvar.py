@@ -65,9 +65,9 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         annotated_conseqs = {EnsemblAnnotatedClinVarMeasure.format_so_term(ct.so_term)
                              for ct in consequence_types if ct.so_term}
 
-        # TODO need to map genes - try using gene symbol / gene name
+        # TODO need to map genes - try using biomart, then gene symbol / gene name
         self.gene_metrics.count_and_score(cv_set=record.measure.hgnc_ids, cmat_set=annotated_genes)
-        self.conseq_metrics.count_and_score(cv_set=record.measure.so_terms, cmat_set=annotated_conseqs)
+        self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
         has_existing_id = False
@@ -80,16 +80,16 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                 efo_ids.extend(
                     EfoMappedClinVarTrait.format_efo_id(efo_id)
                     for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
-            if efo_ids:
-                trait.add_efo_mappings(efo_ids)
-                annotated_efo_ids.update(efo_ids)
 
             if trait.xrefs:
                 has_existing_id = True
             if trait.efo_aligned_ids:
                 existing_efo_ids.update(trait.efo_aligned_ids)
+            if efo_ids:
+                trait.add_efo_mappings(efo_ids)
+                annotated_efo_ids.update(efo_ids)
 
-        # TODO potentially will need to match these, e.g. with OLS
+        # TODO will need to match these, e.g. with OLS
         self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
         # TODO what about has_any_mappings?
         # if has_existing_id:
@@ -125,7 +125,9 @@ class EfoMappedClinVarTrait(ClinVarTrait):
         efo_elts = []
         for efo_id in efo_ids:
             efo_id = self.format_efo_id(efo_id)
-            efo_elts.append(ET.Element('XRef', attrib={'ID': efo_id, 'DB': 'EFO', 'providedBy': PROCESSOR}))
+            # Include Status attribute so this isn't included among current xrefs
+            efo_elts.append(ET.Element('XRef', attrib={
+                'ID': efo_id, 'DB': 'EFO', 'Status': 'annotated', 'providedBy': PROCESSOR}))
         self.trait_xml.extend(efo_elts)
 
     @staticmethod
