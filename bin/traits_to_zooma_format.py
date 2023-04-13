@@ -5,28 +5,7 @@ import itertools
 from time import gmtime, strftime
 
 from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
-
-
-class OntologyUri:
-    # ClinVar stores cross-references in very different formats. This provides their conversion to full IRIs, along with
-    # some examples of how this looks like in ClinVar data.
-    db_to_uri_conversion = {
-        'orphanet': lambda x: f'http://www.orpha.net/ORDO/Orphanet_{x}',  # <XRef ID="1756" DB="Orphanet"/>
-        'omim': lambda x: f'https://www.omim.org/entry/{x}',  # <XRef Type="MIM" ID="612773" DB="OMIM"/>
-        'efo': lambda x: f'http://www.ebi.ac.uk/efo/{x}',  # <XRef ID="EFO_0005137" DB="EFO"/>
-        'mesh': lambda x: f'http://identifiers.org/mesh/{x}',  # <XRef ID="D065630" DB="MeSH"/>
-        'medgen': lambda x: f'http://identifiers.org/medgen/{x}',  # <XRef ID="C0235833" DB="MedGen"/>
-        # <XRef ID="MONDO:0013353" DB="MONDO"/>
-        'mondo': lambda x: 'http://purl.obolibrary.org/obo/{}'.format(x.replace(':', '_')),
-    }
-
-    def __init__(self, id_, db):
-        self.id_ = id_
-        self.db = db
-        self.uri = self.db_to_uri_conversion[self.db.lower()](self.id_)
-
-    def __str__(self):
-        return self.uri
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.ontology_uri import OntologyUri
 
 
 def write_zooma_record(clinvar_acc, variant_id, trait_name, ontology_uri, date, outfile):

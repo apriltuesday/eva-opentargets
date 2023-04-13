@@ -54,7 +54,8 @@ class SetComparisonMetrics:
     def finalise(self):
         """Averages scores over counts, and also calculate both_present count & score."""
         self.both_present_count = sum(self.counts[k] for k in self.both_present_keys)
-        self.both_present_score = sum(self.scores[k] for k in self.both_present_keys) / self.both_present_count
+        if self.both_present_count:
+            self.both_present_score = sum(self.scores[k] for k in self.both_present_keys) / self.both_present_count
         for k in self.all_keys:
             self.scores[k] = self.scores[k] / self.counts[k] if self.counts[k] else 0
 

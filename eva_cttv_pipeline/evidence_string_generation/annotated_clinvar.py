@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarTrait, ClinVarRecordMeasure, ClinVarDataset, \
     ClinVarRecord
@@ -6,6 +7,7 @@ from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import iterate_
 from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings import load_efo_mapping, \
     get_consequence_types
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
+from eva_cttv_pipeline.evidence_string_generation.evaluation_traits import get_canonical_id
 from eva_cttv_pipeline.evidence_string_generation.set_metrics import SetComparisonMetrics
 
 PROCESSOR = 'CMAT'
@@ -15,11 +17,14 @@ class AnnotatingClinVarDataset(ClinVarDataset):
     """This class provides the ability to parse ClinVar records (RCVs) and annotate them with EFO mappings and
     consequence mappings on the fly."""
 
-    def __init__(self, clinvar_xml, string_to_efo_mappings, variant_to_gene_mappings):
+    def __init__(self, clinvar_xml, string_to_efo_mappings, variant_to_gene_mappings,
+                 eval_gene_mappings=None, eval_xref_mappings=None):
         super().__init__(clinvar_xml)
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
+        self.eval_gene_mappings = eval_gene_mappings
+        self.eval_xref_mappings = eval_xref_mappings
         self.overall_counts = {}
         self.gene_metrics = None
         self.conseq_metrics = None
@@ -65,12 +70,14 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         annotated_conseqs = {EnsemblAnnotatedClinVarMeasure.format_so_term(ct.so_term)
                              for ct in consequence_types if ct.so_term}
 
-        # TODO need to map genes - try using biomart, then gene symbol / gene name
-        self.gene_metrics.count_and_score(cv_set=record.measure.hgnc_ids, cmat_set=annotated_genes)
-        self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
+        if self.eval_gene_mappings:
+            existing_ensembl_ids = self.eval_gene_mappings.get(record.accession, [])
+            print(record.accession, existing_ensembl_ids, annotated_genes)
+            self.gene_metrics.count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+            self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
-        has_existing_id = False
+        # has_existing_id = False
         existing_efo_ids = set()
         annotated_efo_ids = set()
 
@@ -81,15 +88,23 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                     EfoMappedClinVarTrait.format_efo_id(efo_id)
                     for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
 
-            if trait.xrefs:
-                has_existing_id = True
-            if trait.efo_aligned_ids:
-                existing_efo_ids.update(trait.efo_aligned_ids)
+            # if trait.xrefs:
+            #     has_existing_id = True
+            # for db, iden, _ in trait.current_efo_aligned_xrefs:
+            #     canonical_id = get_canonical_id(db, iden)
+            #     if canonical_id:
+            #         existing_efo_ids.add(canonical_id)
             if efo_ids:
                 trait.add_efo_mappings(efo_ids)
-                annotated_efo_ids.update(efo_ids)
+                # for efo_id in efo_ids:
+                #     # This is silly
+                #     db, iden = efo_id.split(':')
+                #     if db.lower() != 'orphanet':
+                #         iden = efo_id.replace(':', '_')
+                #     canonical_id = get_canonical_id(db, iden)
+                #     if canonical_id:
+                #         annotated_efo_ids.add(canonical_id)
 
-        # TODO will need to match these, e.g. with OLS
         self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
         # TODO what about has_any_mappings?
         # if has_existing_id:
@@ -98,12 +113,14 @@ class AnnotatingClinVarDataset(ClinVarDataset):
     def report(self):
         print('\nOverall counts:')
         self.print_counter(self.overall_counts)
-        print('\nGene annotations:')
-        self.gene_metrics.report()
-        print('\nFunctional consequences:')
-        self.conseq_metrics.report()
-        print('\nTrait mappings:')
-        self.trait_metrics.report()
+        if self.eval_gene_mappings:
+            print('\nGene annotations:')
+            self.gene_metrics.report()
+            print('\nFunctional consequences:')
+            self.conseq_metrics.report()
+        if self.eval_xref_mappings:
+            print('\nTrait mappings:')
+            self.trait_metrics.report()
         print()
 
     @staticmethod
@@ -157,12 +174,36 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
         return so_term.accession.replace('_', ':')
 
 
-def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file):
+def load_evaluation_gene_mappings(input_path):
+    mapping = defaultdict(list)
+    with open(input_path, "rt") as input_file:
+        for line in input_file:
+            cols = line.strip().split('\t')
+            if len(cols) != 2:
+                continue
+            mapping[cols[0]].append(cols[1])
+    return mapping
+
+
+def load_evaluation_xref_mappings(input_file):
+    return None
+
+
+def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file,
+                                   eval_gene_file=None, eval_xref_file=None):
     """Generate an annotated XML file of ClinVar RCVs based on EFO mappings file and gene mapping file (as documented in
     clinvar_to_evidence_strings)."""
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
-
-    dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings)
+    # Need both files to do an evaluation
+    if eval_gene_file:# and eval_xref_file:
+        eval_gene_mappings = load_evaluation_gene_mappings(eval_gene_file)
+        # eval_xref_mappings = load_evaluation_xref_mappings(eval_xref_file)
+        eval_xref_mappings = None
+        dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings,
+                                           eval_gene_mappings=eval_gene_mappings,
+                                           eval_xref_mappings=eval_xref_mappings)
+    else:
+        dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings)
     dataset.write(output_xml_file)
     dataset.report()

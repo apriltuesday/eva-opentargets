@@ -88,12 +88,7 @@ class ClinVarTrait:
             return medgen_ids[0]
 
     @property
-    def efo_aligned_ids(self):
+    def current_efo_aligned_xrefs(self):
         """Returns current EFO or EFO-aligned ids."""
-        mappings = set()
-        for db, identifier, status in self.xrefs:
-            if status == 'current' and db in self.EFO_ALIGNED_ONTOLOGIES:
-                if db == 'Orphanet':
-                    identifier = f'Orphanet:{identifier}'
-                mappings.add(identifier)
-        return mappings
+        return [(db, iden, status) for (db, iden, status) in self.xrefs
+                if status == 'current' and db in self.EFO_ALIGNED_ONTOLOGIES]
