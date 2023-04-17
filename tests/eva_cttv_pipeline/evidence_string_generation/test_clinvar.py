@@ -41,7 +41,7 @@ class TestClinvarRecord:
         assert self.test_clinvar_record.valid_allele_origins == {'germline', 'inherited'}
 
     def test_trait_efo_ids(self):
-        assert self.test_clinvar_record.traits[0].efo_aligned_ids == {'MONDO:0012990'}
+        assert self.test_clinvar_record.traits[0].current_efo_aligned_xrefs == [('MONDO', 'MONDO:0012990', 'current')]
 
 
 class TestClinvarRecordMeasure:
