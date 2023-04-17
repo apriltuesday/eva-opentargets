@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import csv
 import multiprocessing
@@ -11,6 +12,7 @@ from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 @lru_cache
 def get_synonyms(db, iden):
+    """Find synonyms (replacement terms or exact matches) for this ontology identifier using OLS."""
     synonyms = set()
     ontology_uri = OntologyUri(iden, db)
     url = build_ols_query(str(ontology_uri))
@@ -32,14 +34,14 @@ def get_synonyms(db, iden):
         # Filter out Nones and sort lexicographically
         synonyms = {s for s in synonyms if s is not None}
 
-    # If no synonyms, just return the original identifier as is, otherwise return the first
     if synonyms:
         return ontology_uri.curie, synonyms
+    # If no synonyms, just return the original identifier as is
     return ontology_uri.curie, {ontology_uri.curie}
 
 
 def main(clinvar_xml, output_file):
-    """Load ClinVar XML, map trait xrefs identifiers to a canonical choice in OLS, and dump results to TSV."""
+    """Load ClinVar XML, map trait xrefs identifiers to synonyms in OLS, and dump results to TSV."""
     traits = set()
     for record in clinvar_xml_io.ClinVarDataset(clinvar_xml):
         for trait in record.traits_with_valid_names:
@@ -56,7 +58,7 @@ def main(clinvar_xml, output_file):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Script to map trait xrefs in ClinVar to a canonical choice')
+    parser = argparse.ArgumentParser(description='Script to map trait xrefs in ClinVar to synonyms in OLS')
     parser.add_argument('--clinvar-xml', required=True, help='ClinVar XML dump file')
     parser.add_argument('--output-file', required=True, help='File to output dataframe')
     args = parser.parse_args()
