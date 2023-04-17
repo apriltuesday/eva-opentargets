@@ -1,5 +1,8 @@
+import re
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+
+from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.ontology_uri import OntologyUri
 
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarTrait, ClinVarRecordMeasure, ClinVarDataset, \
     ClinVarRecord
@@ -7,7 +10,6 @@ from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.xml_parsing import iterate_
 from eva_cttv_pipeline.evidence_string_generation.clinvar_to_evidence_strings import load_efo_mapping, \
     get_consequence_types
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from eva_cttv_pipeline.evidence_string_generation.evaluation_traits import get_canonical_id
 from eva_cttv_pipeline.evidence_string_generation.set_metrics import SetComparisonMetrics
 
 PROCESSOR = 'CMAT'
@@ -72,46 +74,38 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
         if self.eval_gene_mappings:
             existing_ensembl_ids = self.eval_gene_mappings.get(record.accession, [])
-            print(record.accession, existing_ensembl_ids, annotated_genes)
             self.gene_metrics.count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
             self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
-        # has_existing_id = False
-        existing_efo_ids = set()
-        annotated_efo_ids = set()
-
         for trait in record.traits_with_valid_names:
+            existing_efo_ids = set()
+            annotated_efo_ids = set()
             efo_ids = []
             for trait_name in trait.all_names:
                 efo_ids.extend(
                     EfoMappedClinVarTrait.format_efo_id(efo_id)
                     for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
 
-            # if trait.xrefs:
-            #     has_existing_id = True
-            # for db, iden, _ in trait.current_efo_aligned_xrefs:
-            #     canonical_id = get_canonical_id(db, iden)
-            #     if canonical_id:
-            #         existing_efo_ids.add(canonical_id)
-            if efo_ids:
-                trait.add_efo_mappings(efo_ids)
-                # for efo_id in efo_ids:
-                #     # This is silly
-                #     db, iden = efo_id.split(':')
-                #     if db.lower() != 'orphanet':
-                #         iden = efo_id.replace(':', '_')
-                #     canonical_id = get_canonical_id(db, iden)
-                #     if canonical_id:
-                #         annotated_efo_ids.add(canonical_id)
+            for db, iden, _ in trait.current_efo_aligned_xrefs:
+                curie = OntologyUri(iden, db).curie
+                if curie:
+                    existing_efo_ids.add(curie)
+            trait.add_efo_mappings(efo_ids)
+            if self.eval_xref_mappings:
+                for efo_id in efo_ids:
+                    # Attempt to match to an id in ClinVar based on synonyms
+                    for cv_id in existing_efo_ids:
+                        if efo_id in self.eval_xref_mappings.get(cv_id, {}):
+                            annotated_efo_ids.add(cv_id)
+                    # If didn't find anything, just use our id
+                    if not annotated_efo_ids:
+                        annotated_efo_ids.add(efo_id)
 
-        self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
-        # TODO what about has_any_mappings?
-        # if has_existing_id:
-        #     self.clinvar_counts['has_any_mappings'] += 1
+                self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
 
     def report(self):
-        print('\nOverall counts:')
+        print('\nOverall counts (RCVs):')
         self.print_counter(self.overall_counts)
         if self.eval_gene_mappings:
             print('\nGene annotations:')
@@ -176,7 +170,7 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
 
 def load_evaluation_gene_mappings(input_path):
     mapping = defaultdict(list)
-    with open(input_path, "rt") as input_file:
+    with open(input_path) as input_file:
         for line in input_file:
             cols = line.strip().split('\t')
             if len(cols) != 2:
@@ -185,8 +179,15 @@ def load_evaluation_gene_mappings(input_path):
     return mapping
 
 
-def load_evaluation_xref_mappings(input_file):
-    return None
+def load_evaluation_xref_mappings(input_path):
+    mapping = {}
+    with open(input_path) as input_file:
+        for line in input_file:
+            cols = line.strip().split('\t')
+            if len(cols) != 2:
+                continue
+            mapping[cols[0]] = re.sub(r"{|}|'", '', cols[1]).split(', ')
+    return mapping
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file,
@@ -196,10 +197,9 @@ def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapp
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     # Need both files to do an evaluation
-    if eval_gene_file:# and eval_xref_file:
+    if eval_gene_file and eval_xref_file:
         eval_gene_mappings = load_evaluation_gene_mappings(eval_gene_file)
-        # eval_xref_mappings = load_evaluation_xref_mappings(eval_xref_file)
-        eval_xref_mappings = None
+        eval_xref_mappings = load_evaluation_xref_mappings(eval_xref_file)
         dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings,
                                            eval_gene_mappings=eval_gene_mappings,
                                            eval_xref_mappings=eval_xref_mappings)

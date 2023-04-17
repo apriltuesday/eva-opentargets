@@ -1,71 +1,63 @@
+import argparse
+import csv
+import multiprocessing
 from functools import lru_cache
 
+from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
 from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.ontology_uri import OntologyUri
 from eva_cttv_pipeline.trait_mapping.ols import build_ols_query
 from eva_cttv_pipeline.trait_mapping.utils import json_request
 
 
 @lru_cache
-def get_canonical_id(db, iden):
-    """
-    Choose a canonical representative of the set of synonyms (replacement terms or exact matches)
-    for this ontology identifier, using the following ranking:
-    1) Prefer current terms over obsolete terms
-    2) Among current terms, choose the one with DB:ID lexicographically first
-    """
+def get_synonyms(db, iden):
     synonyms = set()
     ontology_uri = OntologyUri(iden, db)
     url = build_ols_query(str(ontology_uri))
     json_response = json_request(url)
-    if not json_response or '_embedded' not in json_response:
-        return None
-    for term in json_response['_embedded']['terms']:
-        # Get only EFO terms (even if imported)
-        if term['ontology_name'] == 'efo':
-            # Check whether current term is obsolete
-            if term['is_obsolete'] and term['term_replaced_by']:
-                synonyms.add(term['term_replaced_by'])
-            else:
+    if json_response and '_embedded' in json_response:
+        for term in json_response['_embedded']['terms']:
+            # Get only EFO terms (even if imported)
+            if term['ontology_name'] == 'efo':
                 synonyms.add(term['iri'])
-            # Also add exact matches
-            # TODO does not check if exact matches are themselves obsolete!
-            if 'exactMatch' in term['annotation']:
-                synonyms.update(term['annotation']['exactMatch'])
+                # Check whether current term is obsolete
+                if term['is_obsolete'] and term['term_replaced_by']:
+                    synonyms.add(term['term_replaced_by'])
+                # Also add exact matches
+                if 'exactMatch' in term['annotation']:
+                    synonyms.update(term['annotation']['exactMatch'])
 
-    # Synonyms contains current EFO-included URIs, convert to DB:ID style
-    synonyms = {uri_to_curie(s) for s in synonyms}
-    # Filter out Nones and sort lexicographically
-    synonyms = sorted([s for s in synonyms if s is not None])
-    # If there's nothing left just return the original identifier as is, otherwise return the first
+        # Synonyms contains current EFO-included URIs, convert to DB:ID style
+        synonyms = {OntologyUri.uri_to_curie(s) for s in synonyms}
+        # Filter out Nones and sort lexicographically
+        synonyms = {s for s in synonyms if s is not None}
+
+    # If no synonyms, just return the original identifier as is, otherwise return the first
     if synonyms:
-        return synonyms[0]
-    elif db.lower() == 'orphanet':
-        return f'Orphanet:{iden}'
-    return iden
+        return ontology_uri.curie, synonyms
+    return ontology_uri.curie, {ontology_uri.curie}
 
 
-def uri_to_curie(uri):
-    """Convert an ontology uri to a DB:ID format."""
-    URI_DB_TO_DB_DICT = {
-        "ordo": "Orphanet",
-        "orphanet": "Orphanet",
-        "omim": "OMIM",
-        "efo": "EFO",
-        "hp": "HP",
-        "mondo": "MONDO",
-    }
+def main(clinvar_xml, output_file):
+    """Load ClinVar XML, map trait xrefs identifiers to a canonical choice in OLS, and dump results to TSV."""
+    traits = set()
+    for record in clinvar_xml_io.ClinVarDataset(clinvar_xml):
+        for trait in record.traits_with_valid_names:
+            traits.update([(db, iden) for db, iden, _ in trait.current_efo_aligned_xrefs])
 
-    if not any(x in uri.lower() for x in URI_DB_TO_DB_DICT.keys()):
-        return None
-    uri = uri.rstrip("/")
-    uri_list = uri.split("/")
-    if "identifiers.org" in uri:
-        db = uri_list[-2]
-        id_ = uri_list[-1]
-    elif "omim.org" in uri:
-        db = "OMIM"
-        id_ = uri_list[-1]
-    else:
-        db, id_ = uri_list[-1].split("_")
-    db = URI_DB_TO_DB_DICT[db.lower()]
-    return "{}:{}".format(db, id_)
+    traits = list(traits)
+    process_pool = multiprocessing.Pool(processes=24)
+    annotated_traits = [
+        process_pool.apply(get_synonyms, args=(db, iden))
+        for db, iden in traits
+    ]
+    with open(output_file, 'w+') as f:
+        csv.writer(f, delimiter="\t").writerows(annotated_traits)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Script to map trait xrefs in ClinVar to a canonical choice')
+    parser.add_argument('--clinvar-xml', required=True, help='ClinVar XML dump file')
+    parser.add_argument('--output-file', required=True, help='File to output dataframe')
+    args = parser.parse_args()
+    main(args.clinvar_xml, args.output_file)

@@ -60,16 +60,20 @@ class SetComparisonMetrics:
             self.scores[k] = self.scores[k] / self.counts[k] if self.counts[k] else 0
 
     def report(self):
-        self.pretty_print(('Category', 'Counts', 'F1 Scores'),
-                          [(k, self.counts[k], self.scores[k]) for k in self.both_present_keys]
-                          + [('=> both_present', self.both_present_count, self.both_present_score)]
-                          + [(k, self.counts[k], self.scores[k]) for k in self.some_missing_keys])
+        total = sum(v for v in self.counts.values())
+        print(f'Total = {total}')
+        self.pretty_print(
+            ('Category', 'Count', 'Percent', 'F1 Score'),
+            [(k, self.counts[k], f'{self.counts[k] / total:.1%}', f'{self.scores[k]:.2f}') for k in self.both_present_keys]
+            + [('=> both_present', self.both_present_count, f'{self.both_present_count / total:.1%}', f'{self.both_present_score:.2f}')]
+            + [(k, self.counts[k], f'{self.counts[k] / total:.1%}', f'{self.scores[k]:.2f}') for k in self.some_missing_keys]
+        )
 
     @staticmethod
     def get_f1_tp_fp_fn(cv_set, cmat_set):
         """Returns f1-score and number of true positives, false positives and false negatives."""
         if len(cv_set) == 0 and len(cmat_set) == 0:
-            return 0, 0, 0
+            return 0, 0, 0, 0
         tp = len(cmat_set & cv_set)
         fp = len(cmat_set - cv_set)
         fn = len(cv_set - cmat_set)

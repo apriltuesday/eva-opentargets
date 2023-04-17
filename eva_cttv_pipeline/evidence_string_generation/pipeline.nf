@@ -11,6 +11,7 @@ def helpMessage() {
         --output_dir    Directory for output
         --schema        Open Targets JSON schema version (optional, will output XML if omitted)
         --clinvar       ClinVar XML file (optional, will download latest if omitted)
+        --mappings      Trait mappings file (optional, will use a default path if omitted)
         --evaluate      Whether to run evaluation or not (default false)
     """
 }
@@ -19,6 +20,7 @@ params.help = null
 params.output_dir = null
 params.schema = null
 params.clinvar = null
+params.mappings = '${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv'
 params.evaluate = false
 
 if (params.help) {
@@ -62,11 +64,12 @@ workflow {
         // Annotated ClinVar XML output
         if (params.evaluate) {
             evalGeneMapping = mapGenes(clinvarXml)
-            // mapXrefs(clinvarXml)
+            evalXrefMapping = mapXrefs(clinvarXml)
         } else {
             evalGeneMapping = null
+            evalXrefMapping = null
         }
-        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping)
+        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping)
     }
 }
 
@@ -230,20 +233,20 @@ process mapGenes {
 /*
  * Map existing crossrefs to EFO-aligned IDs. Currently used only for evaluation.
  */
-// process mapXrefs {
-//     input:
-//     path clinvarXml
+process mapXrefs {
+    input:
+    path clinvarXml
 
-//     output:
-//     path "output_xref_mappings.tsv", emit: outputXrefMappings
+    output:
+    path "output_xref_mappings.tsv", emit: outputXrefMappings
 
-//     script:
-//     """
-//     \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/map_xrefs.py \
-//         --clinvar-xml ${clinvarXml} \
-//         --output-file output_xref_mappings.tsv
-//     """
-// }
+    script:
+    """
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/map_xrefs.py \
+        --clinvar-xml ${clinvarXml} \
+        --output-file output_xref_mappings.tsv
+    """
+}
 
 /*
  * Generate annotated ClinVar XML
@@ -261,18 +264,20 @@ process generateAnnotatedXml {
     path clinvarXml
     path consequenceMappings
     path evalGeneMapping
+    path evalXrefMapping
 
     output:
     path "annotated_clinvar.xml.gz"
 
     script:
-    def eval_gene_flag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
+    def evalGeneFlag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
+    def evalXrefFlag = evalXrefMapping != null? "--eval-xref-file ${evalXrefMapping}" : ""
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
-        --efo-mapping \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
+        --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
-        ${eval_gene_flag} \
+        ${evalGeneFlag} ${evalXrefFlag} \
         --output-xml annotated_clinvar.xml.gz
     """
 }

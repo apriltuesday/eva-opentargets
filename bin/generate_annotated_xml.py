@@ -8,8 +8,8 @@ parser.add_argument('--clinvar-xml',  help='ClinVar XML release',               
 parser.add_argument('--efo-mapping',  help='Disease string to ontology mappings',    required=True)
 parser.add_argument('--gene-mapping', help='Variant to gene & consequence mappings', required=True)
 parser.add_argument('--output-xml',   help='Output XML file',                        required=True)
-parser.add_argument('--eval-gene-file', required=False)
-parser.add_argument('--eval-xref-file', required=False)
+parser.add_argument('--eval-gene-file', help='Gene mappings for evaluation',         required=False)
+parser.add_argument('--eval-xref-file', help='Trait xref mappings for evaluation',   required=False)
 
 
 if __name__ == '__main__':

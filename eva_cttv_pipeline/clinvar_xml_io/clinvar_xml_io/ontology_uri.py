@@ -20,3 +20,33 @@ class OntologyUri:
 
     def __str__(self):
         return self.uri
+
+    @property
+    def curie(self):
+        return self.uri_to_curie(self.uri)
+
+    @staticmethod
+    def uri_to_curie(uri):
+        """Convert an ontology uri to a DB:ID format."""
+        uri_db_to_curie_db = {
+            "ordo": "Orphanet",
+            "orphanet": "Orphanet",
+            "omim": "OMIM",
+            "efo": "EFO",
+            "hp": "HP",
+            "mondo": "MONDO",
+        }
+        if not any(x in uri.lower() for x in uri_db_to_curie_db.keys()):
+            return None
+        uri = uri.rstrip("/")
+        uri_list = uri.split("/")
+        if "identifiers.org" in uri:
+            db = uri_list[-2]
+            id_ = uri_list[-1]
+        elif "omim.org" in uri:
+            db = "OMIM"
+            id_ = uri_list[-1]
+        else:
+            db, id_ = uri_list[-1].split("_")
+        db = uri_db_to_curie_db[db.lower()]
+        return "{}:{}".format(db, id_)
