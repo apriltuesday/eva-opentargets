@@ -48,7 +48,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.annotate(record)
             yield record
 
-        # Finalise - computes averages, etc.
+        # Finalise counts - computes averages, etc.
         self.gene_metrics.finalise()
         self.conseq_metrics.finalise()
         self.trait_metrics.finalise()
@@ -94,11 +94,12 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             trait.add_efo_mappings(efo_ids)
             if self.eval_xref_mappings:
                 for efo_id in efo_ids:
-                    # Attempt to match to an id in ClinVar based on synonyms
+                    # Attempt to match to an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
+                    # a ClinVar ID, we use the synonymous ClinVar ID for comparison.
                     for cv_id in existing_efo_ids:
                         if efo_id in self.eval_xref_mappings.get(cv_id, {}):
                             annotated_efo_ids.add(cv_id)
-                    # If didn't find anything, just use our id
+                    # If didn't find anything, just use our ID, which will count as not matching.
                     if not annotated_efo_ids:
                         annotated_efo_ids.add(efo_id)
 

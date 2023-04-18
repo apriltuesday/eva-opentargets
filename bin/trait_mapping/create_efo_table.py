@@ -4,10 +4,10 @@ import argparse
 import re
 import requests
 
-# Name of ontology in OLS url, e. g. https://www.ebi.ac.uk/ols/ontologies/ordo/terms?iri=...
 from requests import HTTPError
 from retry import retry
 
+# Name of ontology in OLS url, e. g. https://www.ebi.ac.uk/ols/ontologies/ordo/terms?iri=...
 ontology_to_ols = {
     'HP': 'hp',
     'MONDO': 'mondo',
