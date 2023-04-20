@@ -14,6 +14,7 @@ def parse_header_attributes(clinvar_xml):
             if elem.tag == 'ReleaseSet':
                 attrib = elem.attrib
                 break
+            elem.clear()
     if not attrib:
         return {}
     # Resolve xsi:noNamespaceSchemaLocation="...", which is parsed strangely by ElementTree
