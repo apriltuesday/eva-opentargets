@@ -1,3 +1,10 @@
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
 class OntologyUri:
     # ClinVar stores cross-references in very different formats. This provides their conversion to full IRIs, along with
     # some examples of how this looks like in ClinVar data.
@@ -47,6 +54,13 @@ class OntologyUri:
             db = "OMIM"
             id_ = uri_list[-1]
         else:
-            db, id_ = uri_list[-1].split("_")
+            last_component = uri_list[-1]
+            if ":" in last_component:
+                return last_component
+            elif "_" in last_component:
+                db, id_ = last_component.split("_")
+            else:
+                logger.warning(f"Could not convert URI to CURIE: {uri}")
+                return None
         db = uri_db_to_curie_db[db.lower()]
         return "{}:{}".format(db, id_)
