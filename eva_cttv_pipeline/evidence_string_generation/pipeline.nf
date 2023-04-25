@@ -86,7 +86,7 @@ process downloadJsonSchema {
     script:
     """
     wget -O opentargets-${params.schema}.json \
-        https://raw.githubusercontent.com/opentargets/json_schema/${params.schema}/opentargets.json
+        https://raw.githubusercontent.com/opentargets/json_schema/${params.schema}/schemas/disease_target_evidence.json
     """
 }
 
