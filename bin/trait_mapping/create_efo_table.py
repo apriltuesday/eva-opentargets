@@ -86,7 +86,7 @@ def get_ols_details(ontology, term):
     xrefs = {}
     try:
         oxo_xrefs = get_cross_references(term_curie)
-    except Exception as e:
+    except (HTTPError, ValueError) as e:
         print('Warning: OxO error for term {}. No cross-links will be available for this term.'.format(term_curie))
         oxo_xrefs = []
     for x in oxo_xrefs:

@@ -31,7 +31,7 @@ def get_synonyms(db, iden):
 
         # Synonyms contains current EFO-included URIs, convert to DB:ID style
         synonyms = {OntologyUri.uri_to_curie(s) for s in synonyms}
-        # Filter out Nones and sort lexicographically
+        # Filter out Nones
         synonyms = {s for s in synonyms if s is not None}
 
     if synonyms:
