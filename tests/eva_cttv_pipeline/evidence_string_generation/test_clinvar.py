@@ -40,6 +40,9 @@ class TestClinvarRecord:
     def test_valid_allele_origins(self):
         assert self.test_clinvar_record.valid_allele_origins == {'germline', 'inherited'}
 
+    def test_trait_efo_ids(self):
+        assert self.test_clinvar_record.traits[0].current_efo_aligned_xrefs == [('MONDO', 'MONDO:0012990', 'current')]
+
 
 class TestClinvarRecordMeasure:
     @classmethod
@@ -71,3 +74,6 @@ class TestClinvarRecordMeasure:
 
     def test_measure_set_pubmed_refs(self):
         assert self.test_crm.pubmed_refs == []
+
+    def test_so_terms(self):
+        assert self.test_crm.existing_so_terms == {'SO:0001583'}

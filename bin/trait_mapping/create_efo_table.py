@@ -4,6 +4,9 @@ import argparse
 import re
 import requests
 
+from requests import HTTPError
+from retry import retry
+
 # Name of ontology in OLS url, e. g. https://www.ebi.ac.uk/ols/ontologies/ordo/terms?iri=...
 ontology_to_ols = {
     'HP': 'hp',
@@ -49,15 +52,17 @@ def uri_to_curie(uri):
     return uri.split('/')[-1].replace('#', '').replace('_', ':')
 
 
+@retry(HTTPError, tries=4, delay=2, backoff=1.2, jitter=(1, 3))
 def get_cross_references(curie):
     """Queries OxO to return the list of cross-references for a given term curie."""
     url = oxo_url_template.format(curie=curie)
-    response = requests.get(url).json()
-    if '_embedded' not in response:
-        print('Warning: OxO error for term {}. No cross-links will be available for this term. '
-              'See https://github.com/EBISPOT/OXO/issues/26'.format(curie))
-        return []
-    mappings = response['_embedded']['searchResults'][0]['mappingResponseList']
+    response = requests.get(url)
+    response.raise_for_status()
+    json_response = response.json()
+    if '_embedded' not in json_response:
+        raise ValueError('Warning: OxO error for term {}. No cross-links will be available for this term. '
+                         'See https://github.com/EBISPOT/OXO/issues/26'.format(curie))
+    mappings = json_response['_embedded']['searchResults'][0]['mappingResponseList']
     return [m['curie'] for m in mappings]
 
 
@@ -79,7 +84,12 @@ def get_ols_details(ontology, term):
     # Cross-references
     term_curie = uri_to_curie(term)
     xrefs = {}
-    for x in get_cross_references(term_curie):
+    try:
+        oxo_xrefs = get_cross_references(term_curie)
+    except (HTTPError, ValueError) as e:
+        print('Warning: OxO error for term {}. No cross-links will be available for this term.'.format(term_curie))
+        oxo_xrefs = []
+    for x in oxo_xrefs:
         xref_ontology, xref_id = re.split('[_:]', x)
         xrefs.setdefault(xref_ontology, set()).add('{}:{}'.format(xref_ontology, xref_id))
 

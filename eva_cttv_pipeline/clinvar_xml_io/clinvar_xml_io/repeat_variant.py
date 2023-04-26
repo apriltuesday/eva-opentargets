@@ -106,7 +106,7 @@ def parse_all_identifiers(clinvar_measure: ClinVarRecordMeasure):
     Repeat type must be present if possible, transcript id is useful if present."""
     # TODO should we prioritise these in some way?
     all_names = [clinvar_measure.get_variant_name_or_hgvs()] +\
-                [hgvs.text for hgvs in clinvar_measure.current_hgvs] +\
+                sorted([hgvs.text for hgvs in clinvar_measure.current_hgvs]) +\
                 clinvar_measure.all_names
     for name in all_names:
         repeat_type, transcript_id = infer_repeat_type_and_transcript_id(name)
