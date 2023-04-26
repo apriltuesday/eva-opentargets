@@ -4,10 +4,10 @@ import csv
 import multiprocessing
 from functools import lru_cache
 
-from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.ontology_uri import OntologyUri
-from eva_cttv_pipeline.trait_mapping.ols import build_ols_query
-from eva_cttv_pipeline.trait_mapping.utils import json_request
+from cmat import clinvar_xml_io
+from cmat.clinvar_xml_io.ontology_uri import OntologyUri
+from cmat.trait_mapping.ols import build_ols_query
+from cmat.trait_mapping.utils import json_request
 
 
 @lru_cache

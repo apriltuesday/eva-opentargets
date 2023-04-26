@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from eva_cttv_pipeline.evidence_string_generation.annotated_clinvar import generate_annotated_clinvar_xml
+from cmat.output_generation.annotated_clinvar import generate_annotated_clinvar_xml
 
 parser = argparse.ArgumentParser('Generates annotated ClinVar XML from ClinVar data and trait mappings')
 parser.add_argument('--clinvar-xml',  help='ClinVar XML release',                    required=True)

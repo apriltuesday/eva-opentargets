@@ -4,7 +4,7 @@ import argparse
 
 import pandas as pd
 
-from eva_cttv_pipeline.trait_mapping.ols import (
+from cmat.trait_mapping.ols import (
     get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo,
 )
 

@@ -9,13 +9,12 @@ def get_requires():
     return requires
 
 
-setup(name='eva_cttv_pipeline',
-      version='2.8.0',
+setup(name='cmat',
+      version='3.0.0-dev',
       packages=find_packages(),
       install_requires=get_requires(),
-      #! TBD: list as a dependency subpackage 'clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils'
       package_data={
-          'eva_cttv_pipeline': ['OT_SCHEMA_VERSION']
+          'cmat': ['OT_SCHEMA_VERSION']
       },
       tests_require=get_requires(),
       setup_requires=get_requires(),

@@ -4,8 +4,8 @@ import argparse
 import itertools
 from time import gmtime, strftime
 
-from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.ontology_uri import OntologyUri
+from cmat import clinvar_xml_io
+from cmat.clinvar_xml_io.ontology_uri import OntologyUri
 
 
 def write_zooma_record(clinvar_acc, variant_id, trait_name, ontology_uri, date, outfile):
