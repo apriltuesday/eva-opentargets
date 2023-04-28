@@ -45,7 +45,8 @@ def load_clinvar_data(clinvar_xml):
         # Repeat expansion events come in two forms: with explicit coordinates and allele sequences (CHROM/POS/REF/ALT),
         # or without them. In the first case we can compute the explicit variant length as len(ALT) - len(REF). In the
         # second case, which is more rare but still important, we have to resort to parsing HGVS-like variant names.
-        stats[measure.microsatellite_category] += 1
+        if measure.microsatellite_category:
+            stats[measure.microsatellite_category] += 1
         # Skip the record if it's a deletion or a short insertion
         if not measure.is_repeat_expansion_variant:
             continue
