@@ -9,14 +9,31 @@ def get_requires():
     return requires
 
 
+# More classifiers to be added (https://pypi.org/classifiers/ - e.g. Operating System)
+classifiers = [
+    "Natural Language :: English",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3"
+]
+
+# Extract the markdown description. Supported by PyPi in its native format
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='cmat',
       version='3.0.0-dev',
+      author_email='opentargets-clinvar@ebi.ac.uk',
+      url='https://github.com/EBIvariation/eva-opentargets',
       packages=find_packages(),
       install_requires=get_requires(),
       package_data={
           'cmat': ['OT_SCHEMA_VERSION']
       },
+      description='ClinVar Mapping and Annotation Toolkit',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       tests_require=get_requires(),
       setup_requires=get_requires(),
-      test_suite='tests'
+      test_suite='tests',
+      classifiers=classifiers
       )
