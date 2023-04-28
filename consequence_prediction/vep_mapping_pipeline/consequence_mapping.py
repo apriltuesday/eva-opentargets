@@ -83,6 +83,7 @@ def get_severity_ranking():
     return severity_ranking
 
 
+@lru_cache
 def load_consequence_severity_rank():
     """Loads severity rankings for consequence terms."""
     return {term: index for index, term in enumerate(get_severity_ranking())}
