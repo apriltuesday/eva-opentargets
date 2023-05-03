@@ -4,8 +4,8 @@ from itertools import zip_longest
 import pandas as pd
 
 from cmat.consequence_prediction.common.vep import query_vep, extract_consequences, deduplicate_list
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io import ClinVarDataset
-from eva_cttv_pipeline.clinvar_xml_io.clinvar_xml_io.hgvs_variant import HgvsVariant, VariantType, SequenceType
+from cmat.clinvar_xml_io import ClinVarDataset
+from cmat.clinvar_xml_io.hgvs_variant import HgvsVariant, VariantType, SequenceType
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
