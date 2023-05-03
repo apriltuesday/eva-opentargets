@@ -43,7 +43,7 @@ jobs:
       run: python -m pytest --cov=cmat --cov-append tests -k integration
 
     - name: End-to-end test of evidence string generation pipeline
-      run: bash tests/eva_cttv_pipeline/evidence_string_generation/test_pipeline.sh
+      run: bash tests/output_generation/test_pipeline.sh
     
     - name: Upload the coverage data to Coveralls
       env: 
