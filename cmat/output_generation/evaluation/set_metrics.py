@@ -21,6 +21,7 @@ class SetComparisonMetrics:
         # To keep counts in self.counts disjoint, add a separate field (calculated last) for both_present
         self.both_present_count = 0
         self.both_present_score = 0
+        # TODO add some more aggregate scores
 
     def count_and_score(self, cv_set, cmat_set):
         cv_set = set(cv_set)

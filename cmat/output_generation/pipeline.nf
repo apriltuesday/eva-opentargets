@@ -65,11 +65,13 @@ workflow {
         if (params.evaluate) {
             evalGeneMapping = mapGenes(clinvarXml)
             evalXrefMapping = mapXrefs(clinvarXml)
+            evalObsolete = checkObsolete(params.mappings)
         } else {
             evalGeneMapping = null
             evalXrefMapping = null
+            evalObsolete = null
         }
-        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping)
+        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping, evalObsolete)
     }
 }
 
@@ -249,6 +251,24 @@ process mapXrefs {
 }
 
 /*
+ * Check whether latest mappings are obsolete in EFO. Currently used only for evaluation.
+ */
+process checkObsolete {
+    input:
+    path latestMappings
+
+    output:
+    path "output_cmat_obsolete.tsv", emit: outputCmatMappings
+
+    script:
+    """
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_obsolete.py \
+        --latest-mappings ${latestMappings} \
+        --output-file output_cmat_obsolete.tsv
+    """
+}
+
+/*
  * Generate annotated ClinVar XML
  */
 process generateAnnotatedXml {
@@ -265,6 +285,7 @@ process generateAnnotatedXml {
     path consequenceMappings
     path evalGeneMapping
     path evalXrefMapping
+    path evalObsolete
 
     output:
     path "annotated_clinvar.xml.gz"
@@ -272,12 +293,13 @@ process generateAnnotatedXml {
     script:
     def evalGeneFlag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
     def evalXrefFlag = evalXrefMapping != null? "--eval-xref-file ${evalXrefMapping}" : ""
+    def evalObsoleteFlag = evalObsolete != null? "--eval-obsolete-file ${evalObsolete}" : ""
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
-        ${evalGeneFlag} ${evalXrefFlag} \
+        ${evalGeneFlag} ${evalXrefFlag} ${evalObsoleteFlag} \
         --output-xml annotated_clinvar.xml.gz
     """
 }

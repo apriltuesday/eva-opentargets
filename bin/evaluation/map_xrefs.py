@@ -2,42 +2,9 @@
 import argparse
 import csv
 import multiprocessing
-from functools import lru_cache
 
 from cmat import clinvar_xml_io
-from cmat.clinvar_xml_io.ontology_uri import OntologyUri
-from cmat.trait_mapping.ols import build_ols_query
-from cmat.trait_mapping.utils import json_request
-
-
-@lru_cache
-def get_synonyms(db, iden):
-    """Find synonyms (replacement terms or exact matches) for this ontology identifier using OLS."""
-    synonyms = set()
-    ontology_uri = OntologyUri(iden, db)
-    url = build_ols_query(str(ontology_uri))
-    json_response = json_request(url)
-    if json_response and '_embedded' in json_response:
-        for term in json_response['_embedded']['terms']:
-            # Get only EFO terms (even if imported)
-            if term['ontology_name'] == 'efo':
-                synonyms.add(term['iri'])
-                # Check whether current term is obsolete
-                if term['is_obsolete'] and term['term_replaced_by']:
-                    synonyms.add(term['term_replaced_by'])
-                # Also add exact matches
-                if 'exactMatch' in term['annotation']:
-                    synonyms.update(term['annotation']['exactMatch'])
-
-        # Synonyms contains current EFO-included URIs, convert to DB:ID style
-        synonyms = {OntologyUri.uri_to_curie(s) for s in synonyms}
-        # Filter out Nones
-        synonyms = {s for s in synonyms if s is not None}
-
-    if synonyms:
-        return ontology_uri.curie, synonyms
-    # If no synonyms, just return the original identifier as is
-    return ontology_uri.curie, {ontology_uri.curie}
+from cmat.output_generation.evaluation.ols_utils import fetch_eval_data
 
 
 def main(clinvar_xml, output_file):
@@ -50,7 +17,7 @@ def main(clinvar_xml, output_file):
     traits = list(traits)
     process_pool = multiprocessing.Pool(processes=24)
     annotated_traits = [
-        process_pool.apply(get_synonyms, args=(db, iden))
+        process_pool.apply(fetch_eval_data, kwds={'db_iden': (db, iden), 'include_neighbors': True})
         for db, iden in traits
     ]
     with open(output_file, 'w+') as f:
