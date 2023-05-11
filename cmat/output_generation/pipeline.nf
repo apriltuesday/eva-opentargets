@@ -65,13 +65,13 @@ workflow {
         if (params.evaluate) {
             evalGeneMapping = mapGenes(clinvarXml)
             evalXrefMapping = mapXrefs(clinvarXml)
-            evalObsolete = checkObsolete(params.mappings)
+            evalLatest = checkLatestMappings(params.mappings)
         } else {
             evalGeneMapping = null
             evalXrefMapping = null
-            evalObsolete = null
+            evalLatest = null
         }
-        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping, evalObsolete)
+        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping, evalLatest)
     }
 }
 
@@ -251,20 +251,20 @@ process mapXrefs {
 }
 
 /*
- * Check whether latest mappings are obsolete in EFO. Currently used only for evaluation.
+ * Check whether latest mappings are obsolete in EFO and find synonyms. Currently used only for evaluation.
  */
-process checkObsolete {
+process checkLatestMappings {
     input:
     path latestMappings
 
     output:
-    path "output_cmat_obsolete.tsv", emit: outputCmatMappings
+    path "output_eval_latest.tsv", emit: outputLatest
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_obsolete.py \
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_latest_mappings.py \
         --latest-mappings ${latestMappings} \
-        --output-file output_cmat_obsolete.tsv
+        --output-file output_eval_latest.tsv
     """
 }
 
@@ -285,7 +285,7 @@ process generateAnnotatedXml {
     path consequenceMappings
     path evalGeneMapping
     path evalXrefMapping
-    path evalObsolete
+    path evalLatest
 
     output:
     path "annotated_clinvar.xml.gz"
@@ -293,13 +293,13 @@ process generateAnnotatedXml {
     script:
     def evalGeneFlag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
     def evalXrefFlag = evalXrefMapping != null? "--eval-xref-file ${evalXrefMapping}" : ""
-    def evalObsoleteFlag = evalObsolete != null? "--eval-obsolete-file ${evalObsolete}" : ""
+    def evalLatestFlag = evalLatest != null? "--eval-latest-file ${evalLatest}" : ""
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
-        ${evalGeneFlag} ${evalXrefFlag} ${evalObsoleteFlag} \
+        ${evalGeneFlag} ${evalXrefFlag} ${evalLatestFlag} \
         --output-xml annotated_clinvar.xml.gz
     """
 }

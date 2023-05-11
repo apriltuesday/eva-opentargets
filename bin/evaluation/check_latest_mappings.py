@@ -21,7 +21,7 @@ def main(mapping_file, output_file):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Script to check if mappings are obsolete in EFO')
+    parser = argparse.ArgumentParser(description='Script to check if mappings are obsolete in EFO and find synonyms')
     parser.add_argument('--latest-mappings', required=True, help='Latest mappings file')
     parser.add_argument('--output-file', required=True, help='File to output dataframe')
     args = parser.parse_args()

@@ -18,7 +18,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
     consequence mappings on the fly."""
 
     def __init__(self, clinvar_xml, string_to_efo_mappings, variant_to_gene_mappings,
-                 eval_gene_mappings=None, eval_xref_mappings=None, eval_obsolete_mappings=None):
+                 eval_gene_mappings=None, eval_xref_mappings=None, eval_latest_mappings=None):
         super().__init__(clinvar_xml)
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_efo_mappings = string_to_efo_mappings
@@ -26,7 +26,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
         self.eval_gene_mappings = eval_gene_mappings
         self.eval_xref_mappings = eval_xref_mappings
-        self.eval_obsolete_mappings = eval_obsolete_mappings
+        self.eval_latest_mappings = eval_latest_mappings
         self.overall_counts = {}
         self.obsolete_counts = {}
         self.gene_metrics = None
@@ -102,33 +102,41 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             trait.add_efo_mappings(efo_ids)
 
             # Evaluation
-            if self.eval_xref_mappings:
+            if self.eval_xref_mappings and self.eval_latest_mappings:
+                for cv_id in existing_efo_ids:
+                    # Check whether existing ID is obsolete
+                    self.obsolete_counts['cv_total'] += 1
+                    if self.eval_xref_mappings[cv_id]['is_obsolete']:
+                        self.obsolete_counts['cv_obsolete'] += 1
+
                 annotated_efo_ids = set()
                 for efo_id in efo_ids:
 
                     # Check whether annotated ID is obsolete
                     self.obsolete_counts['cmat_total'] += 1
-                    if self.eval_obsolete_mappings[efo_id]['is_obsolete']:
+                    if self.eval_latest_mappings[efo_id]['is_obsolete']:
                         self.obsolete_counts['cmat_obsolete'] += 1
 
                     for cv_id in existing_efo_ids:
-                        # Check whether existing ID is obsolete
-                        self.obsolete_counts['cv_total'] += 1
-                        if self.eval_xref_mappings[cv_id]['is_obsolete']:
-                            self.obsolete_counts['cv_obsolete'] += 1
-
                         # Attempt to match an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
                         # a ClinVar ID (or vice versa), we use the synonymous ClinVar ID for comparison.
                         if (efo_id in self.eval_xref_mappings[cv_id]['synonyms']
-                                or cv_id in self.eval_obsolete_mappings[efo_id]['synonyms']):
+                                or cv_id in self.eval_latest_mappings[efo_id]['synonyms']):
+                            annotated_efo_ids.add(cv_id)
+
+                        # Similarly attempt to match based on neighbors
+                        # TODO include direction (parents vs. children) somehow
+                        if (efo_id in self.eval_xref_mappings[cv_id]['parents']
+                                or efo_id in self.eval_xref_mappings[cv_id]['children']):
                             annotated_efo_ids.add(cv_id)
                     # If didn't find anything, just use our ID, which will count as not matching.
                     if not annotated_efo_ids:
                         annotated_efo_ids.add(efo_id)
 
-                    # TODO somewhere here also check parents & children
-
                 self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
+                # Output mismatches for manual inspection
+                if existing_efo_ids and annotated_efo_ids and len(existing_efo_ids & annotated_efo_ids) == 0:
+                    print(f"{record.accession}\t{','.join(existing_efo_ids)}\t{','.join(annotated_efo_ids)}")
 
     def report(self):
         print('\nOverall counts (RCVs):')
@@ -196,7 +204,7 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
         return so_term.accession.replace('_', ':')
 
 
-def load_evaluation_obsolete(input_path):
+def load_evaluation_latest(input_path):
     mapping = {}
     with open(input_path) as input_file:
         for line in input_file:
@@ -242,20 +250,20 @@ def string_to_set(s):
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file,
-                                   eval_gene_file=None, eval_xref_file=None, eval_obsolete_file=None):
+                                   eval_gene_file=None, eval_xref_file=None, eval_latest_file=None):
     """Generate an annotated XML file of ClinVar RCVs based on EFO mappings file and gene mapping file (as documented in
     clinvar_to_evidence_strings)."""
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     # Need both files to do an evaluation
-    if eval_gene_file and eval_xref_file and eval_obsolete_file:
+    if eval_gene_file and eval_xref_file and eval_latest_file:
         eval_gene_mappings = load_evaluation_gene_mappings(eval_gene_file)
         eval_xref_mappings = load_evaluation_xref_mappings(eval_xref_file)
-        eval_obsolete_mappings = load_evaluation_obsolete(eval_obsolete_file)
+        eval_latest_mappings = load_evaluation_latest(eval_latest_file)
         dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings,
                                            eval_gene_mappings=eval_gene_mappings,
                                            eval_xref_mappings=eval_xref_mappings,
-                                           eval_obsolete_mappings=eval_obsolete_mappings)
+                                           eval_latest_mappings=eval_latest_mappings)
     else:
         dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_efo_mappings, variant_to_gene_mappings)
     dataset.write(output_xml_file)

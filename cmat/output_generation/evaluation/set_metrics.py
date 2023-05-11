@@ -1,13 +1,13 @@
 class SetComparisonMetrics:
     """Records counts and scores for comparing sets of arbitrary values from two sources (ClinVar and CMAT)."""
 
-    both_present_keys = [
+    match_keys = [
         'exact_match',
         'cmat_superset',
         'cmat_subset',
-        'divergent_match',
-        'mismatch'
+        'divergent_match'
     ]
+    both_present_keys = match_keys + ['mismatch']
     some_missing_keys = [
         'cv_missing',
         'cmat_missing',
@@ -18,10 +18,11 @@ class SetComparisonMetrics:
     def __init__(self):
         self.counts = {k: 0 for k in self.all_keys}
         self.scores = {k: 0 for k in self.all_keys}
-        # To keep counts in self.counts disjoint, add a separate field (calculated last) for both_present
+        # To keep counts in self.counts disjoint, add a separate field (calculated last) for both_present and match
+        self.match_count = 0
+        self.match_score = 0
         self.both_present_count = 0
         self.both_present_score = 0
-        # TODO add some more aggregate scores
 
     def count_and_score(self, cv_set, cmat_set):
         cv_set = set(cv_set)
@@ -54,6 +55,9 @@ class SetComparisonMetrics:
 
     def finalise(self):
         """Averages scores over counts, and also calculate both_present count & score."""
+        self.match_count = sum(self.counts[k] for k in self.match_keys)
+        if self.match_count:
+            self.match_score = sum(self.scores[k] for k in self.match_keys) / self.match_count
         self.both_present_count = sum(self.counts[k] for k in self.both_present_keys)
         if self.both_present_count:
             self.both_present_score = sum(self.scores[k] for k in self.both_present_keys) / self.both_present_count
@@ -66,7 +70,8 @@ class SetComparisonMetrics:
         self.pretty_print(
             ('Category', 'Count', 'Percent', 'F1 Score'),
             [(k, self.counts[k], f'{self.counts[k] / total:.1%}', f'{self.scores[k]:.2f}') for k in self.both_present_keys]
-            + [('=> both_present', self.both_present_count, f'{self.both_present_count / total:.1%}', f'{self.both_present_score:.2f}')]
+            + [('-->match', self.match_count, f'{self.match_count / total:.1%}', f'{self.match_score:.2f}')]
+            + [('-->both_present', self.both_present_count, f'{self.both_present_count / total:.1%}', f'{self.both_present_score:.2f}')]
             + [(k, self.counts[k], f'{self.counts[k] / total:.1%}', f'{self.scores[k]:.2f}') for k in self.some_missing_keys]
         )
 
