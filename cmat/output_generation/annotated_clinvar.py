@@ -86,30 +86,46 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
     def annotate_and_count_traits(self, record):
         for trait in record.traits_with_valid_names:
+            # Get current EFO ids
             existing_efo_ids = set()
-            annotated_efo_ids = set()
-            efo_ids = []
-            # TODO obsolete counts
-            for trait_name in trait.all_names:
-                efo_ids.extend(
-                    EfoMappedClinVarTrait.format_efo_id(efo_id)
-                    for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
-
             for db, iden, _ in trait.current_efo_aligned_xrefs:
                 curie = OntologyUri(iden, db).curie
                 if curie:
                     existing_efo_ids.add(curie)
+
+            # Add annotations
+            efo_ids = []
+            for trait_name in trait.all_names:
+                efo_ids.extend(
+                    EfoMappedClinVarTrait.format_efo_id(efo_id)
+                    for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
             trait.add_efo_mappings(efo_ids)
+
+            # Evaluation
             if self.eval_xref_mappings:
+                annotated_efo_ids = set()
                 for efo_id in efo_ids:
-                    # Attempt to match to an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
-                    # a ClinVar ID, we use the synonymous ClinVar ID for comparison.
+
+                    # Check whether annotated ID is obsolete
+                    self.obsolete_counts['cmat_total'] += 1
+                    if self.eval_obsolete_mappings[efo_id]['is_obsolete']:
+                        self.obsolete_counts['cmat_obsolete'] += 1
+
                     for cv_id in existing_efo_ids:
-                        if efo_id in self.eval_xref_mappings[cv_id]['synonyms']:
+                        # Check whether existing ID is obsolete
+                        self.obsolete_counts['cv_total'] += 1
+                        if self.eval_xref_mappings[cv_id]['is_obsolete']:
+                            self.obsolete_counts['cv_obsolete'] += 1
+
+                        # Attempt to match an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
+                        # a ClinVar ID (or vice versa), we use the synonymous ClinVar ID for comparison.
+                        if (efo_id in self.eval_xref_mappings[cv_id]['synonyms']
+                                or cv_id in self.eval_obsolete_mappings[efo_id]['synonyms']):
                             annotated_efo_ids.add(cv_id)
                     # If didn't find anything, just use our ID, which will count as not matching.
                     if not annotated_efo_ids:
                         annotated_efo_ids.add(efo_id)
+
                     # TODO somewhere here also check parents & children
 
                 self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
@@ -125,6 +141,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         if self.eval_xref_mappings:
             print('\nTrait mappings:')
             self.trait_metrics.report()
+            print('\nObsolete terms:')
+            self.print_counter(self.obsolete_counts)
         print()
 
     @staticmethod
@@ -183,9 +201,12 @@ def load_evaluation_obsolete(input_path):
     with open(input_path) as input_file:
         for line in input_file:
             cols = line.strip().split('\t')
-            if len(cols) != 2:
+            if len(cols) != 3:
                 continue
-            mapping[cols[0]] = cols[1] == 'True'
+            mapping[cols[0]] = {
+                'is_obsolete': cols[1] == 'True',
+                'synonyms': string_to_set(cols[2])
+            }
     return mapping
 
 

@@ -10,7 +10,7 @@ from cmat.output_generation.evaluation.ols_utils import fetch_eval_data
 def main(mapping_file, output_file):
     """Load mapping file, map identifiers to synonyms in OLS, and dump results to TSV."""
     mappings = load_efo_mapping(mapping_file)
-    all_uris = [uri for uri, _ in mappings.values()]
+    all_uris = [uri for v in mappings.values() for uri, _ in v]
     process_pool = multiprocessing.Pool(processes=24)
     annotated_traits = [
         process_pool.apply(fetch_eval_data, kwds={'uri': uri, 'include_neighbors': False})
@@ -25,4 +25,4 @@ if __name__ == '__main__':
     parser.add_argument('--latest-mappings', required=True, help='Latest mappings file')
     parser.add_argument('--output-file', required=True, help='File to output dataframe')
     args = parser.parse_args()
-    main(args.clinvar_xml, args.output_file)
+    main(args.latest_mappings, args.output_file)
