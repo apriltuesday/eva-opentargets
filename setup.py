@@ -9,15 +9,31 @@ def get_requires():
     return requires
 
 
-setup(name='eva_cttv_pipeline',
-      version='2.8.0',
+# More classifiers to be added (https://pypi.org/classifiers/ - e.g. Operating System)
+classifiers = [
+    "Natural Language :: English",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3"
+]
+
+# Extract the markdown description. Supported by PyPi in its native format
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+setup(name='cmat',
+      version='3.0.0-dev',
+      author_email='opentargets-clinvar@ebi.ac.uk',
+      url='https://github.com/EBIvariation/eva-opentargets',
       packages=find_packages(),
       install_requires=get_requires(),
-      #! TBD: list as a dependency subpackage 'clinvar_xml_utils.clinvar_xml_utils.clinvar_xml_utils'
       package_data={
-          'eva_cttv_pipeline': ['OT_SCHEMA_VERSION']
+          'cmat': ['OT_SCHEMA_VERSION']
       },
+      description='ClinVar Mapping and Annotation Toolkit',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       tests_require=get_requires(),
       setup_requires=get_requires(),
-      test_suite='tests'
+      test_suite='tests',
+      classifiers=classifiers
       )

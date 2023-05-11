@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
+from cmat.output_generation import clinvar_to_evidence_strings
 
 parser = argparse.ArgumentParser('Generates Open Targets evidence strings from ClinVar data and trait mappings')
 parser.add_argument('--clinvar-xml',  help='ClinVar XML release',                    required=True)

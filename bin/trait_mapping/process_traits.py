@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-import eva_cttv_pipeline.trait_mapping.main as main
+import cmat.trait_mapping.main as main
 
 
 def launch():

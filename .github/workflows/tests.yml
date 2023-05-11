@@ -36,17 +36,14 @@ jobs:
         echo "/tmp/nextflow" >> $GITHUB_PATH
         cd -
 
-    - name: Unit tests for clinvar_xml_io
-      run: python -m pytest --cov=eva_cttv_pipeline eva_cttv_pipeline/clinvar_xml_io/tests
+    - name: Unit tests
+      run: python -m pytest --cov=cmat -k "not integration"
 
-    - name: Unit tests for all pipelines
-      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction --cov-append tests -k "not integration"
-
-    - name: Integration tests for all pipelines
-      run: python -m pytest --cov=eva_cttv_pipeline --cov=consequence_prediction --cov-append tests -k integration
+    - name: Integration tests
+      run: python -m pytest --cov=cmat --cov-append tests -k integration
 
     - name: End-to-end test of evidence string generation pipeline
-      run: bash tests/eva_cttv_pipeline/evidence_string_generation/test_pipeline.sh
+      run: bash tests/output_generation/test_pipeline.sh
     
     - name: Upload the coverage data to Coveralls
       env: 

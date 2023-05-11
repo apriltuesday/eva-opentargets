@@ -3,8 +3,8 @@ import argparse
 
 import pandas as pd
 
-from consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info
-from eva_cttv_pipeline.clinvar_xml_io import clinvar_xml_io
+from cmat.consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info
+from cmat import clinvar_xml_io
 
 
 def load_clinvar_data(clinvar_xml):
