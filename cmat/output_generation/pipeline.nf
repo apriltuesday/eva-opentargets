@@ -65,7 +65,7 @@ workflow {
         if (params.evaluate) {
             evalGeneMapping = mapGenes(clinvarXml)
             evalXrefMapping = mapXrefs(clinvarXml)
-            evalLatest = checkLatestMappings(params.mappings)
+            evalLatest = checkLatestMappings()
         } else {
             evalGeneMapping = null
             evalXrefMapping = null
@@ -254,16 +254,13 @@ process mapXrefs {
  * Check whether latest mappings are obsolete in EFO and find synonyms. Currently used only for evaluation.
  */
 process checkLatestMappings {
-    input:
-    path latestMappings
-
     output:
     path "output_eval_latest.tsv", emit: outputLatest
 
     script:
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_latest_mappings.py \
-        --latest-mappings ${latestMappings} \
+        --latest-mappings ${params.mappings} \
         --output-file output_eval_latest.tsv
     """
 }
