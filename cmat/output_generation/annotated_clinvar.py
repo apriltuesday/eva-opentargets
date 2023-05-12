@@ -32,6 +32,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.gene_metrics = None
         self.conseq_metrics = None
         self.trait_metrics = None
+        self.mismatches_file = None
 
     def __iter__(self):
         # Initialise counts
@@ -49,6 +50,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.gene_metrics = SetComparisonMetrics()
         self.conseq_metrics = SetComparisonMetrics()
         self.trait_metrics = SetComparisonMetrics()
+        self.mismatches_file = open('mismatches.tsv', 'w+')
+        self.mismatches_file.write('RCV\tCV\tCMAT\n')
 
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
@@ -59,6 +62,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.gene_metrics.finalise()
         self.conseq_metrics.finalise()
         self.trait_metrics.finalise()
+        self.mismatches_file.close()
 
     def annotate(self, record):
         self.overall_counts['total'] += 1
@@ -136,7 +140,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                 self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
                 # Output mismatches for manual inspection
                 if existing_efo_ids and annotated_efo_ids and len(existing_efo_ids & annotated_efo_ids) == 0:
-                    print(f"{record.accession}\t{','.join(existing_efo_ids)}\t{','.join(annotated_efo_ids)}")
+                    self.mismatches_file.write(f"{record.accession}\t{','.join(existing_efo_ids)}\t{','.join(annotated_efo_ids)}\n")
 
     def report(self):
         print('\nOverall counts (RCVs):')
