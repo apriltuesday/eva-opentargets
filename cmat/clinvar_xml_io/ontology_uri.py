@@ -42,6 +42,7 @@ class OntologyUri:
             "efo": "EFO",
             "hp": "HP",
             "mondo": "MONDO",
+            "go": "GO",
         }
         if not any(x in uri.lower() for x in uri_db_to_curie_db.keys()):
             return None
