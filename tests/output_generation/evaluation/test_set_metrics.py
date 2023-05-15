@@ -1,4 +1,4 @@
-from cmat.output_generation.set_metrics import SetComparisonMetrics
+from cmat.output_generation.evaluation.set_metrics import SetComparisonMetrics
 
 
 # Tolerance for float comparisons

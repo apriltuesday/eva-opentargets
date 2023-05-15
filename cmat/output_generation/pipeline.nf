@@ -65,11 +65,13 @@ workflow {
         if (params.evaluate) {
             evalGeneMapping = mapGenes(clinvarXml)
             evalXrefMapping = mapXrefs(clinvarXml)
+            evalLatest = checkLatestMappings()
         } else {
             evalGeneMapping = null
             evalXrefMapping = null
+            evalLatest = null
         }
-        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping)
+        generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping, evalLatest)
     }
 }
 
@@ -249,6 +251,21 @@ process mapXrefs {
 }
 
 /*
+ * Check whether latest mappings are obsolete in EFO and find synonyms. Currently used only for evaluation.
+ */
+process checkLatestMappings {
+    output:
+    path "output_eval_latest.tsv", emit: outputLatest
+
+    script:
+    """
+    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_latest_mappings.py \
+        --latest-mappings ${params.mappings} \
+        --output-file output_eval_latest.tsv
+    """
+}
+
+/*
  * Generate annotated ClinVar XML
  */
 process generateAnnotatedXml {
@@ -265,6 +282,7 @@ process generateAnnotatedXml {
     path consequenceMappings
     path evalGeneMapping
     path evalXrefMapping
+    path evalLatest
 
     output:
     path "annotated_clinvar.xml.gz"
@@ -272,12 +290,13 @@ process generateAnnotatedXml {
     script:
     def evalGeneFlag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
     def evalXrefFlag = evalXrefMapping != null? "--eval-xref-file ${evalXrefMapping}" : ""
+    def evalLatestFlag = evalLatest != null? "--eval-latest-file ${evalLatest}" : ""
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
-        ${evalGeneFlag} ${evalXrefFlag} \
+        ${evalGeneFlag} ${evalXrefFlag} ${evalLatestFlag} \
         --output-xml annotated_clinvar.xml.gz
     """
 }
