@@ -92,7 +92,24 @@ def is_in_efo(uri: str) -> bool:
     Checks whether given ontology uri is a valid term in EFO.
 
     :param uri: Ontology uri to use in querying EFO using OLS
-    :return: Boolean value, true if ontology uri is valid and non-obsolete term in EFO
+    :return: Boolean value, true if ontology uri is valid term in EFO
     """
     response = ols_efo_query(uri)
     return response.status_code == 200
+
+
+@lru_cache(maxsize=16384)
+def get_replacement_term(uri: str) -> str:
+    """
+    Finds replacement term in EFO (if present) for the given ontology uri.
+
+    :param uri: Ontology uri to use in querying EFO using OLS
+    :return: Replacement term URI or empty string if not obsolete
+    """
+    response = ols_efo_query(uri)
+    if response.status_code != 200:
+        return ""
+    response_json = response.json()
+    if response_json["term_replaced_by"] is not None:
+        return response_json["term_replaced_by"]
+    return ""
