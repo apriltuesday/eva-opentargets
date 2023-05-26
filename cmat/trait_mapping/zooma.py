@@ -108,7 +108,7 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     for zooma_result in zooma_result_list:
         for zooma_mapping in zooma_result.mapping_list:
             label = get_ontology_label_from_ols(zooma_mapping.uri)
-            if label is not None:
+            if label != '':
                 zooma_mapping.ontology_label = label
             else:
                 # If no label is returned (because OLS failed to provide it), keep the existing one from ZOOMA

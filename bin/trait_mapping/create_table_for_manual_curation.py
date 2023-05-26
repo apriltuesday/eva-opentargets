@@ -11,7 +11,7 @@ from cmat.trait_mapping.ols import (
 
 def find_previous_mapping_and_replacement(trait_name, previous_mappings):
     if trait_name not in previous_mappings:
-        return ''
+        return '', ''
     uri = previous_mappings[trait_name]
     label = get_ontology_label_from_ols(uri)
     trait_status = get_trait_status(uri)

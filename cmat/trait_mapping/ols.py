@@ -33,13 +33,13 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
     json_response = json_request(url)
 
     if not json_response:
-        return None
+        return ''
 
     # If the '_embedded' section is missing from the response, it means that the term is not found in OLS
     if '_embedded' not in json_response:
         if '/medgen/' not in url and '/omim/' not in url:
             logger.warning('OLS queried OK but did not return any results for URL {}'.format(url))
-        return None
+        return ''
 
     # Go through all terms found by the requested identifier and try to find the one where the _identifier_ and the
     # _term_ come from the same ontology (marked by a special flag). Example of such a situation would be a MONDO term
@@ -51,7 +51,7 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
 
     if '/medgen/' not in url and '/omim/' not in url:
         logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
-    return None
+    return ''
 
 
 def double_encode_uri(uri: str) -> str:

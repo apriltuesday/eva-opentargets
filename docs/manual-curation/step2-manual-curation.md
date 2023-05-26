@@ -3,7 +3,7 @@
 The goals of the manual curation:
 * All traits which are linked to NT expansion (nucleotide repeat expansion) variants must be curated. Those are marked as "NT expansion" in the “Notes” column.
 * All traits with occurrence ≥ **10** must be curated. Additionally, if there are less than **200** such terms, then the top 200 terms must be curated.
-* _Suggested previous mapping_ traits should be checked for any terms that have become obsolete since the last iteration. This can be done by filtering then searching for the string EFO\_OBSOLETE
+* _Suggested previous mapping_ traits should be checked for any terms that have become obsolete since the last iteration. These will be colored red and have a _suggested replacement mapping_ provided in the appropriate column.
 * For the rest of the traits, we curate as many as possible.
 
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/ORDO/MONDO terms will also be in EFO but some are not. These can be imported to EFO using the Webulous submission service.
@@ -27,8 +27,8 @@ Curation should be done by subsequently applying filters to appropriate columns,
 
 * 1\. **There is a previously assigned mapping for this trait.** All of these are the decisions that we made in the past, so we trust them (to an extent). Copy and paste previously used mappings into “Mapping to use”. Then review them according to the following steps.
   * 1.1. **The previously assigned mapping is in EFO**
-    * 1.1.1. **The previously assigned mapping is in EFO and is exact.** Mark as finished immediately. (It's extremely unlikely that a better mapping could be found).
-    * 1.1.2. **The previously assigned mapping is in EFO and IS NOT exact.** Review the mappings to see if a better (more accurate/specific) mapping is available. Then mark as finished.
+    * 1.1.1. **The previously assigned mapping is in EFO and is exact and current.** Mark as finished immediately. (It's extremely unlikely that a better mapping could be found).
+    * 1.1.2. **The previously assigned mapping is in EFO and IS NOT exact or current.** Review the mappings to see if a better (more accurate/specific, non-obsolete) mapping is available. Then mark as finished.
   * 1.2. **The previously assigned mapping is not contained in EFO.** We need to either find a mapping which is already in EFO, or import these terms into EFO.
     * 1.2.1. **The previously used mapping IS NOT contained in EFO and is exact.** These are good candidates to mark as finished and them import in EFO afterwards. However, quickly check whether there are non-exact matches which are already in EFO are are as good as exact mappings.
       * E. g. if the exact mapping is “erythrocytosis 6, familial” and not in EFO, but there is an inexact mapping “familial erythrocytosis 6” which *is* in EFO, we should use the inexact mapping.
