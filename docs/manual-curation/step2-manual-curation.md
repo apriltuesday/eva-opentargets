@@ -3,7 +3,7 @@
 The goals of the manual curation:
 * All traits which are linked to NT expansion (nucleotide repeat expansion) variants must be curated. Those are marked as "NT expansion" in the “Notes” column.
 * All traits with occurrence ≥ **10** must be curated. Additionally, if there are less than **200** such terms, then the top 200 terms must be curated.
-* _Suggested previous mapping_ traits should be checked for any terms that have become obsolete since the last iteration. These will be colored red and have a _suggested replacement mapping_ provided in the appropriate column.
+* _Suggested previous mapping_ traits should be checked for any terms that have become obsolete since the last iteration. These will be colored red and have a _suggested replacement mapping_ provided in the appropriate column. If no replacement is provided, curate as usual.
 * For the rest of the traits, we curate as many as possible.
 
 Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/ORDO/MONDO terms will also be in EFO but some are not. These can be imported to EFO using the Webulous submission service.
