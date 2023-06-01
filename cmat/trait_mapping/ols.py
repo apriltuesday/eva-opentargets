@@ -3,8 +3,9 @@ import logging
 import requests
 import urllib
 
-from cmat.trait_mapping.utils import json_request
+from retry import retry
 
+from cmat.trait_mapping.utils import json_request, ServerError
 
 OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
 # The setting for local OLS installation should be uncommented if necessary. Note that the link
@@ -33,13 +34,13 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
     json_response = json_request(url)
 
     if not json_response:
-        return ''
+        return None
 
     # If the '_embedded' section is missing from the response, it means that the term is not found in OLS
     if '_embedded' not in json_response:
         if '/medgen/' not in url and '/omim/' not in url:
             logger.warning('OLS queried OK but did not return any results for URL {}'.format(url))
-        return ''
+        return None
 
     # Go through all terms found by the requested identifier and try to find the one where the _identifier_ and the
     # _term_ come from the same ontology (marked by a special flag). Example of such a situation would be a MONDO term
@@ -51,7 +52,7 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
 
     if '/medgen/' not in url and '/omim/' not in url:
         logger.warning('OLS queried OK, but there is no defining ontology in its results for URL {}'.format(url))
-    return ''
+    return None
 
 
 def double_encode_uri(uri: str) -> str:
@@ -59,6 +60,7 @@ def double_encode_uri(uri: str) -> str:
     return urllib.parse.quote(urllib.parse.quote(uri, safe=""), safe="")
 
 
+@retry(exceptions=(ConnectionError, ServerError), logger=logger, tries=8, delay=2, backoff=1.2, jitter=(1, 3))
 def ols_efo_query(uri: str) -> requests.Response:
     """
     Query EFO using OLS for a given ontology uri, returning the response from the request.
@@ -67,8 +69,11 @@ def ols_efo_query(uri: str) -> requests.Response:
     :return: Response from OLS
     """
     double_encoded_uri = double_encode_uri(uri)
-    return requests.get(
+    response = requests.get(
         "{}/api/ontologies/efo/terms/{}".format(OLS_EFO_SERVER, double_encoded_uri))
+    if 500 <= response.status_code < 600:
+        raise ServerError
+    return response
 
 
 @lru_cache(maxsize=16384)

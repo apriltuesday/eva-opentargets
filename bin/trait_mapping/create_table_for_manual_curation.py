@@ -13,7 +13,7 @@ def find_previous_mapping_and_replacement(trait_name, previous_mappings):
     if trait_name not in previous_mappings:
         return '', ''
     uri = previous_mappings[trait_name]
-    label = get_ontology_label_from_ols(uri)
+    label = get_ontology_label(uri)
     trait_status = get_trait_status(uri)
     trait_string = '|'.join([uri, label, 'NOT_SPECIFIED', 'previously-used', trait_status])
     replacement_string = find_replacement_mapping(uri)
@@ -24,7 +24,7 @@ def find_replacement_mapping(previous_uri):
     replacement_uri = get_replacement_term(previous_uri)
     if not replacement_uri:
         return ''
-    label = get_ontology_label_from_ols(replacement_uri)
+    label = get_ontology_label(replacement_uri)
     trait_status = get_trait_status(replacement_uri)
     trait_string = '|'.join([replacement_uri, label, 'NOT_SPECIFIED', 'replacement', trait_status])
     return trait_string
@@ -35,6 +35,11 @@ def find_exact_mapping(trait_name, mappings):
         if mapping.lower().split('|')[1] == trait_name:
             return mapping
     return ''
+
+
+def get_ontology_label(uri):
+    label = get_ontology_label_from_ols(uri)
+    return label if label is not None else ''
 
 
 def get_trait_status(uri):

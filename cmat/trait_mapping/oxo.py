@@ -180,7 +180,7 @@ def get_oxo_results_from_response(oxo_response: dict) -> list:
             uri = str(oxo_mapping.uri)
 
             ontology_label = get_ontology_label_from_ols(uri)
-            if ontology_label != '':
+            if ontology_label is not None:
                 oxo_mapping.ontology_label = ontology_label
 
             uri_is_current_and_in_efo = is_current_and_in_efo(uri)
