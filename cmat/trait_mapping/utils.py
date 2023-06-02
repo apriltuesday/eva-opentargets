@@ -1,7 +1,13 @@
 import logging
 import requests
+from requests import HTTPError
 from retry import retry
+
 logger = logging.getLogger(__package__)
+
+
+class ServerError(HTTPError):
+    """A server-side error occurred."""
 
 
 @retry(exceptions=(ConnectionError, requests.RequestException), logger=logger,

@@ -3,8 +3,9 @@ import logging
 import requests
 import urllib
 
-from cmat.trait_mapping.utils import json_request
+from retry import retry
 
+from cmat.trait_mapping.utils import json_request, ServerError
 
 OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
 # The setting for local OLS installation should be uncommented if necessary. Note that the link
@@ -59,6 +60,7 @@ def double_encode_uri(uri: str) -> str:
     return urllib.parse.quote(urllib.parse.quote(uri, safe=""), safe="")
 
 
+@retry(exceptions=(ConnectionError, ServerError), logger=logger, tries=8, delay=2, backoff=1.2, jitter=(1, 3))
 def ols_efo_query(uri: str) -> requests.Response:
     """
     Query EFO using OLS for a given ontology uri, returning the response from the request.
@@ -67,8 +69,11 @@ def ols_efo_query(uri: str) -> requests.Response:
     :return: Response from OLS
     """
     double_encoded_uri = double_encode_uri(uri)
-    return requests.get(
+    response = requests.get(
         "{}/api/ontologies/efo/terms/{}".format(OLS_EFO_SERVER, double_encoded_uri))
+    if 500 <= response.status_code < 600:
+        raise ServerError
+    return response
 
 
 @lru_cache(maxsize=16384)
@@ -92,7 +97,24 @@ def is_in_efo(uri: str) -> bool:
     Checks whether given ontology uri is a valid term in EFO.
 
     :param uri: Ontology uri to use in querying EFO using OLS
-    :return: Boolean value, true if ontology uri is valid and non-obsolete term in EFO
+    :return: Boolean value, true if ontology uri is valid term in EFO
     """
     response = ols_efo_query(uri)
     return response.status_code == 200
+
+
+@lru_cache(maxsize=16384)
+def get_replacement_term(uri: str) -> str:
+    """
+    Finds replacement term in EFO (if present) for the given ontology uri.
+
+    :param uri: Ontology uri to use in querying EFO using OLS
+    :return: Replacement term URI or empty string if not obsolete
+    """
+    response = ols_efo_query(uri)
+    if response.status_code != 200:
+        return ""
+    response_json = response.json()
+    if response_json["term_replaced_by"] is not None:
+        return response_json["term_replaced_by"]
+    return ""

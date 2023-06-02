@@ -5,22 +5,28 @@ import argparse
 import pandas as pd
 
 from cmat.trait_mapping.ols import (
-    get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo,
+    get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo, get_replacement_term,
 )
 
 
-def find_previous_mapping(trait_name, previous_mappings):
+def find_previous_mapping_and_replacement(trait_name, previous_mappings):
     if trait_name not in previous_mappings:
-        return ''
+        return '', ''
     uri = previous_mappings[trait_name]
-    label = get_ontology_label_from_ols(uri)
-    uri_is_current_and_in_efo = is_current_and_in_efo(uri)
-    uri_in_efo = is_in_efo(uri)
-    if uri_in_efo:
-        trait_status = 'EFO_CURRENT' if uri_is_current_and_in_efo else 'EFO_OBSOLETE'
-    else:
-        trait_status = 'NOT_CONTAINED'
+    label = get_ontology_label(uri)
+    trait_status = get_trait_status(uri)
     trait_string = '|'.join([uri, label, 'NOT_SPECIFIED', 'previously-used', trait_status])
+    replacement_string = find_replacement_mapping(uri)
+    return trait_string, replacement_string
+
+
+def find_replacement_mapping(previous_uri):
+    replacement_uri = get_replacement_term(previous_uri)
+    if not replacement_uri:
+        return ''
+    label = get_ontology_label(replacement_uri)
+    trait_status = get_trait_status(replacement_uri)
+    trait_string = '|'.join([replacement_uri, label, 'NOT_SPECIFIED', 'replacement', trait_status])
     return trait_string
 
 
@@ -29,6 +35,21 @@ def find_exact_mapping(trait_name, mappings):
         if mapping.lower().split('|')[1] == trait_name:
             return mapping
     return ''
+
+
+def get_ontology_label(uri):
+    label = get_ontology_label_from_ols(uri)
+    return label if label is not None else ''
+
+
+def get_trait_status(uri):
+    uri_is_current_and_in_efo = is_current_and_in_efo(uri)
+    uri_in_efo = is_in_efo(uri)
+    if uri_in_efo:
+        trait_status = 'EFO_CURRENT' if uri_is_current_and_in_efo else 'EFO_OBSOLETE'
+    else:
+        trait_status = 'NOT_CONTAINED'
+    return trait_status
 
 
 if __name__ == '__main__':
@@ -66,9 +87,9 @@ if __name__ == '__main__':
             notes = f'"{notes}\n{previous_comments[trait_name]}"'
         # Use maximum of 50 mappings to improve Google Sheets performance
         mappings = fields[3:53]
-        previous_mapping = find_previous_mapping(trait_name, previous_mappings)
+        previous_mapping, replacement_mapping = find_previous_mapping_and_replacement(trait_name, previous_mappings)
         exact_mapping = find_exact_mapping(trait_name, mappings)
-        rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping] + mappings)
+        rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping, replacement_mapping] + mappings)
 
     rows.sort(key=lambda x: (x[2], int(x[1])), reverse=True)
     with open(args.output, 'w') as outfile:
