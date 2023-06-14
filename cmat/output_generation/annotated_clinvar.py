@@ -97,12 +97,12 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                 if curie:
                     existing_efo_ids.add(curie)
 
-            # Add annotations
-            efo_ids = []
-            for trait_name in trait.all_names:
-                efo_ids.extend(
-                    EfoMappedClinVarTrait.format_efo_id(efo_id)
-                    for efo_id, efo_label in self.string_to_efo_mappings.get(trait_name.lower(), []))
+            # Add annotations - only based on preferred name
+            efo_ids = [
+                EfoMappedClinVarTrait.format_efo_id(efo_id)
+                for efo_id, efo_label
+                in self.string_to_efo_mappings.get(trait.preferred_or_other_valid_name.lower(), [])
+            ]
             trait.add_efo_mappings(efo_ids)
 
             # Evaluation
