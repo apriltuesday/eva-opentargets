@@ -20,7 +20,7 @@ def test_get_zooma_results_for_trait():
                                            'accuracy': None, 'generator': 'ZOOMA', 'annotator': 'ZOOMA',
                                            'evidence': 'ZOOMA_INFERRED_FROM_CURATED',
                                            'annotationDate': 1502287637052}, '_links': {'olslinks': [
-            {'href': 'https://www.ebi.ac.uk/ols/api/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FHP_0001892',
+            {'href': 'https://www.ebi.ac.uk/ols4/api/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FHP_0001892',
              'semanticTag': 'http://purl.obolibrary.org/obo/HP_0001892'}]}, 'annotatedBiologicalEntities': [],
                             'annotatedProperty': {
                                 'uri': 'http://rdf.ebi.ac.uk/resource/zooma/8EAA9C1095AD18A90D557D7086084B64',

@@ -15,7 +15,7 @@ ontology_to_ols = {
 }
 
 # OLS url to query for a term details
-ols_url_template = 'https://www.ebi.ac.uk/ols/api/ontologies/{ontology}/terms?iri={term}'
+ols_url_template = 'https://www.ebi.ac.uk/ols4/api/ontologies/{ontology}/terms?iri={term}'
 
 # OxO url to query ontology cross-references
 oxo_url_template = 'https://www.ebi.ac.uk/spot/oxo/api/search?ids={curie}&distance=1&size=500'
