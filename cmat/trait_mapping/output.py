@@ -1,9 +1,10 @@
 import csv
+from collections import Counter
 
 from cmat.trait_mapping.trait import Trait
 
 
-def output_trait_mapping(trait: Trait, mapping_writer: csv.writer):
+def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_source_counts: Counter):
     """
     Write any finished ontology mappings for a trait to a csv file writer.
 
@@ -11,6 +12,13 @@ def output_trait_mapping(trait: Trait, mapping_writer: csv.writer):
     :param mapping_writer: A csv.writer to write the finished mappings
     """
     for ontology_entry in trait.finished_mapping_set:
+        # Need the corresponding Zooma result
+        zooma_mapping = None
+        for zm in trait.zooma_result_list:
+            if ontology_entry.uri == zm.uri and ontology_entry.label == zm.ontology_label:
+                zooma_mapping = zm
+        if zooma_mapping:
+            finished_source_counts[zooma_mapping.source.lower()] += 1
         mapping_writer.writerow([trait.name, ontology_entry.uri, ontology_entry.label])
 
 
@@ -55,7 +63,7 @@ def output_for_curation(trait: Trait, curation_writer: csv.writer):
     curation_writer.writerow(output_row)
 
 
-def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer):
+def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer, finished_source_counts: Counter):
     """
     Output finished ontology mappings of a trait, or non-finished mappings (if any) for curation.
 
@@ -64,6 +72,6 @@ def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.
     :param curation_writer: A csv.writer to write non-finished ontology mappings for manual curation
     """
     if trait.is_finished:
-        output_trait_mapping(trait, mapping_writer)
+        output_trait_mapping(trait, mapping_writer, finished_source_counts)
     else:
         output_for_curation(trait, curation_writer)
