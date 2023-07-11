@@ -14,9 +14,12 @@ def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_sour
     for ontology_entry in trait.finished_mapping_set:
         # Need the corresponding Zooma result
         zooma_mapping = None
-        for zm in trait.zooma_result_list:
-            if ontology_entry.uri == zm.uri and ontology_entry.label == zm.ontology_label:
-                zooma_mapping = zm
+        for zooma_result in trait.zooma_result_list:
+            for zm in zooma_result.mapping_list:
+                if (zm.in_efo and zm.is_current and ontology_entry.uri == zm.uri
+                        and ontology_entry.label == zm.ontology_label):
+                    zooma_mapping = zm
+                    break
         if zooma_mapping:
             finished_source_counts[zooma_mapping.source.lower()] += 1
         mapping_writer.writerow([trait.name, ontology_entry.uri, ontology_entry.label])
