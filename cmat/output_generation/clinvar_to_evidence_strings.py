@@ -149,7 +149,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
         # origins, (2) EFO mappings, and (3) genes where the variant has effect.
         grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
-        consequence_types = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+        consequence_types, _ = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
         grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                          string_to_efo_mappings)
 
@@ -290,7 +290,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     # expansion variants will be fed to VEP and will receive incorrect consequence annotations. By using RCV pairing
     # first, we prioritise results of the variant expansion pipeline over the general VEP pipeline.
     if clinvar_record_measure.clinvar_record.accession in consequence_type_dict:
-        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession]
+        return consequence_type_dict[clinvar_record_measure.clinvar_record.accession], 'REPEAT'
 
     # If RCV is not present in the consequences file, pair using full variant description (CHROM:POS:REF:ALT)
     if clinvar_record_measure.has_complete_coordinates:
@@ -302,7 +302,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
         if IUPAC_AMBIGUOUS_SEQUENCE.search(clinvar_record_measure.vcf_ref + clinvar_record_measure.vcf_alt):
             logger.warning(f'Observed variant with non-ACGT allele sequences: {coord_id}')
         if coord_id in consequence_type_dict:
-            return consequence_type_dict[coord_id]
+            return consequence_type_dict[coord_id], 'SIMPLE'
 
     # If there's also no complete coordinates, pair using HGVS
     if clinvar_record_measure.preferred_current_hgvs:
@@ -311,12 +311,12 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
             consequences = consequence_type_dict[hgvs_id]
             if len(consequences) > MAX_TARGET_GENES:
                 logger.warning(f'Skipping variant {hgvs_id} with {len(consequences)} target genes')
-                return []
-            return consequences
+                return [], 'NONE'
+            return consequences, 'COMPLEX'
 
     # Previously, the pairing was also attempted based on rsID and nsvID. This is not reliable because of lack of allele
     # specificity, and has been removed.
-    return []
+    return [], 'NONE'
 
 
 def write_string_list_to_file(string_list, filename):

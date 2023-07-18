@@ -124,18 +124,18 @@ class TestGetConsequenceTypes:
 
     def test_get_consequence_types(self):
         assert clinvar_to_evidence_strings.get_consequence_types(self.test_crm, self.consequence_type_dict)[
-                   0] == CT.ConsequenceType('ENSG00000139988', CT.SoTerm('missense_variant')), ''
-        assert clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {}) == []
+                   0][0] == CT.ConsequenceType('ENSG00000139988', CT.SoTerm('missense_variant')), ''
+        assert clinvar_to_evidence_strings.get_consequence_types(self.test_crm, {})[0] == []
 
     def test_structural_variant_consequences(self):
         structural_crm = config.get_test_clinvar_record('test_structural_record.xml.gz').measure
         consequences = [CT.ConsequenceType('ENSG00000075151', CT.SoTerm('splice_polypyrimidine_tract_variant'))]
         consequence_dict = {structural_crm.preferred_current_hgvs.text: consequences}
-        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, consequence_dict) == consequences
+        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, consequence_dict) == (consequences, 'COMPLEX')
 
         # don't get consequences if there are more than MAX_TARGET_GENES
         long_consequence_dict = {structural_crm.preferred_current_hgvs.text: consequences * (MAX_TARGET_GENES+1)}
-        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, long_consequence_dict) == []
+        assert clinvar_to_evidence_strings.get_consequence_types(structural_crm, long_consequence_dict) == ([], 'NONE')
 
 
 class TestGenerateEvidenceStringTest:

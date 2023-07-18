@@ -31,6 +31,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.obsolete_counts = {}
         self.gene_metrics = None
         self.conseq_metrics = None
+        # Gene and consequence metrics, split by variant category
+        self.simple_variant_metrics = None
+        self.repeat_variant_metrics = None
+        self.complex_variant_metrics = None
+
         self.trait_metrics = None
         self.mismatches_file = None
 
@@ -50,6 +55,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         }
         self.gene_metrics = SetComparisonMetrics()
         self.conseq_metrics = SetComparisonMetrics()
+        # First counter is genes, second is consequences
+        self.simple_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+        self.repeat_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+        self.complex_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+
         self.trait_metrics = SetComparisonMetrics()
         self.mismatches_file = open('mismatches.tsv', 'w+')
         self.mismatches_file.write('RCV\tCV\tCMAT\n')
@@ -63,6 +73,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.gene_metrics.finalise()
         self.conseq_metrics.finalise()
         self.trait_metrics.finalise()
+        for metrics in self.simple_variant_metrics + self.repeat_variant_metrics + self.complex_variant_metrics:
+            metrics.finalise()
         self.mismatches_file.close()
 
     def annotate(self, record):
@@ -79,7 +91,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.overall_counts['both_measure_and_trait'] += 1
 
     def annotate_and_count_measure(self, record):
-        consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
+        consequence_types, variant_category = get_consequence_types(record.measure, self.variant_to_gene_mappings)
         record.measure.add_ensembl_annotations(consequence_types)
 
         annotated_genes = {ct.ensembl_gene_id for ct in consequence_types if ct.ensembl_gene_id}
@@ -90,6 +102,18 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             existing_ensembl_ids = self.eval_gene_mappings.get(record.accession, [])
             self.gene_metrics.count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
             self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
+            if variant_category == 'SIMPLE':
+                self.simple_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.simple_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
+            elif variant_category == 'REPEAT':
+                self.repeat_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.repeat_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
+            elif variant_category == 'COMPLEX':
+                self.complex_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.complex_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
         for trait in record.traits_with_valid_names:
@@ -153,6 +177,21 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.gene_metrics.report()
             print('\nFunctional consequences:')
             self.conseq_metrics.report()
+
+            print('\nBy variant type:')
+            print('\n\tSimple (genes):')
+            self.simple_variant_metrics[0].report()
+            print('\n\tSimple (consequences):')
+            self.simple_variant_metrics[1].report()
+            print('\n\tRepeat (genes):')
+            self.repeat_variant_metrics[0].report()
+            print('\n\tRepeat (consequences):')
+            self.repeat_variant_metrics[1].report()
+            print('\n\tComplex (genes):')
+            self.complex_variant_metrics[0].report()
+            print('\n\tComplex (consequences):')
+            self.complex_variant_metrics[1].report()
+
         if self.eval_xref_mappings:
             print('\nTrait mappings:')
             self.trait_metrics.report()
