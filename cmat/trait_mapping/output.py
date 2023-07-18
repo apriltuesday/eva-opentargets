@@ -4,12 +4,13 @@ from collections import Counter
 from cmat.trait_mapping.trait import Trait
 
 
-def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_source_counts: Counter):
+def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_source_counts: Counter = None):
     """
     Write any finished ontology mappings for a trait to a csv file writer.
 
     :param trait: A trait with finished ontology mappings in finished_mapping_set
     :param mapping_writer: A csv.writer to write the finished mappings
+    :param finished_source_counts: Optional Counter to count sources of finished mappings
     """
     for ontology_entry in trait.finished_mapping_set:
         # Need the corresponding Zooma result
@@ -20,7 +21,7 @@ def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_sour
                         and ontology_entry.label == zm.ontology_label):
                     zooma_mapping = zm
                     break
-        if zooma_mapping:
+        if zooma_mapping and finished_source_counts:
             finished_source_counts[zooma_mapping.source.lower()] += 1
         mapping_writer.writerow([trait.name, ontology_entry.uri, ontology_entry.label])
 
