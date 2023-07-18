@@ -40,6 +40,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'total': 0,
             'has_supported_measure': 0,
             'has_supported_trait': 0,
+            'both_measure_and_trait': 0
         }
         self.obsolete_counts = {
             'cv_total': 0,    # total EFO xrefs used by ClinVar
@@ -74,6 +75,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         if record.traits_with_valid_names:
             self.overall_counts['has_supported_trait'] += 1
             self.annotate_and_count_traits(record)
+        if record.measure and record.traits_with_valid_names:
+            self.overall_counts['both_measure_and_trait'] += 1
 
     def annotate_and_count_measure(self, record):
         consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
