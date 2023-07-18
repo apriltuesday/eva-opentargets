@@ -14,7 +14,10 @@ logger.setLevel(logging.INFO)
 
 def grouper(iterable, n):
     args = [iter(iterable)] * n
-    return [x for x in zip_longest(*args, fillvalue=None) if x is not None]
+    result = []
+    for group in zip_longest(*args, fillvalue=None):
+        result.append([x for x in group if x is not None])
+    return result
 
 
 def hgvs_to_vep_identifier(hgvs: HgvsVariant):
