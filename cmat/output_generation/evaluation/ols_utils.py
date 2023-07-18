@@ -58,6 +58,8 @@ def extract_synonyms_and_obsolete(efo_term):
     # Also add exact matches
     if 'exactMatch' in efo_term['annotation']:
         synonyms.update(efo_term['annotation']['exactMatch'])
+    if 'has exact match' in efo_term['annotation']:
+        synonyms.update(efo_term['annotation']['has exact match'])
 
     # Synonyms contains current EFO-included URIs, convert to DB:ID style
     synonyms = {OntologyUri.uri_to_curie(s) for s in synonyms}
