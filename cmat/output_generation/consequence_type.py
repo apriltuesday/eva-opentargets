@@ -5,6 +5,7 @@ import requests
 from retry import retry
 
 from cmat.consequence_prediction.common.vep import get_severity_ranking
+from cmat.trait_mapping.ols import OLS_EFO_SERVER
 
 logger = logging.getLogger(__package__)
 
@@ -49,7 +50,7 @@ def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
 def get_so_accession_dict(page_size=500):
     """Get name and accession of all hierarchical descendents of sequence_variant in the Sequence Ontology."""
     sequence_variant_id = 'SO:0001060'
-    url = f'https://www.ebi.ac.uk/ols4/api/ontologies/so/hierarchicalDescendants?id={sequence_variant_id}&size={page_size}'
+    url = f'{OLS_EFO_SERVER}/api/ontologies/so/hierarchicalDescendants?id={sequence_variant_id}&size={page_size}'
     has_next = True
     results = []
     while has_next:
