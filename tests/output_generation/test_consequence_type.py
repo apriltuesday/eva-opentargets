@@ -27,19 +27,19 @@ def test_process_consequence_type_file_tsv():
 def test_ensembl_so_term():
     so_term = CT.SoTerm('stop_gained')
     assert so_term.accession == 'SO_0001587'
-    assert so_term.rank == 4
+    assert so_term.rank == 3
 
 
 def test_nonexistent_so_term():
     so_term = CT.SoTerm('not_real_term')
     assert so_term.accession is None
-    assert so_term.rank == 40
+    assert so_term.rank == 41
 
 
 def test_repeat_expansion_so_term():
     so_term = CT.SoTerm('short_tandem_repeat_expansion')
     assert so_term.accession == 'SO_0002162'
-    assert so_term.rank == 40
+    assert so_term.rank == 41
 
 
 def test_get_so_accession_dict():

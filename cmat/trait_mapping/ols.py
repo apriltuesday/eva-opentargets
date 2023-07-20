@@ -7,7 +7,7 @@ from retry import retry
 
 from cmat.trait_mapping.utils import json_request, ServerError
 
-OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols'
+OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols4'
 # The setting for local OLS installation should be uncommented if necessary. Note that the link
 # for the local deployment is different from the production link in three regards: (1) it must use
 # HTTP instead of HTTPS; (2) it must include the port which you used when deploying the Docker
@@ -19,7 +19,7 @@ logger = logging.getLogger(__package__)
 
 def build_ols_query(ontology_uri: str) -> str:
     """Build a url to query OLS for a given ontology uri."""
-    return "https://www.ebi.ac.uk/ols/api/terms?iri={}".format(ontology_uri)
+    return "{}/api/terms?iri={}".format(OLS_EFO_SERVER, ontology_uri)
 
 
 @lru_cache(maxsize=16384)

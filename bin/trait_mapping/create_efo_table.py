@@ -4,6 +4,7 @@ import argparse
 import re
 import requests
 
+from cmat.trait_mapping.ols import OLS_EFO_SERVER
 from requests import HTTPError
 from retry import retry
 
@@ -13,12 +14,6 @@ ontology_to_ols = {
     'MONDO': 'mondo',
     'Orphanet': 'ordo',
 }
-
-# OLS url to query for a term details
-ols_url_template = 'https://www.ebi.ac.uk/ols/api/ontologies/{ontology}/terms?iri={term}'
-
-# OxO url to query ontology cross-references
-oxo_url_template = 'https://www.ebi.ac.uk/spot/oxo/api/search?ids={curie}&distance=1&size=500'
 
 # List of fields in the current version of Webulous submission template
 webulous_fields = [
@@ -32,6 +27,16 @@ webulous_format_string = '\t'.join('{' + f + '}' for f in webulous_fields) + '\n
 
 # String to join multiple values in a Webulous template
 webulous_joiner = ' || '
+
+
+def ols_url_template(ontology, term):
+    # OLS url to query for a term details
+    return f'{OLS_EFO_SERVER}/api/ontologies/{ontology}/terms?iri={term}'
+
+
+def oxo_url_template(curie):
+    # OxO url to query ontology cross-references
+    return f'https://www.ebi.ac.uk/spot/oxo/api/search?ids={curie}&distance=1&size=500'
 
 
 def get_parent_terms(url):
@@ -55,7 +60,7 @@ def uri_to_curie(uri):
 @retry(HTTPError, tries=4, delay=2, backoff=1.2, jitter=(1, 3))
 def get_cross_references(curie):
     """Queries OxO to return the list of cross-references for a given term curie."""
-    url = oxo_url_template.format(curie=curie)
+    url = oxo_url_template(curie=curie)
     response = requests.get(url)
     response.raise_for_status()
     json_response = response.json()
@@ -68,7 +73,7 @@ def get_cross_references(curie):
 
 def get_ols_details(ontology, term):
     """Queries OLS and returns the details necessary for the EFO import table construction."""
-    url = ols_url_template.format(ontology=ontology, term=term)
+    url = ols_url_template(ontology=ontology, term=term)
     data = requests.get(url).json()['_embedded']['terms'][0]
     label = data['label']
     parents = get_parent_terms(data['_links']['parents']['href'])
