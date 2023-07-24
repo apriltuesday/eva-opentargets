@@ -6,6 +6,7 @@ import urllib
 from retry import retry
 
 from cmat.trait_mapping.utils import json_request, ServerError
+from requests import RequestException
 
 OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols4'
 # The setting for local OLS installation should be uncommented if necessary. Note that the link
@@ -31,7 +32,11 @@ def get_ontology_label_from_ols(ontology_uri: str) -> str:
     :return: Term label for the ontology URI provided in the parameters.
     """
     url = build_ols_query(ontology_uri)
-    json_response = json_request(url)
+    try:
+        json_response = json_request(url)
+    except RequestException:
+        logger.warning(f'OLS4 error for {url}, trying OLS3...')
+        json_response = json_request(url.replace('/ols4/', '/ols/'))
 
     if not json_response:
         return None
