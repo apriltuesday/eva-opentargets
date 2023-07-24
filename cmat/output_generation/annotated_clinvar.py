@@ -134,40 +134,41 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
             # Evaluation
             if self.eval_xref_mappings and self.eval_latest_mappings:
+                existing_current_efo_ids = set()
                 for cv_id in existing_efo_ids:
                     # Check whether existing ID is obsolete
                     self.obsolete_counts['cv_total'] += 1
                     if self.eval_xref_mappings[cv_id]['is_obsolete']:
                         self.obsolete_counts['cv_obsolete'] += 1
+                    else:
+                        # Only record current IDs for comparison
+                        existing_current_efo_ids.add(cv_id)
 
-                annotated_efo_ids = set()
+                annotated_current_efo_ids = set()
                 for efo_id in efo_ids:
 
                     # Check whether annotated ID is obsolete
                     self.obsolete_counts['cmat_total'] += 1
                     if self.eval_latest_mappings[efo_id]['is_obsolete']:
                         self.obsolete_counts['cmat_obsolete'] += 1
+                        # Don't add to the set of annotations if obsolete
+                        continue
 
-                    for cv_id in existing_efo_ids:
+                    for cv_id in existing_current_efo_ids:
                         # Attempt to match an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
                         # a ClinVar ID (or vice versa), we use the synonymous ClinVar ID for comparison.
                         if (efo_id in self.eval_xref_mappings[cv_id]['synonyms']
                                 or cv_id in self.eval_latest_mappings[efo_id]['synonyms']):
-                            annotated_efo_ids.add(cv_id)
+                            annotated_current_efo_ids.add(cv_id)
 
-                        # Similarly attempt to match based on neighbors
-                        # TODO include direction (parents vs. children) somehow
-                        if (efo_id in self.eval_xref_mappings[cv_id]['parents']
-                                or efo_id in self.eval_xref_mappings[cv_id]['children']):
-                            annotated_efo_ids.add(cv_id)
                     # If didn't find anything, just use our ID, which will count as not matching.
-                    if not annotated_efo_ids:
-                        annotated_efo_ids.add(efo_id)
+                    if not annotated_current_efo_ids:
+                        annotated_current_efo_ids.add(efo_id)
 
-                self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
+                self.trait_metrics.count_and_score(cv_set=existing_current_efo_ids, cmat_set=annotated_current_efo_ids)
                 # Output mismatches for manual inspection
-                if existing_efo_ids and annotated_efo_ids and len(existing_efo_ids & annotated_efo_ids) == 0:
-                    self.mismatches_file.write(f"{record.accession}\t{','.join(existing_efo_ids)}\t{','.join(annotated_efo_ids)}\n")
+                if existing_current_efo_ids and annotated_current_efo_ids and len(existing_current_efo_ids & annotated_current_efo_ids) == 0:
+                    self.mismatches_file.write(f"{record.accession}\t{','.join(existing_current_efo_ids)}\t{','.join(annotated_current_efo_ids)}\n")
 
     def report(self):
         print('\nOverall counts (RCVs):')
