@@ -299,7 +299,7 @@ def load_evaluation_xref_mappings(input_path):
 
 
 def string_to_set(s):
-    return set(re.sub(r"{|}|'", '', s).split(', '))
+    return set(x for x in re.sub(r"{|}|'", '', s).split(', ') if x)
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file,

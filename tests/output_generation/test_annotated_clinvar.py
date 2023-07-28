@@ -2,9 +2,15 @@ import gzip
 import os
 import re
 
-from cmat.output_generation.annotated_clinvar import generate_annotated_clinvar_xml
+from cmat.output_generation.annotated_clinvar import generate_annotated_clinvar_xml, string_to_set
 
 resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
+
+
+def test_string_to_set():
+    assert string_to_set("{'HP:0002269'}") == {'HP:0002269'}
+    assert string_to_set("{'Orphanet:49382', 'MONDO:0018852'}") == {'Orphanet:49382', 'MONDO:0018852'}
+    assert string_to_set('{}') == set()
 
 
 def test_generate_annotated_xml():
