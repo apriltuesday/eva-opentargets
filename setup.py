@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='cmat',
-      version='3.0.1',
+      version='3.0.2',
       author_email='opentargets-clinvar@ebi.ac.uk',
       url='https://github.com/EBIvariation/eva-opentargets',
       packages=find_packages(),

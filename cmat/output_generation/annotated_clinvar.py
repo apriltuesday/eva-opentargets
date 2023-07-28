@@ -140,8 +140,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                     self.obsolete_counts['cv_total'] += 1
                     if self.eval_xref_mappings[cv_id]['is_obsolete']:
                         self.obsolete_counts['cv_obsolete'] += 1
-                    else:
-                        # Only record current IDs for comparison
+                    # Only record current EFO-contained IDs for comparison
+                    elif self.eval_xref_mappings[cv_id]['synonyms']:
                         existing_current_efo_ids.add(cv_id)
 
                 annotated_current_efo_ids = set()
@@ -236,8 +236,8 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
     def add_ensembl_annotations(self, consequences):
         consequence_elts = []
         for consequence_attributes in consequences:
-            attr_set_elt = ET.Element('AttributeSet')
-            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence', 'providedBy': PROCESSOR})
+            attr_set_elt = ET.Element('AttributeSet', attrib={'providedBy': PROCESSOR})
+            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence'})
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
             so_elt = ET.Element('XRef', attrib={'ID': self.format_so_term(consequence_attributes.so_term),
                                                 'DB': 'Sequence Ontology'})
@@ -281,14 +281,20 @@ def load_evaluation_xref_mappings(input_path):
     with open(input_path) as input_file:
         for line in input_file:
             cols = line.strip().split('\t')
-            if len(cols) != 5:
+            if len(cols) == 5:
+                mapping[cols[0]] = {
+                    'is_obsolete': cols[1] == 'True',
+                    'synonyms': string_to_set(cols[2]),
+                    'parents': string_to_set(cols[3]),
+                    'children': string_to_set(cols[4])
+                }
+            elif len(cols) == 3:
+                mapping[cols[0]] = {
+                    'is_obsolete': cols[1] == 'True',
+                    'synonyms': string_to_set(cols[2])
+                }
+            else:
                 continue
-            mapping[cols[0]] = {
-                'is_obsolete': cols[1] == 'True',
-                'synonyms': string_to_set(cols[2]),
-                'parents': string_to_set(cols[3]),
-                'children': string_to_set(cols[4])
-            }
     return mapping
 
 

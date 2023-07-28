@@ -28,9 +28,9 @@ def fetch_eval_data(*, db_iden=None, uri=None, include_neighbors=False):
         return None
     curie = OntologyUri.uri_to_curie(ontology_uri)
 
-    # Defaults to return if OLS query fails
+    # Defaults to return if OLS query fails or no term in EFO
     is_obsolete = False
-    synonyms = {curie}
+    synonyms = {}
     parents = {}
     children = {}
 
