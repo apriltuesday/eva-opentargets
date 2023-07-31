@@ -1,6 +1,8 @@
 import logging
 from functools import lru_cache
 
+from requests import RequestException
+
 from cmat.clinvar_xml_io.ontology_uri import OntologyUri
 from cmat.trait_mapping.utils import json_request
 from cmat.trait_mapping.ols import build_ols_query
@@ -26,14 +28,18 @@ def fetch_eval_data(*, db_iden=None, uri=None, include_neighbors=False):
         return None
     curie = OntologyUri.uri_to_curie(ontology_uri)
 
-    # Defaults to return if OLS query fails
+    # Defaults to return if OLS query fails or no term in EFO
     is_obsolete = False
-    synonyms = {curie}
+    synonyms = {}
     parents = {}
     children = {}
 
     url = build_ols_query(ontology_uri)
-    json_response = json_request(url)
+    try:
+        json_response = json_request(url)
+    except RequestException:
+        logger.warning(f'OLS4 error for {url}, trying OLS3...')
+        json_response = json_request(url.replace('/ols4/', '/ols/'))
     if json_response and '_embedded' in json_response:
         for term in json_response['_embedded']['terms']:
             # Get only EFO terms (even if imported)

@@ -17,7 +17,7 @@ def main(clinvar_xml, output_file):
     traits = list(traits)
     process_pool = multiprocessing.Pool(processes=24)
     annotated_traits = [
-        process_pool.apply(fetch_eval_data, kwds={'db_iden': (db, iden), 'include_neighbors': True})
+        process_pool.apply(fetch_eval_data, kwds={'db_iden': (db, iden), 'include_neighbors': False})
         for db, iden in traits
     ]
     with open(output_file, 'w+') as f:

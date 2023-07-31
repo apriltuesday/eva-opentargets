@@ -89,10 +89,10 @@ class ClinVarRecordMeasure:
     def existing_so_terms(self):
         all_so_terms = set()
         for attr_elem in find_elements(self.measure_xml, './AttributeSet'):
-            if find_elements(attr_elem, './Attribute[@Type="MolecularConsequence"]'):
+            if ('providedBy' not in attr_elem.attrib
+                    and find_elements(attr_elem, './Attribute[@Type="MolecularConsequence"]')):
                 for so_elem in find_elements(attr_elem, './XRef[@DB="Sequence Ontology"]'):
-                    if 'providedBy' not in so_elem.attrib:
-                        all_so_terms.add(so_elem.attrib['ID'])
+                    all_so_terms.add(so_elem.attrib['ID'])
         return all_so_terms
 
     @cached_property

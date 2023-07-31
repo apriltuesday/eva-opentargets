@@ -1,6 +1,7 @@
 import csv
 import logging
 import multiprocessing
+from collections import Counter
 
 from cmat.clinvar_xml_io import ClinVarTrait
 from cmat.trait_mapping.output import output_trait
@@ -121,7 +122,9 @@ def process_traits(traits_filepath, output_mappings_filepath, output_curation_fi
         ]
 
         logger.info('Writing output with the processed traits')
+        finished_source_counts = Counter()
         for trait in processed_trait_list:
-            output_trait(trait, mapping_writer, curation_writer)
+            output_trait(trait, mapping_writer, curation_writer, finished_source_counts)
 
     logger.info('Finished processing trait names')
+    logger.info(f'Source counts for finished mappings: {finished_source_counts}')

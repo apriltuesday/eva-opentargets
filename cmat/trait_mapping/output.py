@@ -1,16 +1,28 @@
 import csv
+from collections import Counter
 
 from cmat.trait_mapping.trait import Trait
 
 
-def output_trait_mapping(trait: Trait, mapping_writer: csv.writer):
+def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_source_counts: Counter = None):
     """
     Write any finished ontology mappings for a trait to a csv file writer.
 
     :param trait: A trait with finished ontology mappings in finished_mapping_set
     :param mapping_writer: A csv.writer to write the finished mappings
+    :param finished_source_counts: Optional Counter to count sources of finished mappings
     """
     for ontology_entry in trait.finished_mapping_set:
+        # Need the corresponding Zooma result
+        zooma_mapping = None
+        for zooma_result in trait.zooma_result_list:
+            for zm in zooma_result.mapping_list:
+                if (zm.in_efo and zm.is_current and ontology_entry.uri == zm.uri
+                        and ontology_entry.label == zm.ontology_label):
+                    zooma_mapping = zm
+                    break
+        if zooma_mapping and finished_source_counts:
+            finished_source_counts[zooma_mapping.source.lower()] += 1
         mapping_writer.writerow([trait.name, ontology_entry.uri, ontology_entry.label])
 
 
@@ -55,7 +67,7 @@ def output_for_curation(trait: Trait, curation_writer: csv.writer):
     curation_writer.writerow(output_row)
 
 
-def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer):
+def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer, finished_source_counts: Counter):
     """
     Output finished ontology mappings of a trait, or non-finished mappings (if any) for curation.
 
@@ -64,6 +76,6 @@ def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.
     :param curation_writer: A csv.writer to write non-finished ontology mappings for manual curation
     """
     if trait.is_finished:
-        output_trait_mapping(trait, mapping_writer)
+        output_trait_mapping(trait, mapping_writer, finished_source_counts)
     else:
         output_for_curation(trait, curation_writer)

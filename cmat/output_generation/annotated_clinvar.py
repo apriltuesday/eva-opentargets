@@ -31,6 +31,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.obsolete_counts = {}
         self.gene_metrics = None
         self.conseq_metrics = None
+        # Gene and consequence metrics, split by variant category
+        self.simple_variant_metrics = None
+        self.repeat_variant_metrics = None
+        self.complex_variant_metrics = None
+
         self.trait_metrics = None
         self.mismatches_file = None
 
@@ -40,6 +45,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             'total': 0,
             'has_supported_measure': 0,
             'has_supported_trait': 0,
+            'both_measure_and_trait': 0
         }
         self.obsolete_counts = {
             'cv_total': 0,    # total EFO xrefs used by ClinVar
@@ -49,6 +55,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         }
         self.gene_metrics = SetComparisonMetrics()
         self.conseq_metrics = SetComparisonMetrics()
+        # First counter is genes, second is consequences
+        self.simple_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+        self.repeat_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+        self.complex_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
+
         self.trait_metrics = SetComparisonMetrics()
         self.mismatches_file = open('mismatches.tsv', 'w+')
         self.mismatches_file.write('RCV\tCV\tCMAT\n')
@@ -62,6 +73,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.gene_metrics.finalise()
         self.conseq_metrics.finalise()
         self.trait_metrics.finalise()
+        for metrics in self.simple_variant_metrics + self.repeat_variant_metrics + self.complex_variant_metrics:
+            metrics.finalise()
         self.mismatches_file.close()
 
     def annotate(self, record):
@@ -74,9 +87,11 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         if record.traits_with_valid_names:
             self.overall_counts['has_supported_trait'] += 1
             self.annotate_and_count_traits(record)
+        if record.measure and record.traits_with_valid_names:
+            self.overall_counts['both_measure_and_trait'] += 1
 
     def annotate_and_count_measure(self, record):
-        consequence_types = get_consequence_types(record.measure, self.variant_to_gene_mappings)
+        consequence_types, variant_category = get_consequence_types(record.measure, self.variant_to_gene_mappings)
         record.measure.add_ensembl_annotations(consequence_types)
 
         annotated_genes = {ct.ensembl_gene_id for ct in consequence_types if ct.ensembl_gene_id}
@@ -87,6 +102,18 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             existing_ensembl_ids = self.eval_gene_mappings.get(record.accession, [])
             self.gene_metrics.count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
             self.conseq_metrics.count_and_score(cv_set=record.measure.existing_so_terms, cmat_set=annotated_conseqs)
+            if variant_category == 'SIMPLE':
+                self.simple_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.simple_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
+            elif variant_category == 'REPEAT':
+                self.repeat_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.repeat_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
+            elif variant_category == 'COMPLEX':
+                self.complex_variant_metrics[0].count_and_score(cv_set=existing_ensembl_ids, cmat_set=annotated_genes)
+                self.complex_variant_metrics[1].count_and_score(cv_set=record.measure.existing_so_terms,
+                                                               cmat_set=annotated_conseqs)
 
     def annotate_and_count_traits(self, record):
         for trait in record.traits_with_valid_names:
@@ -107,40 +134,41 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
             # Evaluation
             if self.eval_xref_mappings and self.eval_latest_mappings:
+                existing_current_efo_ids = set()
                 for cv_id in existing_efo_ids:
                     # Check whether existing ID is obsolete
                     self.obsolete_counts['cv_total'] += 1
                     if self.eval_xref_mappings[cv_id]['is_obsolete']:
                         self.obsolete_counts['cv_obsolete'] += 1
+                    # Only record current EFO-contained IDs for comparison
+                    elif self.eval_xref_mappings[cv_id]['synonyms']:
+                        existing_current_efo_ids.add(cv_id)
 
-                annotated_efo_ids = set()
+                annotated_current_efo_ids = set()
                 for efo_id in efo_ids:
 
                     # Check whether annotated ID is obsolete
                     self.obsolete_counts['cmat_total'] += 1
                     if self.eval_latest_mappings[efo_id]['is_obsolete']:
                         self.obsolete_counts['cmat_obsolete'] += 1
+                        # Don't add to the set of annotations if obsolete
+                        continue
 
-                    for cv_id in existing_efo_ids:
+                    for cv_id in existing_current_efo_ids:
                         # Attempt to match an ID in ClinVar based on synonyms - if our ID is in the list of synonyms for
                         # a ClinVar ID (or vice versa), we use the synonymous ClinVar ID for comparison.
                         if (efo_id in self.eval_xref_mappings[cv_id]['synonyms']
                                 or cv_id in self.eval_latest_mappings[efo_id]['synonyms']):
-                            annotated_efo_ids.add(cv_id)
+                            annotated_current_efo_ids.add(cv_id)
 
-                        # Similarly attempt to match based on neighbors
-                        # TODO include direction (parents vs. children) somehow
-                        if (efo_id in self.eval_xref_mappings[cv_id]['parents']
-                                or efo_id in self.eval_xref_mappings[cv_id]['children']):
-                            annotated_efo_ids.add(cv_id)
                     # If didn't find anything, just use our ID, which will count as not matching.
-                    if not annotated_efo_ids:
-                        annotated_efo_ids.add(efo_id)
+                    if not annotated_current_efo_ids:
+                        annotated_current_efo_ids.add(efo_id)
 
-                self.trait_metrics.count_and_score(cv_set=existing_efo_ids, cmat_set=annotated_efo_ids)
+                self.trait_metrics.count_and_score(cv_set=existing_current_efo_ids, cmat_set=annotated_current_efo_ids)
                 # Output mismatches for manual inspection
-                if existing_efo_ids and annotated_efo_ids and len(existing_efo_ids & annotated_efo_ids) == 0:
-                    self.mismatches_file.write(f"{record.accession}\t{','.join(existing_efo_ids)}\t{','.join(annotated_efo_ids)}\n")
+                if existing_current_efo_ids and annotated_current_efo_ids and len(existing_current_efo_ids & annotated_current_efo_ids) == 0:
+                    self.mismatches_file.write(f"{record.accession}\t{','.join(existing_current_efo_ids)}\t{','.join(annotated_current_efo_ids)}\n")
 
     def report(self):
         print('\nOverall counts (RCVs):')
@@ -150,6 +178,21 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.gene_metrics.report()
             print('\nFunctional consequences:')
             self.conseq_metrics.report()
+
+            print('\nBy variant type:')
+            print('\n\tSimple (genes):')
+            self.simple_variant_metrics[0].report()
+            print('\n\tSimple (consequences):')
+            self.simple_variant_metrics[1].report()
+            print('\n\tRepeat (genes):')
+            self.repeat_variant_metrics[0].report()
+            print('\n\tRepeat (consequences):')
+            self.repeat_variant_metrics[1].report()
+            print('\n\tComplex (genes):')
+            self.complex_variant_metrics[0].report()
+            print('\n\tComplex (consequences):')
+            self.complex_variant_metrics[1].report()
+
         if self.eval_xref_mappings:
             print('\nTrait mappings:')
             self.trait_metrics.report()
@@ -193,8 +236,8 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
     def add_ensembl_annotations(self, consequences):
         consequence_elts = []
         for consequence_attributes in consequences:
-            attr_set_elt = ET.Element('AttributeSet')
-            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence', 'providedBy': PROCESSOR})
+            attr_set_elt = ET.Element('AttributeSet', attrib={'providedBy': PROCESSOR})
+            attribute_elt = ET.Element('Attribute', attrib={'Type': 'MolecularConsequence'})
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
             so_elt = ET.Element('XRef', attrib={'ID': self.format_so_term(consequence_attributes.so_term),
                                                 'DB': 'Sequence Ontology'})
@@ -238,19 +281,25 @@ def load_evaluation_xref_mappings(input_path):
     with open(input_path) as input_file:
         for line in input_file:
             cols = line.strip().split('\t')
-            if len(cols) != 5:
+            if len(cols) == 5:
+                mapping[cols[0]] = {
+                    'is_obsolete': cols[1] == 'True',
+                    'synonyms': string_to_set(cols[2]),
+                    'parents': string_to_set(cols[3]),
+                    'children': string_to_set(cols[4])
+                }
+            elif len(cols) == 3:
+                mapping[cols[0]] = {
+                    'is_obsolete': cols[1] == 'True',
+                    'synonyms': string_to_set(cols[2])
+                }
+            else:
                 continue
-            mapping[cols[0]] = {
-                'is_obsolete': cols[1] == 'True',
-                'synonyms': string_to_set(cols[2]),
-                'parents': string_to_set(cols[3]),
-                'children': string_to_set(cols[4])
-            }
     return mapping
 
 
 def string_to_set(s):
-    return set(re.sub(r"{|}|'", '', s).split(', '))
+    return set(x for x in re.sub(r"{|}|'", '', s).split(', ') if x)
 
 
 def generate_annotated_clinvar_xml(clinvar_xml_file, efo_mapping_file, gene_mapping_file, output_xml_file,
