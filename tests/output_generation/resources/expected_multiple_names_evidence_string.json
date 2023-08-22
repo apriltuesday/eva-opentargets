@@ -15,6 +15,7 @@
     "Skeletal dysplasia"
   ],
   "confidence": "criteria provided, single submitter",
+  "creationDate": "2017-01-12",
   "datasourceId": "eva_somatic",
   "datatypeId": "somatic_mutation",
   "diseaseFromSource": "Skeletal dysplasia",
