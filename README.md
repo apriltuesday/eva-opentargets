@@ -10,7 +10,7 @@ For instructions on how to process ClinVar data for the Open Targets platform, s
 
 ## Install
 
-The code requires Python 3.8+. You can install the module and its dependencies as follows (e.g. in a virtual environment):
+The code requires Python 3.8+. You can install the library and its dependencies as follows (e.g. in a virtual environment):
 
 ```bash
 git clone git@github.com:EBIvariation/CMAT.git
@@ -27,18 +27,19 @@ Finally, the pipelines currently require that the following environment variable
 export CODE_ROOT=
 # Path to python executable (allows nextflow processes to access python)
 export PYTHON_BIN=
-# Path to mappings file (this path will point to the version included in this repo)
+# Path to ontology mapping file (the provided path points to the version included in this repo)
 export LATEST_MAPPINGS=${CODE_ROOT}/mappings/latest_mappings.tsv
 ````
 
 ## Run
 
-CMAT includes a main annotation pipeline (which also performs consequence and gene mapping), as well as two pipelines for curation trait-to-ontology mappings.
+CMAT includes a main annotation pipeline (which also performs consequence and gene mapping), as well as two pipelines to help manage trait mapping curation.
 It can also be used as a standard Python library.
 
 ### Annotation pipeline
 
-This will annotate consequences for variants, map traits to ontology terms using an existing mappings file, and output the results as an annotated XML.
+This will annotate variants with genes and functional consequences, and annotate traits with ontology terms using an existing mappings file.
+It outputs the results as an annotated XML file.
 
 ```bash
 # Directory to run annotation pipeline
@@ -60,7 +61,7 @@ By default, the pipeline will download and annotate the latest ClinVar XML dump 
 
 ### Trait curation
 
-These are processes to update the trait mappings used by the annotation pipeline and will need to be performed regularly to ensure new ClinVar data is mapped appropriately.
+These are processes to update the trait mappings used by the annotation pipeline and should be performed regularly to ensure new ClinVar data is mapped appropriately.
 
 #### Automatic mappings and curation spreadsheet generation
 

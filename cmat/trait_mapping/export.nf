@@ -11,7 +11,7 @@ def helpMessage() {
         --curation_root     Directory for current batch
         --input_csv         Input csv file
         --mappings          Current mappings file (optional, will use a default path if omitted)
-        --with_feedback     Whether to generate EFO/Zooma feedback and final symlinking
+        --with_feedback     Whether to generate EFO/Zooma feedback and final symlinking (default false)
     """
 }
 
