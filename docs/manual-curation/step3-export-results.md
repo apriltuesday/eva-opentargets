@@ -17,6 +17,7 @@ cd ${CURATION_RELEASE_ROOT}
 nextflow run ${CODE_ROOT}/cmat/trait_mapping/export.nf \
   --input_csv ${CURATION_RELEASE_ROOT}/finished_curation_spreadsheet.csv \
   --curation_root ${CURATION_RELEASE_ROOT} \
+  --with_feedback \
   -resume
 ```
 

@@ -10,12 +10,16 @@ def helpMessage() {
     Params:
         --curation_root     Directory for current batch
         --input_csv         Input csv file
+        --mappings          Current mappings file (optional, will use a default path if omitted)
+        --with_feedback     Whether to generate EFO/Zooma feedback and final symlinking
     """
 }
 
 params.help = null
 params.curation_root = null
 params.input_csv = null
+params.mappings = "\${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv"
+params.with_feedback = false
 
 if (params.help) {
     exit 0, helpMessage()
@@ -24,7 +28,6 @@ if (!params.curation_root or !params.input_csv) {
     exit 1, helpMessage()
 }
 curationRoot = params.curation_root
-existingMappings = "\${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv"
 
 
 /*
@@ -34,10 +37,12 @@ workflow {
     exportTable(params.input_csv)
     combineManualAndAutomated(exportTable.out.finishedMappings)
     mergeWithLatestMappings(combineManualAndAutomated.out.newMappings)
-    createEfoTable(exportTable.out.importTerms)
-    generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
     checkDuplicates(mergeWithLatestMappings.out.newMappings)
-    updateLinks(checkDuplicates.out.duplicatesOk, generateZoomaFeedback.out.zoomaFeedback)
+    if (params.with_feedback) {
+        createEfoTable(exportTable.out.importTerms)
+        generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
+        updateLinks(checkDuplicates.out.duplicatesOk, generateZoomaFeedback.out.zoomaFeedback)
+    }
 }
 
 /*
@@ -107,8 +112,8 @@ process mergeWithLatestMappings {
     # which are only present in the existing database and not in the new mappings.
     export LC_ALL=C
     join -j 1 -t \$'\t' \
-        <(sort -t \$'\t' -k 1,1 ${existingMappings}) \
-        <(comm -23 <(cut -d \$'\t' -f 1 ${existingMappings} | sort -u) <(cut -d \$'\t' -f 1 ${newMappings} | sort -u)) \
+        <(sort -t \$'\t' -k 1,1 ${params.mappings}) \
+        <(comm -23 <(cut -d \$'\t' -f 1 ${params.mappings} | sort -u) <(cut -d \$'\t' -f 1 ${newMappings} | sort -u)) \
     >> ${newMappings}
     """
 }

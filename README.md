@@ -1,64 +1,122 @@
-[![Build Status](https://github.com/EBIvariation/eva-opentargets/actions/workflows/tests.yml/badge.svg)](https://github.com/EBIvariation/eva-opentargets/actions)
-[![Coverage Status](https://coveralls.io/repos/github/EBIvariation/eva-opentargets/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/eva-opentargets?branch=master)
+[![Build Status](https://github.com/EBIvariation/CMAT/actions/workflows/tests.yml/badge.svg)](https://github.com/EBIvariation/CMAT/actions)
+[![Coverage Status](https://coveralls.io/repos/github/EBIvariation/CMAT/badge.svg?branch=master)](https://coveralls.io/github/EBIvariation/CMAT?branch=master)
 
+# CMAT: ClinVar Mapping and Annotation Toolkit
 
+CMAT is a software toolkit and curation protocol for parsing and enriching ClinVar's XML data.
+To learn more about what is available in ClinVar, please refer to their [website](https://www.ncbi.nlm.nih.gov/clinvar/).
 
-# How to submit an Open Targets batch
-Batch submission process consists of two major tasks, which are performed asynchronously:
-1. [**Manual curation**](docs/manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions with new trait names are released. The output of this step is used by the main evidence string generation pipeline.
-2. [**Evidence string generation**](docs/generate-evidence-strings.md) is mostly automated and should be run for every Open Targets batch submission.
+For instructions on how to process ClinVar data for the Open Targets platform, see [here](docs/open-targets.md).
 
-Additional documentation:
-* [Setting up the common environment](docs/environment.md) which is required by both protocols to be able to run
-* [Advanced build instructions](docs/build.md), which are not required for batch processing under normal circumstances, because there is already an existing installation of the pipeline on the cluster. These instructions are necessary for the following cases:
-  + Installing a newer Python version
-  + Clean copying the repository and setting up the package installation from scratch
-  + Running the pipeline in non-standard situations, for example when we need to use a version of OLS which has not yet been released
-* [Evidence string comparison protocol](compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
+## Install
 
+The code requires Python 3.8+. You can install the module and its dependencies as follows (e.g. in a virtual environment):
 
+```bash
+git clone git@github.com:EBIvariation/CMAT.git
+cd CMAT
+pip install -r requirements.txt
+python setup.py install
+```
 
-# Background information
+Running the pipelines also requires Nextflow 21.10+. Refer to [Nextflow documentation](https://www.nextflow.io/docs/latest/getstarted.html) for specifics on installing Nextflow on your system.
 
-## ClinVar
-[ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) is a curated database of clinically relevant genetic variation in humans, maintaned by the National Center for Biotechnology Information in the USA. For each variant, it stores a handful of information:
-* **Variation location,** e. g.: *NM_007294.3(BRCA1):c.2706delA* (using [HGVS nomenclature](https://varnomen.hgvs.org/) in this example)
-* **Gene** which the variant impacts: *BRCA1*
-* **Condition** which is associated with this variant: *Hereditary breast and ovarian cancer syndrome*
-* **Clinical significance** of the variant. It is most frequently evaluated using the [ACMG guidelines](https://www.acmg.net/docs/standards_guidelines_for_the_interpretation_of_sequence_variants.pdf); however, other approaches also exist. Most common values of this field are:
-  * *Pathogenic* generally means that variation is causing the disease or making it worse
-  * *Benign*: it has been established that the variant is *not* implicated in this disease
-  * *Likely pathogenic* and *Likely benign* have the same meaning as “Pathogenic” and “Benign”, but signify that the connection isn't as certain (usually due to limited information being available for this variant)
-  * *Uncertain significance* means that either there is contradictory information on the impact of this variant, or that information is insufficient to draw the conclusion
-* **Review status** shows how many submitters provided information for this variant. Example values:
-  + no assertion criteria
-  + criteria provided, single submitter
-  + criteria provided, multiple submitters, no conflicts
+Finally, the pipelines currently require that the following environment variables be set:
+```bash
+# Path to directory where this repo is cloned
+export CODE_ROOT=
+# Path to python executable (allows nextflow processes to access python)
+export PYTHON_BIN=
+# Path to mappings file (this path will point to the version included in this repo)
+export LATEST_MAPPINGS=${CODE_ROOT}/mappings/latest_mappings.tsv
+````
 
-ClinVar is continuously updated and holds monthly releases of its database contents.
+## Run
 
-## OpenTargets
-[OpenTargets](https://www.opentargets.org/) is a collaboration between academia and industry. Among other things, it combines associations between genetic variation and human traits (most notably, diseases) into a single integrated resource. This information is then used to provide evidence on the biological validity of therapeutic targets and an initial assessment of the likely effectiveness of pharmacological intervention on these targets.
+CMAT includes a main annotation pipeline (which also performs consequence and gene mapping), as well as two pipelines for curation trait-to-ontology mappings.
+It can also be used as a standard Python library.
 
-OpenTargets also holds periodic releases, which happen approximately every two months. Data for every release comes from several data providers. There are several requirements for submitting data to OpenTargets:
-* It must be represented in the form of “evidence strings”. These are JSON strings describing:
-  + Genes the variant affects
-  + Functional consequence of the variant on the gene
-  + Traits (usually diseases) associated with the variant, such as “parkinson disease” or “age-related macular degeneration”.
-  + Other information about the variant and source, such as related publications
-* The variant data must be synchronised with a specific version of external data sources, for example Ensembl.
+### Annotation pipeline
 
-## Role of EVA
-ClinVar data is highly valuable, but in its original form is not suitable for submission to OpenTargets. EVA is registered as one of the submitters for OpenTargets. For every OpenTargets release, the EVA processes ClinVar records (variants), curates the result and submits it to OpenTargets in the form of evidence strings. This allows for the up-to-date ClinVar data to be integrated into the OpenTargets platform.
+This will annotate consequences for variants, map traits to ontology terms using an existing mappings file, and output the results as an annotated XML.
 
-Approximately one month before the submission deadline, OpenTargets will contact their submitters and specify the requirements for the next release. At this point the EVA can start executing the main submission protocol (see below). Once the data is ready, it is submitted to OpenTargets, and then the same will happen with the next release. Most of the actions in the pipeline are automated.
+```bash
+# Directory to run annotation pipeline
+export ANNOTATION_ROOT=
 
+# Create directories for data processing
+mkdir -p ${ANNOTATION_ROOT}
+cd ${ANNOTATION_ROOT}
+mkdir -p gene_mapping logs
 
+# Run the nextflow pipeline, resuming execution of previous attempt if possible.
+nextflow run ${CODE_ROOT}/cmat/output_generation/pipeline.nf \
+  --output_dir ${ANNOTATION_ROOT} \
+  --mappings ${LATEST_MAPPINGS} \
+  -resume
+```
 
-# Workflow diagram
+By default, the pipeline will download and annotate the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 
-![](docs/workflow-diagram/workflow.png)
+### Trait curation
 
-See details [here](docs/workflow-diagram) about how to regenerate this diagram from source.
+These are processes to update the trait mappings used by the annotation pipeline and will need to be performed regularly to ensure new ClinVar data is mapped appropriately.
 
-There is also a [presentation](https://docs.google.com/presentation/d/1kr1orv08ZGnPGKNu6vQk4wFYIrufu_iIDf-drCc21vY) describing the workflow in more detail.
+#### Automatic mappings and curation spreadsheet generation
+
+```bash
+# Directory to run trait curation pipelines
+export CURATION_ROOT=
+
+# Create directories for data processing
+mkdir -p ${CURATION_ROOT}
+cd ${CURATION_ROOT}
+
+# Run the nextflow pipeline, resuming execution of previous attempt if possible.
+nextflow run ${CODE_ROOT}/cmat/trait_mapping/generate.nf \
+  --curation_root ${CURATION_ROOT} \
+  --mappings ${LATEST_MAPPINGS} \
+  -resume
+```
+
+By default, the pipeline will download and map the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
+
+To create the curation spreadsheet, duplicate the [template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing). Paste the contents of `${CURATION_ROOT}/google_sheets_table.tsv` into it, starting with column H “ClinVar label”.
+
+#### Manual curation
+
+This is done manually using the spreadsheet, ideally with a curator and at least one reviewer.
+The written protocol can be found [here](docs/manual-curation/step2-manual-curation.md).
+
+#### Curation spreadsheet export
+
+Once the manual curation is completed, download the spreadsheet as a CSV file, making sure that all the data is visible before doing so (i.e., no filters are applied). Save the data to a file `${CURATION_RELEASE_ROOT}/finished_curation_spreadsheet.csv`.
+
+```bash
+cd ${CURATION_ROOT}
+
+# Run the nextflow pipeline, resuming execution of previous attempt if possible.
+nextflow run ${CODE_ROOT}/cmat/trait_mapping/export.nf \
+  --input_csv ${CURATION_ROOT}/finished_curation_spreadsheet.csv \
+  --curation_root ${CURATION_ROOT} \
+  --mappings ${LATEST_MAPPINGS} \
+  -resume
+```
+
+### Library usage
+
+CMAT can also be used as a normal Python library, for example:
+
+```python
+from cmat.clinvar_xml_io import ClinVarDataset
+
+for record in ClinVarDataset('/path/to/clinvar.xml.gz'):
+    s = f'{record.accession}: '
+    if record.measure and record.measure.has_complete_coordinates:
+        s += record.measure.vcf_full_coords
+    s += ' => '
+    s += ', '.join(trait.preferred_or_other_valid_name for trait in record.traits_with_valid_names)
+
+    # e.g. RCV001842692: 3_38633214_G_C => Cardiac arrhythmia
+    print(s)
+```

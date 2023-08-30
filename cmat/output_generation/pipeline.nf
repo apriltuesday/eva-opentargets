@@ -325,7 +325,7 @@ process generateEvidence {
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/evidence_string_generation.py \
         --clinvar-xml ${clinvarXml} \
-        --efo-mapping \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
+        --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
         --ot-schema ${jsonSchema} \
         --out .
