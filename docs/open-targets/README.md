@@ -1,6 +1,6 @@
 # How to submit an Open Targets batch
 Batch submission process consists of two major tasks, which are performed asynchronously:
-1. [**Manual curation**](manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions with new trait names are released. The output of this step is used by the main evidence string generation pipeline.
+1. [**Manual curation**](../manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions with new trait names are released. The output of this step is used by the main evidence string generation pipeline.
 2. [**Evidence string generation**](generate-evidence-strings.md) is mostly automated and should be run for every Open Targets batch submission.
 
 Additional documentation:
@@ -9,7 +9,7 @@ Additional documentation:
   + Installing a newer Python version
   + Clean copying the repository and setting up the package installation from scratch
   + Running the pipeline in non-standard situations, for example when we need to use a version of OLS which has not yet been released
-* [Evidence string comparison protocol](../compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
+* [Evidence string comparison protocol](../../compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
 
 
 
@@ -52,8 +52,58 @@ Approximately one month before the submission deadline, OpenTargets will contact
 
 # Workflow diagram
 
-![](workflow-diagram/workflow.png)
+```mermaid
+graph LR
 
-See details [here](workflow-diagram) about how to regenerate this diagram from source.
+  subgraph "ClinVar"
+    CLINVAR_XML[Full <br> XML]
+  end
+
+  subgraph "Manual curation protocol"
+    CLINVAR_XML
+    --> TRAIT_MAPPING_PIPELINE([Trait <br> mapping <br> pipeline])
+    --> AUTOMATED_MAPPINGS[Automated <br> mappings] & MAPPINGS_REQUIRING_CURATION[Mappings <br> requiring <br> curation]
+
+    MAPPINGS_REQUIRING_CURATION
+    --> MANUAL_CURATION([Manual <br> curation])
+    --> MANUALLY_CURATED_MAPPINGS[Manually curated <br> mappings]
+
+    AUTOMATED_MAPPINGS & MANUALLY_CURATED_MAPPINGS
+    --> FINISHED_MAPPINGS[Finished <br> mappings]
+
+    MANUALLY_CURATED_MAPPINGS
+    --> SUBMIT_FEEDBACK_TO_EFO([Submit feedback <br> to EFO])
+  end
+
+  subgraph "Evidence string generation protocol"
+    CLINVAR_XML
+    --> PREDICT_CONSEQUENCES_VEP([Predict functional <br> consequences <br> using VEP])
+
+    CLINVAR_XML
+    --> PREDICT_CONSEQUENCES_REPEATS([Predict functional <br> consequences <br> for repeats])
+
+    PREDICT_CONSEQUENCES_VEP & PREDICT_CONSEQUENCES_REPEATS
+    --> CONSEQUENCES[Functional <br> consequence <br> predictions]
+
+    CLINVAR_XML & CONSEQUENCES & FINISHED_MAPPINGS
+    --> EVIDENCE_STRING_GENERATION([Evidence string <br> generation pipeline])
+  end
+
+  subgraph End result
+    EVIDENCE_STRING_GENERATION
+    --> EVIDENCE_STRINGS[Evidence <br> strings] & ZOOMA_FEEDBACK[ZOOMA <br> feedback]
+  end
+
+classDef pipeline fill:#0f0
+
+class TRAIT_MAPPING_PIPELINE pipeline
+class SUBMIT_FEEDBACK_TO_EFO pipeline
+class MANUAL_CURATION pipeline
+
+class CONVERT_CLINVAR pipeline
+class PREDICT_CONSEQUENCES_REPEATS pipeline
+class PREDICT_CONSEQUENCES_VEP pipeline
+class EVIDENCE_STRING_GENERATION pipeline
+```
 
 There is also a [presentation](https://docs.google.com/presentation/d/1kr1orv08ZGnPGKNu6vQk4wFYIrufu_iIDf-drCc21vY) describing the workflow in more detail.

@@ -1,7 +1,7 @@
 # Manual curation, part III, technical: export curation results and submit feedback to ZOOMA
 
-Before running, set up the environment:
-* [Common environment](../environment.md)
+Before running, set up the environment (Open Targets batches only):
+* [Common environment](../open-targets/environment.md)
 * [Protocol-specific environment](README.md#setting-up-environment)
 
 ## Extract curation results from the spreadsheet

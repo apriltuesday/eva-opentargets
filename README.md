@@ -6,7 +6,7 @@
 CMAT is a software toolkit and curation protocol for parsing and enriching ClinVar's XML data.
 To learn more about what is available in ClinVar, please refer to their [website](https://www.ncbi.nlm.nih.gov/clinvar/).
 
-For instructions on how to process ClinVar data for the Open Targets platform, see [here](docs/open-targets.md).
+For instructions on how to process ClinVar data for the Open Targets platform, see [here](docs/open-targets).
 
 ## Install
 
@@ -63,6 +63,9 @@ By default, the pipeline will download and annotate the latest ClinVar XML dump 
 
 These are processes to update the trait mappings used by the annotation pipeline and should be performed regularly to ensure new ClinVar data is mapped appropriately.
 
+A complete protocol for trait curation can be found [here](docs/manual-curation), though it may require adaptation for your use case.
+A minimum set of steps to perform the curation is provided in the sections below.
+
 #### Automatic mappings and curation spreadsheet generation
 
 ```bash
@@ -82,7 +85,8 @@ nextflow run ${CODE_ROOT}/cmat/trait_mapping/generate.nf \
 
 By default, the pipeline will download and map the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 
-To create the curation spreadsheet, duplicate the [template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing). Paste the contents of `${CURATION_ROOT}/google_sheets_table.tsv` into it, starting with column H “ClinVar label”.
+To create the curation spreadsheet, first make your own copy of the [template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing).
+Then paste the contents of `${CURATION_ROOT}/google_sheets_table.tsv` into it, starting with column H “ClinVar label”.
 
 #### Manual curation
 
@@ -91,7 +95,9 @@ The written protocol can be found [here](docs/manual-curation/step2-manual-curat
 
 #### Curation spreadsheet export
 
-Once the manual curation is completed, download the spreadsheet as a CSV file, making sure that all the data is visible before doing so (i.e., no filters are applied). Save the data to a file `${CURATION_ROOT}/finished_curation_spreadsheet.csv`.
+Once the manual curation is completed, the new mappings need to be incorporated into the set of latest mappings to be used for future annotation and trait curation.
+
+Download the spreadsheet as a CSV file, making sure that all the data is visible before doing so (i.e., no filters are applied). Save the data to a file `${CURATION_ROOT}/finished_curation_spreadsheet.csv`.
 
 ```bash
 cd ${CURATION_ROOT}

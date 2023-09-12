@@ -1,13 +1,8 @@
 # Manual trait name curation protocol
 
 ## Introduction
-Data which we submit to Open Targets represents associations between traits and variants. In the case of ClinVar, traits are almost always inherited diseases. In the Open Targets evidence strings, they must be represented using terms from the [Experimental Factor Ontology](https://www.ebi.ac.uk/efo).
 
-Mapping free-text trait names to ontology terms is the only part of the Open Targets submission process which cannot be automated, and this is the reason it is contained as a separate protocol.
-
-The idea is to run this protocol periodically and independently of the main submission protocol. While at submission time Open Targets data is always synchronised to an older, fixed ClinVar release, all new ClinVar data will be *eventually* incorporated into future Open Targets releases. Hence, it makes sense to do the curation work ahead of time and to decouple this process from the main evidence string generation.
-
-Detailed description of the current approach can be found [in the addendum.](detailed-description.md) This protocol, which is currently performed with TSV files and spreadsheets, will be replaced by a web interface for manual curation before the end of 2020.
+Detailed description of the current approach can be found [in the addendum.](detailed-description.md) This protocol, which is currently performed with TSV files and spreadsheets, is planned to be replaced by a web interface for manual curation.
 
 ## Protocol overview
 The protocol consists of four parts which are done in sequence by different people. Some parts are “technical” and are performed by a developer, other are “biological” and are performed by a curator.
