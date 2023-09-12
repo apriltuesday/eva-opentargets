@@ -32,10 +32,10 @@ Additional documentation:
 
 ClinVar is continuously updated and holds monthly releases of its database contents.
 
-## OpenTargets
-[OpenTargets](https://www.opentargets.org/) is a collaboration between academia and industry. Among other things, it combines associations between genetic variation and human traits (most notably, diseases) into a single integrated resource. This information is then used to provide evidence on the biological validity of therapeutic targets and an initial assessment of the likely effectiveness of pharmacological intervention on these targets.
+## Open Targets
+[Open Targets](https://www.opentargets.org/) is a collaboration between academia and industry. Among other things, it combines associations between genetic variation and human traits (most notably, diseases) into a single integrated resource. This information is then used to provide evidence on the biological validity of therapeutic targets and an initial assessment of the likely effectiveness of pharmacological intervention on these targets.
 
-OpenTargets also holds periodic releases, which happen approximately every two months. Data for every release comes from several data providers. There are several requirements for submitting data to OpenTargets:
+Open Targets also holds periodic releases, which happen approximately every two months. Data for every release comes from several data providers. There are several requirements for submitting data to Open Targets:
 * It must be represented in the form of “evidence strings”. These are JSON strings describing:
   + Genes the variant affects
   + Functional consequence of the variant on the gene
@@ -44,9 +44,9 @@ OpenTargets also holds periodic releases, which happen approximately every two m
 * The variant data must be synchronised with a specific version of external data sources, for example Ensembl.
 
 ## Role of EVA
-ClinVar data is highly valuable, but in its original form is not suitable for submission to OpenTargets. EVA is registered as one of the submitters for OpenTargets. For every OpenTargets release, the EVA processes ClinVar records (variants), curates the result and submits it to OpenTargets in the form of evidence strings. This allows for the up-to-date ClinVar data to be integrated into the OpenTargets platform.
+ClinVar data is highly valuable, but in its original form is not suitable for submission to Open Targets. EVA is registered as one of the submitters for Open Targets. For every Open Targets release, the EVA processes ClinVar records (variants), curates the result and submits it to Open Targets in the form of evidence strings. This allows for the up-to-date ClinVar data to be integrated into the Open Targets platform.
 
-Approximately one month before the submission deadline, OpenTargets will contact their submitters and specify the requirements for the next release. At this point the EVA can start executing the main submission protocol (see below). Once the data is ready, it is submitted to OpenTargets, and then the same will happen with the next release. Most of the actions in the pipeline are automated.
+Approximately one month before the submission deadline, Open Targets will contact their submitters and specify the requirements for the next release. At this point the EVA can start executing the main submission protocol (see below). Once the data is ready, it is submitted to Open Targets, and then the same will happen with the next release. Most of the actions in the pipeline are automated.
 
 
 

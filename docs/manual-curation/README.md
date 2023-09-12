@@ -13,8 +13,9 @@ The protocol consists of four parts which are done in sequence by different peop
 
 ## Setting up environment
 To follow the technical steps of the protocol, you will need to set up the environment.
+You can follow the installation instructions in the [main README](../../README.md) or set up for Open Targets processing as below.
 
-First, set up the common environment as explained in the [build instructions](../environment.md).
+First, set up the common environment as explained in the [build instructions](../open-targets/environment.md).
 
 Next, set up the protocol-specific environment, **filling in `${CURATION_RELEASE}`:**
 ```bash

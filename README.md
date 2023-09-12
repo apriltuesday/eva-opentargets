@@ -64,7 +64,7 @@ By default, the pipeline will download and annotate the latest ClinVar XML dump 
 These are processes to update the trait mappings used by the annotation pipeline and should be performed regularly to ensure new ClinVar data is mapped appropriately.
 
 A complete protocol for trait curation can be found [here](docs/manual-curation), though it may require adaptation for your use case.
-A minimum set of steps to perform the curation is provided in the sections below.
+A minimum set of steps to run the curation is provided in the sections below.
 
 #### Automatic mappings and curation spreadsheet generation
 
