@@ -4,20 +4,22 @@ import argparse
 
 import pandas as pd
 
+from cmat.output_generation.clinvar_to_evidence_strings import load_efo_mapping
 from cmat.trait_mapping.ols import (
     get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo, get_replacement_term,
 )
 
 
-def find_previous_mapping_and_replacement(trait_name, previous_mappings):
+def previous_and_replacement_mappings(trait_name, previous_mappings):
     if trait_name not in previous_mappings:
-        return '', ''
-    uri = previous_mappings[trait_name]
-    label = get_ontology_label(uri)
-    trait_status = get_trait_status(uri)
-    trait_string = '|'.join([uri, label, 'NOT_SPECIFIED', 'previously-used', trait_status])
-    replacement_string = find_replacement_mapping(uri)
-    return trait_string, replacement_string
+        yield '', ''
+        return
+    for uri in previous_mappings[trait_name]:
+        label = get_ontology_label(uri)
+        trait_status = get_trait_status(uri)
+        trait_string = '|'.join([uri, label, 'NOT_SPECIFIED', 'previously-used', trait_status])
+        replacement_string = find_replacement_mapping(uri)
+        yield trait_string, replacement_string
 
 
 def find_replacement_mapping(previous_uri):
@@ -70,7 +72,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load all previous mappings: ClinVar trait name to ontology URI
-    previous_mappings = dict(line.rstrip().split('\t')[:2] for line in open(args.previous_mappings))
+    previous_mappings = load_efo_mapping(args.previous_mappings)
 
     # Load previous curator comments: ClinVar trait name to comment string
     previous_comments = pd.read_csv(args.previous_comments, sep='\t', header=None)
@@ -87,9 +89,10 @@ if __name__ == '__main__':
             notes = f'"{notes}\n{previous_comments[trait_name]}"'
         # Use maximum of 50 mappings to improve Google Sheets performance
         mappings = fields[3:53]
-        previous_mapping, replacement_mapping = find_previous_mapping_and_replacement(trait_name, previous_mappings)
         exact_mapping = find_exact_mapping(trait_name, mappings)
-        rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping, replacement_mapping] + mappings)
+        for previous_mapping, replacement_mapping in previous_and_replacement_mappings(trait_name, previous_mappings):
+            rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping, replacement_mapping]
+                        + mappings)
 
     rows.sort(key=lambda x: (x[2], int(x[1])), reverse=True)
     with open(args.output, 'w') as outfile:

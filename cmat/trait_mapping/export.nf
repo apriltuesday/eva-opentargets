@@ -34,14 +34,16 @@ curationRoot = params.curation_root
  * Main workflow.
  */
 workflow {
-    exportTable(params.input_csv)
+    exportTable()
     combineManualAndAutomated(exportTable.out.finishedMappings)
-    mergeWithLatestMappings(combineManualAndAutomated.out.newMappings)
+    stripMappingsHeader()
+    mergeWithLatestMappings(combineManualAndAutomated.out.newMappings, stripMappingsHeader.out.previousMappings)
     checkDuplicates(mergeWithLatestMappings.out.newMappings)
+    addDateToHeader(checkDuplicates.out.duplicatesOk, mergeWithLatestMappings.out.newMappings)
     if (params.with_feedback) {
         createEfoTable(exportTable.out.importTerms)
         generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
-        updateLinks(checkDuplicates.out.duplicatesOk, generateZoomaFeedback.out.zoomaFeedback)
+        updateLinks(addDateToHeader.out.finalMappings, generateZoomaFeedback.out.zoomaFeedback)
     }
 }
 
@@ -54,9 +56,6 @@ process exportTable {
         mode: "copy",
         pattern: "curator_comments.tsv"
 
-    input:
-    path inputCsv
-
     output:
     path "finished_mappings_curation.tsv", emit: finishedMappings
     path "terms_for_efo_import.txt", emit: importTerms
@@ -65,12 +64,25 @@ process exportTable {
     script:
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/export_curation_table.py \
-        -i ${inputCsv} \
+        -i ${params.input_csv} \
         -d finished_mappings_curation.tsv \
         -m terms_for_efo_import.txt \
         -c curator_comments.tsv
     """
 }
+
+/*
+ * Strip header from existing mappings file.
+ */
+ process stripMappingsHeader {
+    output:
+    path "previous_mappings.tsv", emit: previousMappings
+
+    script:
+    """
+    grep -v "^#" ${params.mappings} > previous_mappings.tsv
+    """
+ }
 
 /*
  * Concatenate finished automated and manual mappings into a single file.
@@ -80,12 +92,12 @@ process combineManualAndAutomated {
     path finishedMappings
 
     output:
-    path "trait_names_to_ontology_mappings.tsv", emit: newMappings
+    path "mappings_no_header.tsv", emit: newMappings
 
     script:
     """
     cat ${curationRoot}/automated_trait_mappings.tsv ${finishedMappings} \
-        | sort -u > trait_names_to_ontology_mappings.tsv
+        | sort -u > mappings_no_header.tsv
     """
 }
 
@@ -95,13 +107,9 @@ process combineManualAndAutomated {
  * latest curation iteration.
  */
 process mergeWithLatestMappings {
-    publishDir "${curationRoot}",
-        overwrite: true,
-        mode: "copy",
-        pattern: "*.tsv"
-
     input:
     path newMappings
+    path previousMappings
 
     output:
     path newMappings, emit: newMappings
@@ -112,8 +120,8 @@ process mergeWithLatestMappings {
     # which are only present in the existing database and not in the new mappings.
     export LC_ALL=C
     join -j 1 -t \$'\t' \
-        <(sort -t \$'\t' -k 1,1 ${params.mappings}) \
-        <(comm -23 <(cut -d \$'\t' -f 1 ${params.mappings} | sort -u) <(cut -d \$'\t' -f 1 ${newMappings} | sort -u)) \
+        <(sort -t \$'\t' -k 1,1 ${previousMappings}) \
+        <(comm -23 <(cut -d \$'\t' -f 1 ${previousMappings} | sort -u) <(cut -d \$'\t' -f 1 ${newMappings} | sort -u)) \
     >> ${newMappings}
     """
 }
@@ -186,11 +194,34 @@ process checkDuplicates {
 }
 
 /*
+ * Add generated date to header of final mappings file.
+ */
+process addDateToHeader {
+    publishDir "${curationRoot}",
+        overwrite: true,
+        mode: "copy",
+        pattern: "*.tsv"
+
+    input:
+    val duplicatesOk
+    path newMappings
+
+    output:
+    path "trait_names_to_ontology_mappings.tsv", emit: finalMappings
+
+    script:
+    """
+    printf '#generated-date=%(%Y-%m-%d)T\n' > trait_names_to_ontology_mappings.tsv
+    cat $(newMappings) >> trait_names_to_ontology_mappings.tsv
+    """
+}
+
+/*
  * Update the symbolic links pointing to the location of the most recent curation result and ZOOMA feedback dataset.
  */
 process updateLinks {
     input:
-    val duplicatesOk
+    path finalMappings
     path zoomaFeedback
 
     script:

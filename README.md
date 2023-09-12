@@ -91,7 +91,7 @@ The written protocol can be found [here](docs/manual-curation/step2-manual-curat
 
 #### Curation spreadsheet export
 
-Once the manual curation is completed, download the spreadsheet as a CSV file, making sure that all the data is visible before doing so (i.e., no filters are applied). Save the data to a file `${CURATION_RELEASE_ROOT}/finished_curation_spreadsheet.csv`.
+Once the manual curation is completed, download the spreadsheet as a CSV file, making sure that all the data is visible before doing so (i.e., no filters are applied). Save the data to a file `${CURATION_ROOT}/finished_curation_spreadsheet.csv`.
 
 ```bash
 cd ${CURATION_ROOT}

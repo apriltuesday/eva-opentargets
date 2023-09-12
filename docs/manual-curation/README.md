@@ -1,5 +1,4 @@
 # Manual trait name curation protocol
-_Issue template: https://www.ebi.ac.uk/panda/jira/browse/EVA-1911_
 
 ## Introduction
 Data which we submit to Open Targets represents associations between traits and variants. In the case of ClinVar, traits are almost always inherited diseases. In the Open Targets evidence strings, they must be represented using terms from the [Experimental Factor Ontology](https://www.ebi.ac.uk/efo).
@@ -34,7 +33,7 @@ export CURATION_RELEASE_ROOT=${BATCH_ROOT_BASE}/manual_curation/${CURATION_RELEA
 * The mappings selected for each trait are adequate
 * Good/bad criteria for curation are observed (see the manual curation protocol, section “Criteria to manually evaluate mapping quality”)
 * The number of traits in the `finished_mappings_curation.tsv` file is the same as in the spreadsheet after applying all relevant filters
-* _Important:_ spreadhseet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
+* _Important:_ spreadsheet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
 * For submitting terms to EFO
   + Cross-references has been populated for as many traits as possible
   + GitHub issue has been created and linked in the issue

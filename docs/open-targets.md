@@ -1,22 +1,22 @@
 # How to submit an Open Targets batch
 Batch submission process consists of two major tasks, which are performed asynchronously:
-1. [**Manual curation**](docs/manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions with new trait names are released. The output of this step is used by the main evidence string generation pipeline.
-2. [**Evidence string generation**](docs/generate-evidence-strings.md) is mostly automated and should be run for every Open Targets batch submission.
+1. [**Manual curation**](manual-curation/README.md) of trait names should be performed approximately once every two months as new ClinVar versions with new trait names are released. The output of this step is used by the main evidence string generation pipeline.
+2. [**Evidence string generation**](generate-evidence-strings.md) is mostly automated and should be run for every Open Targets batch submission.
 
 Additional documentation:
-* [Setting up the common environment](docs/environment.md) which is required by both protocols to be able to run
-* [Advanced build instructions](docs/build.md), which are not required for batch processing under normal circumstances, because there is already an existing installation of the pipeline on the cluster. These instructions are necessary for the following cases:
+* [Setting up the common environment](environment.md) which is required by both protocols to be able to run
+* [Advanced build instructions](build.md), which are not required for batch processing under normal circumstances, because there is already an existing installation of the pipeline on the cluster. These instructions are necessary for the following cases:
   + Installing a newer Python version
   + Clean copying the repository and setting up the package installation from scratch
   + Running the pipeline in non-standard situations, for example when we need to use a version of OLS which has not yet been released
-* [Evidence string comparison protocol](compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
+* [Evidence string comparison protocol](../compare-evidence-strings/): when any significant updates to the code are done, an important control measure is re-running the latest batch using the same input data and the new code, and then doing the comparison to see if the introduced changes are correct.
 
 
 
 # Background information
 
 ## ClinVar
-[ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) is a curated database of clinically relevant genetic variation in humans, maintaned by the National Center for Biotechnology Information in the USA. For each variant, it stores a handful of information:
+[ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) is a curated database of clinically relevant genetic variation in humans, maintaned by the National Center for Biotechnology Information in the USA. For each variant, it stores a handful of information, including:
 * **Variation location,** e. g.: *NM_007294.3(BRCA1):c.2706delA* (using [HGVS nomenclature](https://varnomen.hgvs.org/) in this example)
 * **Gene** which the variant impacts: *BRCA1*
 * **Condition** which is associated with this variant: *Hereditary breast and ovarian cancer syndrome*
@@ -52,8 +52,8 @@ Approximately one month before the submission deadline, OpenTargets will contact
 
 # Workflow diagram
 
-![](docs/workflow-diagram/workflow.png)
+![](workflow-diagram/workflow.png)
 
-See details [here](docs/workflow-diagram) about how to regenerate this diagram from source.
+See details [here](workflow-diagram) about how to regenerate this diagram from source.
 
 There is also a [presentation](https://docs.google.com/presentation/d/1kr1orv08ZGnPGKNu6vQk4wFYIrufu_iIDf-drCc21vY) describing the workflow in more detail.
