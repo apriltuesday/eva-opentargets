@@ -75,8 +75,11 @@ if __name__ == '__main__':
     previous_mappings = load_efo_mapping(args.previous_mappings)
 
     # Load previous curator comments: ClinVar trait name to comment string
-    previous_comments = pd.read_csv(args.previous_comments, sep='\t', header=None)
-    previous_comments = dict(zip(previous_comments[0], previous_comments[1]))
+    try:
+        previous_comments = pd.read_csv(args.previous_comments, sep='\t', header=None)
+        previous_comments = dict(zip(previous_comments[0], previous_comments[1]))
+    except pd.errors.EmptyDataError:
+        previous_comments = {}
 
     # Process all mappings which require manual curation
     rows = []

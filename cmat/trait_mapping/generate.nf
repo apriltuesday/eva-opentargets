@@ -21,7 +21,7 @@ params.help = null
 params.curation_root = null
 params.clinvar = null
 params.mappings = "\${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv"
-params.comments = \${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv
+params.comments = "\${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv"
 params.chunk_size = 1000
 params.max_forks = 10
 

@@ -67,9 +67,10 @@ workflow {
             evalXrefMapping = mapXrefs(clinvarXml)
             evalLatest = checkLatestMappings()
         } else {
-            evalGeneMapping = null
-            evalXrefMapping = null
-            evalLatest = null
+            // Nextflow needs a path-like dummy input here
+            evalGeneMapping = file("empty1")
+            evalXrefMapping = file("empty2")
+            evalLatest = file("empty3")
         }
         generateAnnotatedXml(clinvarXml, combineConsequences.out.consequencesCombined, evalGeneMapping, evalXrefMapping, evalLatest)
     }
@@ -288,9 +289,9 @@ process generateAnnotatedXml {
     path "annotated_clinvar.xml.gz"
 
     script:
-    def evalGeneFlag = evalGeneMapping != null? "--eval-gene-file ${evalGeneMapping}" : ""
-    def evalXrefFlag = evalXrefMapping != null? "--eval-xref-file ${evalXrefMapping}" : ""
-    def evalLatestFlag = evalLatest != null? "--eval-latest-file ${evalLatest}" : ""
+    def evalGeneFlag = evalGeneMapping != file("empty1")? "--eval-gene-file ${evalGeneMapping}" : ""
+    def evalXrefFlag = evalXrefMapping != file("empty2")? "--eval-xref-file ${evalXrefMapping}" : ""
+    def evalLatestFlag = evalLatest != file("empty3")? "--eval-latest-file ${evalLatest}" : ""
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \

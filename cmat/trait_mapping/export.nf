@@ -212,7 +212,7 @@ process addDateToHeader {
     script:
     """
     printf '#generated-date=%(%Y-%m-%d)T\n' > trait_names_to_ontology_mappings.tsv
-    cat $(newMappings) >> trait_names_to_ontology_mappings.tsv
+    cat ${newMappings} >> trait_names_to_ontology_mappings.tsv
     """
 }
 

@@ -72,6 +72,10 @@ A minimum set of steps to run the curation is provided in the sections below.
 # Directory to run trait curation pipelines
 export CURATION_ROOT=
 
+# Path to previous curator comments to be included in spreadsheet.
+# If this is the first round of curation, you can use an empty file.
+export CURATOR_COMMENTS=
+
 # Create directories for data processing
 mkdir -p ${CURATION_ROOT}
 cd ${CURATION_ROOT}
@@ -80,6 +84,7 @@ cd ${CURATION_ROOT}
 nextflow run ${CODE_ROOT}/cmat/trait_mapping/generate.nf \
   --curation_root ${CURATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \
+  --comments ${CURATOR_COMMENTS} \
   -resume
 ```
 
