@@ -1,14 +1,8 @@
 # Manual trait name curation protocol
-_Issue template: https://www.ebi.ac.uk/panda/jira/browse/EVA-1911_
 
 ## Introduction
-Data which we submit to Open Targets represents associations between traits and variants. In the case of ClinVar, traits are almost always inherited diseases. In the Open Targets evidence strings, they must be represented using terms from the [Experimental Factor Ontology](https://www.ebi.ac.uk/efo).
 
-Mapping free-text trait names to ontology terms is the only part of the Open Targets submission process which cannot be automated, and this is the reason it is contained as a separate protocol.
-
-The idea is to run this protocol periodically and independently of the main submission protocol. While at submission time Open Targets data is always synchronised to an older, fixed ClinVar release, all new ClinVar data will be *eventually* incorporated into future Open Targets releases. Hence, it makes sense to do the curation work ahead of time and to decouple this process from the main evidence string generation.
-
-Detailed description of the current approach can be found [in the addendum.](detailed-description.md) This protocol, which is currently performed with TSV files and spreadsheets, will be replaced by a web interface for manual curation before the end of 2020.
+Detailed description of the current approach can be found [in the addendum.](detailed-description.md) This protocol, which is currently performed with TSV files and spreadsheets, is planned to be replaced by a web interface for manual curation.
 
 ## Protocol overview
 The protocol consists of four parts which are done in sequence by different people. Some parts are “technical” and are performed by a developer, other are “biological” and are performed by a curator.
@@ -19,8 +13,9 @@ The protocol consists of four parts which are done in sequence by different peop
 
 ## Setting up environment
 To follow the technical steps of the protocol, you will need to set up the environment.
+You can follow the installation instructions in the [main README](../../README.md) or set up for Open Targets processing as below.
 
-First, set up the common environment as explained in the [build instructions](../environment.md).
+First, set up the common environment as explained in the [build instructions](../open-targets/environment.md).
 
 Next, set up the protocol-specific environment, **filling in `${CURATION_RELEASE}`:**
 ```bash
@@ -34,7 +29,7 @@ export CURATION_RELEASE_ROOT=${BATCH_ROOT_BASE}/manual_curation/${CURATION_RELEA
 * The mappings selected for each trait are adequate
 * Good/bad criteria for curation are observed (see the manual curation protocol, section “Criteria to manually evaluate mapping quality”)
 * The number of traits in the `finished_mappings_curation.tsv` file is the same as in the spreadsheet after applying all relevant filters
-* _Important:_ spreadhseet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
+* _Important:_ spreadsheet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
 * For submitting terms to EFO
   + Cross-references has been populated for as many traits as possible
   + GitHub issue has been created and linked in the issue

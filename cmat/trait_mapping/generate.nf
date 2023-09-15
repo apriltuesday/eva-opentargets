@@ -10,6 +10,8 @@ def helpMessage() {
     Params:
         --curation_root     Directory for current batch
         --clinvar           ClinVar XML file (optional, will download latest if omitted)
+        --mappings          Current mappings file (optional, will use a default path if omitted)
+        --comments          Current curator comments file (optional, will use a default path if omitted)
         --chunk_size        Chunk size to split traits into (default 1000)
         --max_forks         Max number of processes to run in parallel (default 10)
     """
@@ -18,6 +20,8 @@ def helpMessage() {
 params.help = null
 params.curation_root = null
 params.clinvar = null
+params.mappings = "\${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv"
+params.comments = "\${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv"
 params.chunk_size = 1000
 params.max_forks = 10
 
@@ -176,8 +180,8 @@ process createCurationTable {
     """
     \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/create_table_for_manual_curation.py \
         --traits-for-curation ${curationTraits} \
-        --previous-mappings \${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv \
-        --previous-comments \${BATCH_ROOT_BASE}/manual_curation/latest_comments.tsv \
+        --previous-mappings ${params.mappings} \
+        --previous-comments ${params.comments} \
         --output google_sheets_table.tsv
     """
 }

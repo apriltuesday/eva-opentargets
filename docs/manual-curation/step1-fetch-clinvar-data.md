@@ -1,8 +1,8 @@
 # Manual curation, part I, technical: fetch the latest ClinVar data, attempt automatic mapping, extract unmapped traits
 
 ## Run the automated protocol
-Before running, set up the environment:
-* [Common environment](../environment.md)
+Before running, set up the environment (Open Targets batches only):
+* [Common environment](../open-targets/environment.md)
 * [Protocol-specific environment](README.md#setting-up-environment)
 
 ```bash

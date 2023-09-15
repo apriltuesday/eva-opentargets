@@ -1,6 +1,12 @@
 # Addendum: in-depth description of the automated trait mapping pipeline
 
-When specifying which disease the variant is associated with, ClinVar uses a free-text description, such as “Alzheimer's disease”. However, it is required by OpenTargets that diseases (traits) are specified as EFO terms. EFO is an ontology (basically a controlled hierarchical dictionary) developed at EBI to standartise nomenclature of diseases and other terms.
+## Open Targets context
+Data which we submit to Open Targets represents associations between traits and variants. In the case of ClinVar, traits are almost always inherited diseases. In the Open Targets evidence strings, they must be represented using terms from the [Experimental Factor Ontology](https://www.ebi.ac.uk/efo).
+EFO is an ontology (basically a controlled hierarchical dictionary) developed at EBI to standartise nomenclature of diseases and other terms.
+
+Mapping free-text trait names to ontology terms is the only part of the Open Targets submission process which cannot be automated, and this is the reason it is contained as a separate protocol.
+
+The idea is to run this protocol periodically and independently of the main submission protocol. While at submission time Open Targets data is always synchronised to an older, fixed ClinVar release, all new ClinVar data will be *eventually* incorporated into future Open Targets releases. Hence, it makes sense to do the curation work ahead of time and to decouple this process from the main evidence string generation.
 
 To convert free-text descriptions to EFO terms, a trait mapping pipeline is used. You can find a diagram of the whole workflow [here](https://docs.google.com/presentation/d/1nai1dvtfow4RkolyITcymXAsQqEwPJ8pUPcgjLDCntM/edit#slide=id.g24b2b34015_0_531). The detailed description is presented below.
 
