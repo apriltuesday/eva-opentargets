@@ -32,6 +32,7 @@ if (!params.curation_root) {
     exit 1, helpMessage()
 }
 curationRoot = params.curation_root
+codeRoot = "${baseDir}/.."
 
 
 /*
@@ -78,7 +79,7 @@ process parseTraits {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/parse_traits.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/parse_traits.py \
         -i ${clinvarXml} \
         -o parsed_traits.csv
     """
@@ -116,7 +117,7 @@ process processTraits {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/process_traits.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/process_traits.py \
         -i ${traitChunk} \
         -o automated_traits_${traitChunk}.tsv \
         -c curation_traits_${traitChunk}.tsv
@@ -178,7 +179,7 @@ process createCurationTable {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/create_table_for_manual_curation.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/create_table_for_manual_curation.py \
         --traits-for-curation ${curationTraits} \
         --previous-mappings ${params.mappings} \
         --previous-comments ${params.comments} \

@@ -10,26 +10,43 @@ For instructions on how to process ClinVar data for the Open Targets platform, s
 
 ## Install
 
-The code requires Python 3.8+. You can install the library and its dependencies as follows (e.g. in a virtual environment):
+The code requires Python 3.8+, and you will also need Nextflow 21.10+ to run the pipelines. Refer to [Nextflow documentation](https://www.nextflow.io/docs/latest/getstarted.html) for specifics on installing Nextflow on your system.
 
+To install CMAT, first either clone the repository or download the latest released version from [here](https://github.com/EBIvariation/CMAT/releases):
 ```bash
 git clone git@github.com:EBIvariation/CMAT.git
+# OR
+wget -O CMAT.zip https://github.com/EBIvariation/CMAT/archive/refs/tags/v3.0.3.zip
+unzip CMAT.zip
+```
+
+Then install the library and its dependencies as follows (e.g. in a virtual environment):
+```bash
 cd CMAT
 pip install -r requirements.txt
 python setup.py install
 ```
 
-Running the pipelines also requires Nextflow 21.10+. Refer to [Nextflow documentation](https://www.nextflow.io/docs/latest/getstarted.html) for specifics on installing Nextflow on your system.
+You then need to set the `PYTHON_BIN` variable in the [Nextflow config](pipelines/nextflow.config), which will allow the
+Nextflow processes to access the correct Python executable.
 
-Finally, the pipelines currently require that the following environment variables be set:
+Finally, the instructions in this readme use the following environment variables as a convenience, they are not needed for the pipelines to run.
 ```bash
-# Path to directory where this repo is cloned
+# Path to directory where source code is downloaded
 export CODE_ROOT=
-# Path to python executable (allows nextflow processes to access python)
-export PYTHON_BIN=
 # Path to ontology mapping file (the provided path points to the version included in this repo)
 export LATEST_MAPPINGS=${CODE_ROOT}/mappings/latest_mappings.tsv
-````
+```
+
+To confirm everything is set up properly, you can run the annotation pipeline on the small dataset included with the tests.
+It should take a couple minutes to run and generate a file `annotated_clinvar.xml.gz` in the test directory.
+```bash
+mkdir testdir && cd testdir
+nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
+  --output_dir . \
+  --clinvar ${CODE_ROOT}/tests/output_generation/resources/end2end/input.xml.gz \
+  --mappings ${LATEST_MAPPINGS}
+```
 
 ## Run
 
@@ -51,7 +68,7 @@ cd ${ANNOTATION_ROOT}
 mkdir -p gene_mapping logs
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/output_generation/pipeline.nf \
+nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --output_dir ${ANNOTATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \
   -resume
@@ -81,7 +98,7 @@ mkdir -p ${CURATION_ROOT}
 cd ${CURATION_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/trait_mapping/generate.nf \
+nextflow run ${CODE_ROOT}/pipelines/generate_curation_spreadsheet.nf \
   --curation_root ${CURATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \
   --comments ${CURATOR_COMMENTS} \
@@ -108,7 +125,7 @@ Download the spreadsheet as a CSV file, making sure that all the data is visible
 cd ${CURATION_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/trait_mapping/export.nf \
+nextflow run ${CODE_ROOT}/pipelines/export_curation_spreadsheet.nf \
   --input_csv ${CURATION_ROOT}/finished_curation_spreadsheet.csv \
   --curation_root ${CURATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \

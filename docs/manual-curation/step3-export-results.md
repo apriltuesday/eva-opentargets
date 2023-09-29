@@ -14,7 +14,7 @@ Once the manual curation is completed, download the spreadsheet as a CSV file, m
 cd ${CURATION_RELEASE_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/trait_mapping/export.nf \
+nextflow run ${CODE_ROOT}/pipelines/export_curation_spreadsheet.nf \
   --input_csv ${CURATION_RELEASE_ROOT}/finished_curation_spreadsheet.csv \
   --curation_root ${CURATION_RELEASE_ROOT} \
   --with_feedback \

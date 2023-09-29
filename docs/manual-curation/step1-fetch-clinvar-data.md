@@ -11,7 +11,7 @@ mkdir -p ${CURATION_RELEASE_ROOT}
 cd ${CURATION_RELEASE_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/trait_mapping/generate.nf \
+nextflow run ${CODE_ROOT}/pipelines/generate_curation_spreadsheet.nf \
   --curation_root ${CURATION_RELEASE_ROOT} \
   -resume
 ```
