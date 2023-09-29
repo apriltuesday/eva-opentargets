@@ -13,7 +13,7 @@ BATCH_ROOT=${BATCH_ROOT_BASE}/test_batch
 mkdir -p ${BATCH_ROOT}
 cd ${BATCH_ROOT}
 
-nextflow run ${CODE_ROOT}/cmat/output_generation/pipeline.nf \
+nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --output_dir ${BATCH_ROOT} \
   --schema $(cat "${CODE_ROOT}/OT_SCHEMA_VERSION") \
   --clinvar ${BATCH_ROOT_BASE}/input.xml.gz \
