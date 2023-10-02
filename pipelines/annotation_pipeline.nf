@@ -30,7 +30,7 @@ if (!params.output_dir) {
     exit 1, helpMessage()
 }
 batchRoot = params.output_dir
-codeRoot = "${baseDir}/.."
+codeRoot = "${projectDir}/.."
 
 
 /*

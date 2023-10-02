@@ -28,7 +28,7 @@ if (!params.curation_root or !params.input_csv) {
     exit 1, helpMessage()
 }
 curationRoot = params.curation_root
-codeRoot = "${baseDir}/.."
+codeRoot = "${projectDir}/.."
 
 
 /*

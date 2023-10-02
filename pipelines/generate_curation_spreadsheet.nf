@@ -32,7 +32,7 @@ if (!params.curation_root) {
     exit 1, helpMessage()
 }
 curationRoot = params.curation_root
-codeRoot = "${baseDir}/.."
+codeRoot = "${projectDir}/.."
 
 
 /*
