@@ -30,6 +30,7 @@ if (!params.output_dir) {
     exit 1, helpMessage()
 }
 batchRoot = params.output_dir
+codeRoot = "${projectDir}/.."
 
 
 /*
@@ -125,7 +126,7 @@ process runSnpIndel {
 
     script:
     """
-    \${PYTHON_BIN} "\${CODE_ROOT}/bin/consequence_prediction/extract_variants_for_vep.py" --clinvar-xml ${clinvarXml} \
+    \${PYTHON_BIN} "${codeRoot}/bin/consequence_prediction/extract_variants_for_vep.py" --clinvar-xml ${clinvarXml} \
     | sort -u \
     | parallel \
         --halt now,fail=1    `# If any job fails, kill the remaining ones immediately and report failure` \
@@ -133,7 +134,7 @@ process runSnpIndel {
         -j 20                `# Number of concurrent workers`                                             \
         -N 200               `# Number of records (lines) per worker`                                     \
         --tmpdir .           `# Store temporary files in the current directory to avoid /tmp overflow`    \
-        \${PYTHON_BIN} "\${CODE_ROOT}/cmat/consequence_prediction/snp_indel_variants/pipeline.py" \
+        \${PYTHON_BIN} "${codeRoot}/cmat/consequence_prediction/snp_indel_variants/pipeline.py" \
     | sort -u > consequences_snp.tsv
     """
 }
@@ -158,7 +159,7 @@ process runRepeat {
 
    script:
    """
-   \${PYTHON_BIN} \${CODE_ROOT}/bin/consequence_prediction/run_repeat_expansion_variants.py \
+   \${PYTHON_BIN} ${codeRoot}/bin/consequence_prediction/run_repeat_expansion_variants.py \
         --clinvar-xml ${clinvarXml} \
         --output-consequences consequences_repeat.tsv
 
@@ -188,7 +189,7 @@ process runStructural {
 
    script:
    """
-   \${PYTHON_BIN} \${CODE_ROOT}/bin/consequence_prediction/run_structural_variants.py \
+   \${PYTHON_BIN} ${codeRoot}/bin/consequence_prediction/run_structural_variants.py \
         --clinvar-xml ${clinvarXml} \
         --output-consequences consequences_structural.tsv
 
@@ -227,7 +228,7 @@ process mapGenes {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/map_genes.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/evaluation/map_genes.py \
         --clinvar-xml ${clinvarXml} \
         --output-file output_gene_mappings.tsv
     """
@@ -245,7 +246,7 @@ process mapXrefs {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/map_xrefs.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/evaluation/map_xrefs.py \
         --clinvar-xml ${clinvarXml} \
         --output-file output_xref_mappings.tsv
     """
@@ -260,7 +261,7 @@ process checkLatestMappings {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/evaluation/check_latest_mappings.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/evaluation/check_latest_mappings.py \
         --latest-mappings ${params.mappings} \
         --output-file output_eval_latest.tsv
     """
@@ -293,7 +294,7 @@ process generateAnnotatedXml {
     def evalXrefFlag = evalXrefMapping != file("empty2")? "--eval-xref-file ${evalXrefMapping}" : ""
     def evalLatestFlag = evalLatest != file("empty3")? "--eval-latest-file ${evalLatest}" : ""
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/generate_annotated_xml.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
@@ -324,7 +325,7 @@ process generateEvidence {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/evidence_string_generation.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/evidence_string_generation.py \
         --clinvar-xml ${clinvarXml} \
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
@@ -368,7 +369,7 @@ process convertXrefs {
     path "clinvar_xrefs.txt", emit: clinvarXrefs
 
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/traits_to_zooma_format.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/traits_to_zooma_format.py \
         --clinvar-xml ${clinvarXml} \
         --zooma-feedback clinvar_xrefs.txt
     """

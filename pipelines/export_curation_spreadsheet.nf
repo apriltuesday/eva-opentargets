@@ -28,6 +28,7 @@ if (!params.curation_root or !params.input_csv) {
     exit 1, helpMessage()
 }
 curationRoot = params.curation_root
+codeRoot = "${projectDir}/.."
 
 
 /*
@@ -63,7 +64,7 @@ process exportTable {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/export_curation_table.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/export_curation_table.py \
         -i ${params.input_csv} \
         -d finished_mappings_curation.tsv \
         -m terms_for_efo_import.txt \
@@ -143,7 +144,7 @@ process createEfoTable {
 
     script:
     """
-    \${PYTHON_BIN} \${CODE_ROOT}/bin/trait_mapping/create_efo_table.py \
+    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/create_efo_table.py \
         -i ${importTerms} \
         -o efo_import_table.tsv
     """

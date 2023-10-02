@@ -32,7 +32,7 @@ cd ${BATCH_ROOT}
 mkdir -p clinvar gene_mapping evidence_strings logs
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
-nextflow run ${CODE_ROOT}/cmat/output_generation/pipeline.nf \
+nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --output_dir ${BATCH_ROOT} \
   --schema ${OT_SCHEMA_VERSION} \
   -resume
