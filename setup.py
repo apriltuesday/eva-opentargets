@@ -27,13 +27,13 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='cmat',
-      version='3.0.4',
+      version='3.0.5',
       author_email='opentargets-clinvar@ebi.ac.uk',
-      url='https://github.com/EBIvariation/eva-opentargets',
+      url='https://github.com/EBIvariation/CMAT',
       packages=find_packages(),
       install_requires=get_requires(),
       package_data={
-          'cmat': ['OT_SCHEMA_VERSION']
+          'cmat': ['OT_SCHEMA_VERSION', 'pipelines/*']
       },
       description='ClinVar Mapping and Annotation Toolkit',
       long_description=long_description,
