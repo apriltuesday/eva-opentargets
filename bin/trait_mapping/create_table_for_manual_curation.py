@@ -14,8 +14,7 @@ def previous_and_replacement_mappings(trait_name, previous_mappings):
     if trait_name not in previous_mappings:
         yield '', ''
         return
-    for uri in previous_mappings[trait_name]:
-        label = get_ontology_label(uri)
+    for uri, label in previous_mappings[trait_name]:
         trait_status = get_trait_status(uri)
         trait_string = '|'.join([uri, label, 'NOT_SPECIFIED', 'previously-used', trait_status])
         replacement_string = find_replacement_mapping(uri)
