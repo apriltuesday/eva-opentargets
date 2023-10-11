@@ -1,5 +1,7 @@
 import json
 import os
+import re
+
 import requests
 import xml.etree.ElementTree as ElementTree
 
@@ -151,10 +153,8 @@ class TestGenerateEvidenceStringTest:
         self.disease_mapped_efo_id = 'Orphanet_88991'
         self.consequence_attributes = GENE_MAPPINGS['14:67729209:A:G'][0]
         # Open Targets JSON schema
-        # schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{config.OT_SCHEMA_VERSION}/' \
-        #              f'schemas/disease_target_evidence.json'
-        schema_url = 'https://raw.githubusercontent.com/opentargets/json_schema/master/schemas/' \
-                     'disease_target_evidence.json'
+        schema_url = f'https://raw.githubusercontent.com/opentargets/json_schema/{config.OT_SCHEMA_VERSION}/' \
+                     f'schemas/disease_target_evidence.json'
         self.ot_schema_contents = requests.get(schema_url).json()
 
     def test_genetics_evidence_string(self):
