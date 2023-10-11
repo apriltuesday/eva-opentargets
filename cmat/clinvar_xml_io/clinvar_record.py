@@ -76,6 +76,11 @@ class ClinVarRecord:
         return self.rcv.attrib['DateLastUpdated']
 
     @property
+    def created_date(self):
+        """This tracks the date the record was first made public on ClinVar."""
+        return self.rcv.attrib['DateCreated']
+
+    @property
     def last_evaluated_date(self):
         """This tracks the latest (re)evaluation date for the clinical interpretation.
         See https://github.com/opentargets/platform/issues/1161#issuecomment-683938510 for details."""

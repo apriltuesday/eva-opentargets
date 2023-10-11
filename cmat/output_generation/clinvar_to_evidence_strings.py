@@ -206,6 +206,15 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
     return report
 
 
+def format_creation_date(s):
+    if not s:
+        return None
+    m = re.search('\d{4}-\d{2}-\d{2}', s)
+    if m and m.group(0):
+        return m.group(0)
+    return None
+
+
 def generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id, disease_mapped_efo_id,
                              consequence_attributes):
     """Generates an evidence string based on ClinVar record and some additional attributes."""
@@ -234,6 +243,9 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
 
         # RCV identifier.
         'studyId': clinvar_record.accession,
+
+        # Record creation date, formatted as YYYY-MM-DD
+        'releaseDate': format_creation_date(clinvar_record.created_date),
 
         # VARIANT ATTRIBUTES.
         'targetFromSourceId': consequence_attributes.ensembl_gene_id,

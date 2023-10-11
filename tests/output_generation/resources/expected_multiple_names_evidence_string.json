@@ -20,6 +20,7 @@
   "diseaseFromSource": "Skeletal dysplasia",
   "diseaseFromSourceId": "C0410528",
   "diseaseFromSourceMappedId": "HP_0002652",
+  "releaseDate": "2017-01-12",
   "studyId": "RCV000415158",
   "targetFromSourceId": "ENSG00000139988",
   "variantFunctionalConsequenceId": "SO_0001583",
