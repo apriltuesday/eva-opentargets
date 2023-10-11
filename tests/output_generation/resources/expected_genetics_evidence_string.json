@@ -10,7 +10,6 @@
     "Leber congenital amaurosis 13"
   ],
   "confidence": "criteria provided, multiple submitters, no conflicts",
-  "creationDate": "2012-08-13",
   "datasourceId": "eva",
   "datatypeId": "genetic_association",
   "diseaseFromSource": "Rare congenital non-syndromic heart malformation",
@@ -20,6 +19,7 @@
     "15258582",
     "15322982"
   ],
+  "releaseDate": "2012-08-13",
   "studyId": "RCV000002127",
   "targetFromSourceId": "ENSG00000139988",
   "variantFunctionalConsequenceId": "SO_0001583",

@@ -245,7 +245,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'studyId': clinvar_record.accession,
 
         # Record creation date, formatted as YYYY-MM-DD
-        'creationDate': format_creation_date(clinvar_record.created_date),
+        'releaseDate': format_creation_date(clinvar_record.created_date),
 
         # VARIANT ATTRIBUTES.
         'targetFromSourceId': consequence_attributes.ensembl_gene_id,
