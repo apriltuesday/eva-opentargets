@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# This is a wrapper around CMAT for packaging the Conda recipe, based largely on the
+# ones in Andries Feder's Cladebreaker (https://github.com/andriesfeder/cladebreaker)
+# and Robert A. Petit III's Bactopia (https://bactopia.github.io).
+
+VERSION=3.0.6.dev3
+CONDA_ENV=$(which cmat | sed 's=bin/cmat==')
+CMAT_NF="${CONDA_ENV}/share/cmat-${VERSION}/pipelines"
+MAPPINGS_FILE="${CONDA_ENV}/share/cmat-${VERSION}/mappings/latest_mappings.tsv"
+
+if [[ $# == 0 ]]; then
+    echo "ClinVar Mapping and Annotation Toolkit (cmat) - v${VERSION}"
+    echo ""
+    echo "Available commands (use --help to print usage):"
+    echo " * cmat annotate - Annotate ClinVar XML file"
+    echo " * cmat generate-curation - Generate term curation spreadsheet"
+    echo " * cmat export-curation - Export term curation spreadsheet"
+    echo ""
+    exit
+fi
+
+if [[ "$1" == "version" ]] || [[ "$1" == "--version" ]]; then
+    echo "cmat ${VERSION}"
+    exit
+fi
+
+# All other commands take an optional --mappings arg
+# If not present, use the latest mappings file included with CMAT
+MAPPINGS_ARG="--mappings ${MAPPINGS_FILE}"
+if [[ "$*" == *"--mappings"* ]]; then
+    MAPPINGS_ARG=""
+fi
+
+if [[ "$1" == "annotate" ]]; then
+    nextflow run "${CMAT_NF}/annotation_pipeline.nf" "${@:1}" ${MAPPINGS_ARG}
+elif [[ "$1" == "generate-curation" ]]; then
+    nextflow run "${CMAT_NF}/generate_curation_spreadsheet.nf" "${@:1}" ${MAPPINGS_ARG}
+elif [[ "$1" == "export-curation" ]]; then
+    nextflow run "${CMAT_NF}/export_curation_spreadsheet.nf" "${@:1}" ${MAPPINGS_ARG}
+fi
