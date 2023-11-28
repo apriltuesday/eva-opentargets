@@ -5,25 +5,32 @@ package:
   version: {{ version }}
 
 source:
-  path: ../  # TODO remove
-  # url: https://github.com/EBIvariation/CMAT/archive/v{{version}}.tar.gz
-  # sha256: 29bdeb28674486785c5f5825afa7d1237bd5dd2c76923145d68543f3a6bb5594
+  url: https://github.com/EBIvariation/CMAT/archive/v{{version}}.tar.gz
+  sha256: 29bdeb28674486785c5f5825afa7d1237bd5dd2c76923145d68543f3a6bb5594
 
 build:
   number: 0
   noarch: generic
-  preserve_egg_dir: True  # TODO remove
 
 requirements:
   host:
     - nextflow >=21.10
     - python >=3.8,<3.10  # restriction from biopython
-    - pip
-    - setuptools
+    # From requirements.txt
+    - biopython==1.77
+    - coverage==6.5.0
+    - coveralls==3.3.1
+    - jsonschema==3.2.0
+    - numpy==1.24.3
+    - pandas==1.5.3
+    - pytest==7.2.2
+    - pytest-cov==2.10.0
+    - requests==2.31.0
+    - requests-mock==1.8.0
+    - retry==0.9.2
   run:
     - nextflow >=21.10.0
     - python >=3.8,<3.10
-    # From requirements.txt
     - biopython==1.77
     - coverage==6.5.0
     - coveralls==3.3.1
