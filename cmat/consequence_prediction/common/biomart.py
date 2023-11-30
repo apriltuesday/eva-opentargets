@@ -65,6 +65,7 @@ def split_into_chunks(lst, max_size, delimiter=','):
     return chunks
 
 
+# TODO flag to get transcripts
 def query_biomart(key_column, query_column, identifier_list):
     """Query Ensembl BioMart with a list of identifiers (`identifier_list`) from one column (`key_column`) and return
     all mappings from those identifiers to another column (`query_column`) in form of a two-column Pandas dataframe.

@@ -65,38 +65,49 @@ def load_consequence_severity_rank():
     return {term: index for index, term in enumerate(get_severity_ranking())}
 
 
-def most_severe_consequence(consequence_terms, consequence_term_severity_rank):
-    return min(consequence_terms, key=lambda term: consequence_term_severity_rank[term])
+def most_severe_consequence(consequence_terms_with_transcripts, consequence_term_severity_rank):
+    return min(consequence_terms_with_transcripts,
+               key=lambda term_and_transcript: consequence_term_severity_rank[term_and_transcript[0]])[0]
 
 
-def most_severe_consequence_per_gene(variant_identifier, consequences):
+def most_severe_consequence_per_gene(variant_identifier, consequences, include_transcripts):
     results = []
     consequence_term_severity_rank = load_consequence_severity_rank()
     consequences_per_gene = defaultdict(list)
     for c in consequences:
         key = (c['gene_id'], c.get('gene_symbol', ''))
-        consequences_per_gene[key].extend(term for term in c['consequence_terms'])
-    for (gene_id, gene_symbol), terms in consequences_per_gene.items():
-        most_severe_consequence_term = most_severe_consequence(terms, consequence_term_severity_rank)
-        results.append((variant_identifier, gene_id, gene_symbol, most_severe_consequence_term))
+        # Keep track of consequence term alongside transcript ID
+        consequences_per_gene[key].extend((term, c['transcript_id']) for term in c['consequence_terms'])
+    for (gene_id, gene_symbol), terms_with_transcripts in consequences_per_gene.items():
+        most_severe_consequence_term = most_severe_consequence(terms_with_transcripts, consequence_term_severity_rank)
+        # If we're including transcripts, need to include every transcript associated with the most severe consequence
+        if include_transcripts:
+            for term, transcript_id in terms_with_transcripts:
+                if term == most_severe_consequence_term:
+                    results.append((variant_identifier, gene_id, gene_symbol, most_severe_consequence_term, transcript_id))
+        else:
+            results.append((variant_identifier, gene_id, gene_symbol, most_severe_consequence_term))
     return results
 
 
-def overall_most_severe_consequence(variant_identifier, consequences):
+def overall_most_severe_consequence(variant_identifier, consequences, include_transcripts):
     results = []
     consequence_term_severity_rank = load_consequence_severity_rank()
     # Flatten the list of consequence terms and find the most severe one
-    all_consequence_terms = [term for c in consequences for term in c['consequence_terms']]
+    all_consequence_terms = [(term, c['transcript_id']) for c in consequences for term in c['consequence_terms']]
     most_severe_consequence_term = most_severe_consequence(all_consequence_terms, consequence_term_severity_rank)
 
     # Keep only consequences which include the most severe consequence term.
     for c in consequences:
         if most_severe_consequence_term in c['consequence_terms']:
-            results.append((variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term))
+            if include_transcripts:
+                results.append((variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term, c['transcript_id']))
+            else:
+                results.append((variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term))
     return results
 
 
-def extract_consequences(vep_results, acceptable_biotypes):
+def extract_consequences(vep_results, acceptable_biotypes, include_transcripts):
     """Given VEP results, return a list of consequences matching certain criteria.
 
     Args:
@@ -104,6 +115,7 @@ def extract_consequences(vep_results, acceptable_biotypes):
         acceptable_biotypes: a list of transcript biotypes to consider (as defined in Ensembl documentation, see
             https://www.ensembl.org/info/genome/genebuild/biotypes.html). Consequences for other transcript biotypes
             will be ignored.
+        include_transcripts: whether to include transcript IDs alongside consequence terms
     """
     results_by_variant = defaultdict(list)
     for result in vep_results:
@@ -120,11 +132,11 @@ def extract_consequences(vep_results, acceptable_biotypes):
 
         # For genes overlapping the variant, we report the most severe consequence per gene.
         if overlapping_consequences:
-            consequences_for_variant = most_severe_consequence_per_gene(variant_identifier, overlapping_consequences)
+            consequences_for_variant = most_severe_consequence_per_gene(variant_identifier, overlapping_consequences, include_transcripts)
         # If there are no consequences on overlapping genes, we take the overall most severe consequence and all genes
         # associated with that consequence
         else:
-            consequences_for_variant = overall_most_severe_consequence(variant_identifier, consequences)
+            consequences_for_variant = overall_most_severe_consequence(variant_identifier, consequences, include_transcripts)
         results_by_variant[variant_identifier].extend(consequences_for_variant)
 
     return results_by_variant

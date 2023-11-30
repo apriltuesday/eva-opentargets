@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A wrapper script for running the repeat expansion pipeline."""
+"""A wrapper script for running the structural variant pipeline."""
 
 import argparse
 from cmat.consequence_prediction.structural_variants import pipeline
