@@ -15,22 +15,30 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# The idea behind this template is that we query BioMart with a list of identifiers (`identifier_list`) from the
-# `key_column`. For example, it can be a "hgnc_id" column, which contains a HGNC ID of a given gene. We then ask
-# BioMart to return all mappings from that column to the `query_column`. For example, it can be the "ensembl_gene_id"
-# column, which contains stable Ensembl gene ID.
-BIOMART_REQUEST_TEMPLATE = """http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Query>
-<Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6">
-    <Dataset name = "hsapiens_gene_ensembl" interface = "default" >
-        <Filter name = "{key_column}" value = "{identifier_list}"/>
-        <Attribute name = "{key_column}" />
-        <Attribute name = "{query_column}" />
-    </Dataset>
-</Query>""".replace('\n', '')
-
 # This is to avoid getting a "URL too long" exception.
 MAX_REQUEST_LENGTH = 5000
+
+
+def build_biomart_request_template(key_column, query_columns):
+    """
+    The idea behind this template is that we query BioMart with a list of identifiers (`identifier_list`) from the
+    `key_column`. For example, it can be a "hgnc_id" column, which contains a HGNC ID of a given gene. We then ask
+    BioMart to return all mappings from that column to the `query_column`. For example, it can be the "ensembl_gene_id"
+    column, which contains stable Ensembl gene ID.
+
+    Note `identifier_list` is left to be filled in later, to ensure the identifiers can be chunked appropriately.
+    """
+    biomart_request_template = f"""http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE Query>
+    <Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6">
+        <Dataset name = "hsapiens_gene_ensembl" interface = "default" >
+            <Filter name = "{key_column}" value = "{{identifier_list}}"/>
+            <Attribute name = "{key_column}" />
+    """
+    for query_column in query_columns:
+        biomart_request_template += f'<Attribute name = "{query_column}" />'
+    biomart_request_template += '</Dataset></Query>'
+    return biomart_request_template.replace('\n', '')
 
 
 # Since we are using an external API call here, the @retry decorator will ensure that any sporadic network errors will
@@ -65,14 +73,13 @@ def split_into_chunks(lst, max_size, delimiter=','):
     return chunks
 
 
-# TODO flag to get transcripts
-def query_biomart(key_column, query_column, identifier_list):
+def query_biomart(key_column, query_columns, identifier_list):
     """Query Ensembl BioMart with a list of identifiers (`identifier_list`) from one column (`key_column`) and return
     all mappings from those identifiers to another column (`query_column`) in form of a two-column Pandas dataframe.
 
     Args:
         key_column: A tuple of key column names in Ensembl and in the resulting dataframe, e.g. ('hgnc_id', 'HGNC_ID')
-        query_column: A tuple of query column names, similar to `key_column`, e.g. ('ensembl_gene_id', 'EnsemblGeneID')
+        query_columns: A list of tuples of query column names, similar to `key_column`, e.g. ('ensembl_gene_id', 'EnsemblGeneID')
         identifier_list: List of identifiers to query, e.g. ['HGNC:10548', 'HGNC:10560']
 
     Returns:
@@ -82,18 +89,21 @@ def query_biomart(key_column, query_column, identifier_list):
             0  HGNC:10548   [ENSG00000124788]
             1  HGNC:10560   [ENSG00000285258, ENSG00000163635]"""
     biomart_key_column, df_key_column = key_column
-    biomart_query_column, df_query_column = query_column
+    biomart_query_columns, df_query_columns = zip(*query_columns)
     result = ''
-    for identifier_chunk in split_into_chunks(identifier_list, MAX_REQUEST_LENGTH-len(BIOMART_REQUEST_TEMPLATE)):
+    biomart_request_template = build_biomart_request_template(
+        key_column=biomart_key_column,
+        query_columns=biomart_query_columns
+    )
+    for identifier_chunk in split_into_chunks(identifier_list, MAX_REQUEST_LENGTH-len(biomart_request_template)):
         logger.info(f'Processing chunk of {len(identifier_chunk)} records')
         # Construct BioMart query from the template (see explanation above).
-        biomart_query = BIOMART_REQUEST_TEMPLATE.format(
-            key_column=biomart_key_column,
-            query_column=biomart_query_column,
-            identifier_list=','.join(identifier_chunk)
-        )
+        biomart_query = biomart_request_template.format(identifier_list=','.join(identifier_chunk))
         result += process_biomart_request(biomart_query)
-    resulting_df = pd.read_table(StringIO(result), names=(df_key_column, df_query_column), dtype=str)
+    resulting_df = pd.read_table(StringIO(result), names=(df_key_column,)+df_query_columns, dtype=str)
     # Group all potential mappings into lists.
-    resulting_df = resulting_df.groupby(df_key_column, group_keys=False)[df_query_column].apply(list).reset_index(name=df_query_column)
+    # TODO this associates a list of results with each identifier, which does not work
+    #  for both genes and transcripts as it loses the association
+    #  Maybe see if can push this step one level up...
+    # resulting_df = resulting_df.groupby(df_key_column, group_keys=False)[df_query_columns].apply(list).reset_index(names=df_query_columns)
     return resulting_df

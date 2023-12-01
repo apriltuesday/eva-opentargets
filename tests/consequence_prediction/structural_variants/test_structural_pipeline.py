@@ -16,10 +16,10 @@ def get_test_resource(resource_name):
     return os.path.join(module_directory, 'resources', resource_name)
 
 
-def run_pipeline(resource_name):
+def run_pipeline(resource_name, include_transcripts=False):
     """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
     input_filename = get_test_resource(resource_name)
-    consequences_df = pipeline.main(input_filename)
+    consequences_df = pipeline.main(input_filename, include_transcripts)
     consequences = [[col for col in row] for row in consequences_df.itertuples(index=False)]
     return consequences
 
@@ -33,6 +33,12 @@ def test_successful_run():
         ['NC_000001.11:g.25271785_25329047del', 'ENSG00000187010', 'RHD', 'stop_lost'],
         ['NC_000011.10:g.5226797_5226798insGCC', 'ENSG00000244734', 'HBB', 'feature_elongation']
     ])
+
+
+def test_successful_run_with_transcripts():
+    results = run_pipeline('precise_genomic.xml.gz', include_transcripts=True)
+    assert len(results) == 28
+    assert ['NC_000001.11:g.25271785_25329047del', 'ENSG00000187010', 'RHD', 'stop_lost', 'ENST00000454452'] in results
 
 
 def test_has_complete_coordinates():

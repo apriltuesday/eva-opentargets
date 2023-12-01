@@ -79,20 +79,26 @@ def generate_consequences_file(consequences, output_consequences):
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
 
 
-def main(clinvar_xml, output_consequences=None):
+def main(clinvar_xml, include_transcripts, output_consequences=None):
     vep_results = get_vep_results(clinvar_xml)
-    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
+    results_by_variant = extract_consequences(
+        vep_results=vep_results,
+        acceptable_biotypes={'protein_coding', 'miRNA'},
+        include_transcripts=include_transcripts)
     variant_data = []
     for variant_id, variant_consequences in results_by_variant.items():
         for consequence_to_yield in deduplicate_list(variant_consequences):
-            variant_id, gene_id, gene_symbol, consequence_term = consequence_to_yield
+            # * operator lets us keep all the annotations, regardless of whether transcript is there or not
+            variant_id, *annotations = consequence_to_yield
             # variant_id here is the entire input to VEP, we only want the HGVS that we passed as an identifier
             hgvs_id = variant_id.split()[-1]
-            variant_data.append((hgvs_id, gene_id, gene_symbol, consequence_term))
+            variant_data.append([hgvs_id] + annotations)
 
     # Return as a dataframe to be compatible with repeat expansion pipeline
-    consequences = pd.DataFrame(variant_data, columns=('VariantID', 'EnsemblGeneID',
-                                                       'EnsemblGeneName', 'ConsequenceTerm'))
+    column_names = ['VariantID', 'EnsemblGeneID', 'EnsemblGeneName', 'ConsequenceTerm']
+    if include_transcripts:
+        column_names.append('EnsemblTranscriptID')
+    consequences = pd.DataFrame(variant_data, columns=column_names)
     if output_consequences is not None:
         generate_consequences_file(consequences, output_consequences)
     return consequences

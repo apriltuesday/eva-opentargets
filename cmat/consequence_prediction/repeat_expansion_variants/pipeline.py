@@ -92,7 +92,7 @@ def load_clinvar_data(clinvar_xml):
     return variants.sort_values(by=['Name']), stats
 
 
-def annotate_ensembl_gene_info(variants):
+def annotate_ensembl_gene_info(variants, include_transcripts):
     """Annotate the `variants` dataframe with information about Ensembl gene ID and name"""
 
     # Ensembl gene ID can be determined using three ways, listed in the order of decreasing priority. Having multiple
@@ -103,6 +103,10 @@ def annotate_ensembl_gene_info(variants):
         ('GeneSymbol',   'external_gene_name', lambda i: i != '-'),
         ('TranscriptID',        'refseq_mrna', lambda i: pd.notnull(i)),
     )
+    query_columns = [('ensembl_gene_id', 'EnsemblGeneID')]
+    if include_transcripts:
+        query_columns.append(('ensembl_transcript_id', 'EnsemblTranscriptID'))
+
     # This copy of the dataframe is required to facilitate filling in data using the `combine_first()` method. This
     # allows us to apply priorities: e.g., if a gene ID was already populated using HGNC_ID, it will not be overwritten
     # by a gene ID determined using GeneSymbol.
@@ -117,9 +121,11 @@ def annotate_ensembl_gene_info(variants):
         # Query BioMart for Ensembl Gene IDs
         annotation_info = biomart.query_biomart(
             key_column=(column_name_in_biomart, column_name_in_dataframe),
-            query_column=('ensembl_gene_id', 'EnsemblGeneID'),
+            query_columns=query_columns,
             identifier_list=identifiers_to_query,
         )
+        # TODO collapse to list (?)
+
         # Make note where the annotations came from
         annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
         # Combine the information we received with the *original* dataframe (a copy made before any iterations of this
@@ -127,16 +133,19 @@ def annotate_ensembl_gene_info(variants):
         annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
         # Update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
         # available in another dataframe we just created, `annotation_df`.
+        # TODO check this combine step if the previous info is not in lists
         variants = variants \
             .set_index([column_name_in_dataframe]) \
             .combine_first(annotation_df.set_index([column_name_in_dataframe]))
 
+    # TODO check all this exploding stuff for transcripts
     # Reset index to default
     variants.reset_index(inplace=True)
     # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
     # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
     variants = variants.explode('EnsemblGeneID')
 
+    # TODO another query to biomart, this one should not need to change
     # Based on the Ensembl gene ID, annotate (1) gene name and (2) which chromosome it is on
     gene_query_columns = (
         ('external_gene_name', 'EnsemblGeneName'),
@@ -145,7 +154,7 @@ def annotate_ensembl_gene_info(variants):
     for column_name_in_biomart, column_name_in_dataframe in gene_query_columns:
         annotation_info = biomart.query_biomart(
             key_column=('ensembl_gene_id', 'EnsemblGeneID'),
-            query_column=(column_name_in_biomart, column_name_in_dataframe),
+            query_columns=[(column_name_in_biomart, column_name_in_dataframe)],
             identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
         )
         variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
@@ -184,7 +193,7 @@ def generate_consequences_file(consequences, output_consequences):
     logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
 
 
-def extract_consequences(variants):
+def extract_consequences(variants, include_transcripts):
     # Generate consequences table
     consequences = variants[variants['RecordIsComplete']] \
         .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'], group_keys=False)['RepeatType'] \
@@ -217,11 +226,12 @@ def generate_all_variants_file(output_dataframe, variants):
     variants.to_csv(output_dataframe, sep='\t', index=False)
 
 
-def main(clinvar_xml, output_consequences=None, output_dataframe=None):
+def main(clinvar_xml, include_transcripts, output_consequences=None, output_dataframe=None):
     """Process data and generate output files.
 
     Args:
         clinvar_xml: filepath to the ClinVar XML file.
+        include_transcripts:
         output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
             compatible with the VEP mapping pipeline (see /consequence_prediction/README.md).
         output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
@@ -247,7 +257,7 @@ def main(clinvar_xml, output_consequences=None, output_dataframe=None):
         return None
 
     logger.info('Match each record to Ensembl gene ID and name')
-    variants = annotate_ensembl_gene_info(variants)
+    variants = annotate_ensembl_gene_info(variants, include_transcripts)
 
     logger.info('Determine variant type and whether the record is complete')
     variants = variants.apply(lambda row: determine_complete(row), axis=1)
@@ -255,7 +265,7 @@ def main(clinvar_xml, output_consequences=None, output_dataframe=None):
     logger.info('Postprocess data and output the two final tables')
     if output_dataframe is not None:
         generate_all_variants_file(output_dataframe, variants)
-    consequences = extract_consequences(variants)
+    consequences = extract_consequences(variants, include_transcripts)
     if output_consequences is not None:
         generate_consequences_file(consequences, output_consequences)
 

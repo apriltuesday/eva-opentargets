@@ -24,7 +24,7 @@ def run_pipeline(resource_name):
     """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
     input_filename = get_test_resource(resource_name)
     output_consequences, output_dataframe = [tempfile.NamedTemporaryFile(delete=False) for _ in range(2)]
-    pipeline.main(input_filename, output_consequences.name, output_dataframe.name)
+    pipeline.main(input_filename, False, output_consequences.name, output_dataframe.name)
     consequences = [line.rstrip().split('\t') for line in open(output_consequences.name).read().splitlines()]
     for temp_file in (output_consequences, output_dataframe):
         os.remove(temp_file.name)
