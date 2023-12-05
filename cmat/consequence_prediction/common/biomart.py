@@ -3,7 +3,7 @@ Ensembl BioMart is an API which can be used to query Ensembl databases. It can b
 (HGNC gene ID, gene symbol, RefSeq transcript ID) to Ensembl gene ID and name. The BioMart API is a bit quirky in that
 it uses XML to specify the request.
 """
-
+import re
 from io import StringIO
 import logging
 
@@ -38,7 +38,7 @@ def build_biomart_request_template(key_column, query_columns):
     for query_column in query_columns:
         biomart_request_template += f'<Attribute name = "{query_column}" />'
     biomart_request_template += '</Dataset></Query>'
-    return biomart_request_template.replace('\n', '')
+    return re.sub(r'\n *', '', biomart_request_template)
 
 
 # Since we are using an external API call here, the @retry decorator will ensure that any sporadic network errors will
@@ -75,7 +75,8 @@ def split_into_chunks(lst, max_size, delimiter=','):
 
 def query_biomart(key_column, query_columns, identifier_list):
     """Query Ensembl BioMart with a list of identifiers (`identifier_list`) from one column (`key_column`) and return
-    all mappings from those identifiers to another column (`query_column`) in form of a two-column Pandas dataframe.
+    all mappings from those identifiers to one ore more other column (`query_columns`) in form of a two-column Pandas
+    dataframe.
 
     Args:
         key_column: A tuple of key column names in Ensembl and in the resulting dataframe, e.g. ('hgnc_id', 'HGNC_ID')
@@ -83,11 +84,12 @@ def query_biomart(key_column, query_columns, identifier_list):
         identifier_list: List of identifiers to query, e.g. ['HGNC:10548', 'HGNC:10560']
 
     Returns:
-        A Pandas dataframe with two columns. It will contain at most one row per input identifier. The query column will
-        always contain a *list* to support the possibility of multiple mappings. In the example above, this will be:
+        A Pandas dataframe with two columns. Multiple mappings will be represented as separate rows. In the example
+        above, this will be:
                HGNC_ID      EnsemblGeneID
-            0  HGNC:10548   [ENSG00000124788]
-            1  HGNC:10560   [ENSG00000285258, ENSG00000163635]"""
+            0  HGNC:10548   ENSG00000124788
+            1  HGNC:10560   ENSG00000285258
+            2  HGNC:10560   ENSG00000163635"""
     biomart_key_column, df_key_column = key_column
     biomart_query_columns, df_query_columns = zip(*query_columns)
     result = ''
@@ -101,9 +103,4 @@ def query_biomart(key_column, query_columns, identifier_list):
         biomart_query = biomart_request_template.format(identifier_list=','.join(identifier_chunk))
         result += process_biomart_request(biomart_query)
     resulting_df = pd.read_table(StringIO(result), names=(df_key_column,)+df_query_columns, dtype=str)
-    # Group all potential mappings into lists.
-    # TODO this associates a list of results with each identifier, which does not work
-    #  for both genes and transcripts as it loses the association
-    #  Maybe see if can push this step one level up...
-    # resulting_df = resulting_df.groupby(df_key_column, group_keys=False)[df_query_columns].apply(list).reset_index(names=df_query_columns)
     return resulting_df

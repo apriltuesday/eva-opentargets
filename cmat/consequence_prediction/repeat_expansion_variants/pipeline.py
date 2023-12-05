@@ -107,15 +107,17 @@ def annotate_ensembl_gene_info(variants, include_transcripts):
     if include_transcripts:
         query_columns.append(('ensembl_transcript_id', 'EnsemblTranscriptID'))
 
-    # This copy of the dataframe is required to facilitate filling in data using the `combine_first()` method. This
-    # allows us to apply priorities: e.g., if a gene ID was already populated using HGNC_ID, it will not be overwritten
-    # by a gene ID determined using GeneSymbol.
-    variants_original = variants.copy(deep=True)
+    # Make a copy of the variants dataframe to query. Variants will be removed from this copy as Ensembl gene IDs are
+    # found, ensuring that we don't make unnecessary queries.
+    variants_to_query = variants
+
+    # Empty dataframe to collect annotated rows
+    annotated_variants = pd.DataFrame()
 
     for column_name_in_dataframe, column_name_in_biomart, filtering_function in gene_annotation_sources:
         # Get all identifiers we want to query BioMart with
         identifiers_to_query = sorted({
-            i for i in variants[column_name_in_dataframe]
+            i for i in variants_to_query[column_name_in_dataframe]
             if filtering_function(i)
         })
         # Query BioMart for Ensembl Gene IDs
@@ -124,47 +126,40 @@ def annotate_ensembl_gene_info(variants, include_transcripts):
             query_columns=query_columns,
             identifier_list=identifiers_to_query,
         )
-        # TODO collapse to list (?)
 
         # Make note where the annotations came from
         annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
-        # Combine the information we received with the *original* dataframe (a copy made before any iterations of this
-        # cycle were allowed to run). This is similar to SQL merge.
-        annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
-        # Update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
-        # available in another dataframe we just created, `annotation_df`.
-        # TODO check this combine step if the previous info is not in lists
-        variants = variants \
-            .set_index([column_name_in_dataframe]) \
-            .combine_first(annotation_df.set_index([column_name_in_dataframe]))
+        # Combine the information we received with the *original* dataframe using an outer join.
+        total_merge = pd.merge(variants, annotation_info, on=column_name_in_dataframe, how='outer', indicator=True)
 
-    # TODO check all this exploding stuff for transcripts
-    # Reset index to default
-    variants.reset_index(inplace=True)
-    # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
-    # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
-    variants = variants.explode('EnsemblGeneID')
+        # Variants annotated in this round are those present in both tables in the join, add these to the
+        # cumulative results.
+        annotated_variants = pd.concat((annotated_variants, total_merge[total_merge['_merge'] == 'both']))
+        annotated_variants.drop('_merge', axis=1, inplace=True)
 
-    # TODO another query to biomart, this one should not need to change
+        # Variants that still need to be queried are those present only in the left table in the join.
+        variants_to_query = total_merge[total_merge['_merge'] == 'left_only']
+        variants_to_query.drop('_merge', axis=1, inplace=True)
+        if len(variants_to_query) == 0:
+            break
+
     # Based on the Ensembl gene ID, annotate (1) gene name and (2) which chromosome it is on
-    gene_query_columns = (
+    gene_query_columns = [
         ('external_gene_name', 'EnsemblGeneName'),
         ('chromosome_name', 'EnsemblChromosomeName'),
+    ]
+    annotation_info = biomart.query_biomart(
+        key_column=('ensembl_gene_id', 'EnsemblGeneID'),
+        query_columns=gene_query_columns,
+        identifier_list=sorted({str(i) for i in annotated_variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
     )
-    for column_name_in_biomart, column_name_in_dataframe in gene_query_columns:
-        annotation_info = biomart.query_biomart(
-            key_column=('ensembl_gene_id', 'EnsemblGeneID'),
-            query_columns=[(column_name_in_biomart, column_name_in_dataframe)],
-            identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
-        )
-        variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
-        # Check that there are no multiple mappings for any given ID
-        assert variants[column_name_in_dataframe].str.len().dropna().max() == 1, \
-            'Found multiple gene ID → gene attribute mappings!'
-        # Convert the one-item list into a plain column
-        variants = variants.explode(column_name_in_dataframe)
+    annotated_variants = pd.merge(annotated_variants, annotation_info, on='EnsemblGeneID', how='left')
+    # Check that there are no multiple mappings for any given ID
+    # TODO replace this check
+    # assert variants[column_name_in_dataframe].str.len().dropna().max() == 1, \
+    #     'Found multiple gene ID → gene attribute mappings!'
 
-    return variants
+    return annotated_variants
 
 
 def determine_complete(row):
@@ -181,11 +176,10 @@ def determine_complete(row):
 
 def generate_consequences_file(consequences, output_consequences):
     """Output final table."""
-
     if consequences.empty:
         logger.info('There are no records ready for output')
         return
-    # Write the consequences table. This is used by the main evidence string generation pipeline.
+    # Write the consequences table. This is used by the main annotation pipeline.
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
     # Output statistics
     logger.info(f'Generated {len(consequences)} consequences in total:')
@@ -194,6 +188,7 @@ def generate_consequences_file(consequences, output_consequences):
 
 
 def extract_consequences(variants, include_transcripts):
+    # TODO include transcript ID column in output
     # Generate consequences table
     consequences = variants[variants['RecordIsComplete']] \
         .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'], group_keys=False)['RepeatType'] \

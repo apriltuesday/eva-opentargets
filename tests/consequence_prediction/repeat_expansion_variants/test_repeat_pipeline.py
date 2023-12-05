@@ -4,7 +4,10 @@ manually extracted from the main ClinVar XML to check specific cases."""
 import os
 import tempfile
 
+import pandas as pd
+
 from cmat.consequence_prediction.repeat_expansion_variants import pipeline
+from cmat.consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info
 
 
 def get_test_resource(resource_name):
@@ -100,3 +103,35 @@ def test_missing_names_and_hgvs():
         # ref=T, alt=TACACACACACAC => classified as trinucleotide repeat without repeating unit inference.
         ['RCV001356600', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion']
     ]
+
+
+def test_annotate_genes_with_transcripts():
+    """Tests annotation with genes and transcripts, using multiple sources (HGNC, gene symbol, RefSeq transcript)"""
+    variants = pd.DataFrame([
+        ['variant_with_hgnc', 'RCV1', '-', 'HGNC:11850', None, None],
+        ['variant_with_gene_symbol', 'RCV2', 'PRDM12', '-', None, None],
+        ['variant_with_refseq', 'RCV3', '-', '-', 'NM_001377405', None],
+        ['variant_not_found', 'RCV4', 'blah', 'HGNC:blah', 'NM_blah', None]
+    ], columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID', 'TranscriptID', 'RepeatType'))
+    annotated_variants = annotate_ensembl_gene_info(variants, include_transcripts=True)
+    assert annotated_variants.shape == (7, 11)
+
+    # Helper function to check gene/transcript annotations for a particular variant
+    def assert_gene_transcript(name, arr):
+        assert (
+            annotated_variants[annotated_variants['Name'] == name][['EnsemblGeneID', 'EnsemblTranscriptID']]
+            .values == arr
+        ).all()
+
+    assert_gene_transcript('variant_with_hgnc', [
+        ['ENSG00000136869', 'ENST00000472304'],
+        ['ENSG00000136869', 'ENST00000394487'],
+        ['ENSG00000136869', 'ENST00000355622'],
+        ['ENSG00000136869', 'ENST00000490685'],
+    ])
+    assert_gene_transcript('variant_with_gene_symbol', [
+        ['ENSG00000130711', 'ENST00000253008'],
+        ['ENSG00000130711', 'ENST00000676323'],
+    ])
+    assert_gene_transcript('variant_with_refseq', [['ENSG00000163635', 'ENST00000674280']])
+    assert 'variant_not_found' not in annotated_variants['Name']
