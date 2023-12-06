@@ -5,9 +5,10 @@ import os
 import tempfile
 
 import pandas as pd
+import pytest
 
 from cmat.consequence_prediction.repeat_expansion_variants import pipeline
-from cmat.consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info
+from cmat.consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info, assert_uniqueness
 
 
 def get_test_resource(resource_name):
@@ -103,6 +104,33 @@ def test_missing_names_and_hgvs():
         # ref=T, alt=TACACACACACAC => classified as trinucleotide repeat without repeating unit inference.
         ['RCV001356600', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion']
     ]
+
+
+def test_assert_uniqueness():
+    uniqueness_columns = ['letter', 'number']
+    target_column = 'target'
+    df = pd.DataFrame([
+        ['A', 1, 'not important', 'something'],
+        ['A', 1, 'not important', 'something'],
+        ['B', 2, 'not important', 'something else']
+    ], columns=uniqueness_columns + ['not important column', target_column])
+    result_df = assert_uniqueness(df, uniqueness_columns, target_column, 'failure')
+    assert result_df.equals(pd.DataFrame([
+        ['A', 1, 'something'],
+        ['B', 2, 'something else']
+    ], columns=uniqueness_columns + [target_column]))
+
+
+def test_assert_uniqueness_failure():
+    uniqueness_columns = ['letter', 'number']
+    target_column = 'target'
+    df = pd.DataFrame([
+        ['A', 1, 'something'],
+        ['A', 1, 'something else'],
+        ['B', 2, 'something']
+    ], columns=uniqueness_columns + [target_column])
+    with pytest.raises(AssertionError):
+        assert_uniqueness(df, uniqueness_columns, target_column, 'failure')
 
 
 def test_annotate_genes_with_transcripts():

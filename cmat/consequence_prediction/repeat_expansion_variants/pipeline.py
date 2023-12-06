@@ -144,10 +144,10 @@ def annotate_ensembl_gene_info(variants, include_transcripts):
             break
 
     # Based on the Ensembl gene ID, annotate (1) gene name and (2) which chromosome it is on
-    gene_query_columns = [
+    gene_query_columns = (
         ('external_gene_name', 'EnsemblGeneName'),
         ('chromosome_name', 'EnsemblChromosomeName'),
-    ]
+    )
     annotation_info = biomart.query_biomart(
         key_column=('ensembl_gene_id', 'EnsemblGeneID'),
         query_columns=gene_query_columns,
@@ -155,20 +155,21 @@ def annotate_ensembl_gene_info(variants, include_transcripts):
     )
     annotated_variants = pd.merge(annotated_variants, annotation_info, on='EnsemblGeneID', how='left')
     # Check that there are no multiple mappings for any given ID
-    # TODO replace this check
-    # assert variants[column_name_in_dataframe].str.len().dropna().max() == 1, \
-    #     'Found multiple gene ID → gene attribute mappings!'
+    for _, column_name_in_dataframe in gene_query_columns:
+        assert_uniqueness(annotated_variants, ['EnsemblGeneID'], column_name_in_dataframe,
+                          'Found multiple gene ID → gene attribute mappings!')
 
     return annotated_variants
 
 
-def determine_complete(row):
+def determine_complete(row, include_transcripts):
     """Depending on the information, determine whether the record is complete, i.e., whether it has all necessary
         fields to be output for the final "consequences" table."""
     row['RecordIsComplete'] = (
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
         pd.notnull(row['RepeatType']) and
+        (pd.notnull(row['EnsemblTranscriptID']) if include_transcripts else True) and
         row['EnsemblChromosomeName'] in STANDARD_CHROMOSOME_NAMES
     )
     return row
@@ -187,22 +188,44 @@ def generate_consequences_file(consequences, output_consequences):
     logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
 
 
+def assert_uniqueness(df, uniqueness_columns, target_column, error_msg):
+    """
+    Check uniqueness of values in target_column with respect to tuples in uniqueness_columns.
+
+    Args:
+        df: dataframe to check
+        uniqueness_columns: iterable of column names
+        target_column: name of column that should be unique
+        error_msg: message to report if uniqueness check fails
+    Returns:
+        result_df: input df containing only uniqueness_columns and target_column
+    """
+    result_df = df.groupby(uniqueness_columns, group_keys=False)[target_column].apply(set).reset_index(name=target_column)
+    if result_df.empty:
+        return result_df
+    assert result_df[target_column].apply(len).dropna().max() == 1, error_msg
+    # Get rid of sets
+    result_df[target_column] = result_df[target_column].apply(list)
+    result_df = result_df.explode(target_column)
+    return result_df
+
+
 def extract_consequences(variants, include_transcripts):
-    # TODO include transcript ID column in output
-    # Generate consequences table
-    consequences = variants[variants['RecordIsComplete']] \
-        .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'], group_keys=False)['RepeatType'] \
-        .apply(set).reset_index(name='RepeatType')
+    """Generate consequences table"""
+    # Check that for every (RCV, gene) pair or (RCV, gene, transcript) triple there is only one consequence type
+    unique_repeat_type_columns = ['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName']
+    if include_transcripts:
+        unique_repeat_type_columns.append('EnsemblTranscriptID')
+    consequences = assert_uniqueness(variants[variants['RecordIsComplete']], unique_repeat_type_columns, 'RepeatType',
+                                     'Multiple (RCV, gene) → variant type mappings!')
     if consequences.empty:
         return consequences
-    # Check that for every (RCV, gene) pair there is only one consequence type
-    assert consequences['RepeatType'].str.len().dropna().max() == 1, 'Multiple (RCV, gene) → variant type mappings!'
-    # Get rid of sets
-    consequences['RepeatType'] = consequences['RepeatType'].apply(list)
-    consequences = consequences.explode('RepeatType')
     # Form a four-column file compatible with the consequence mapping pipeline, for example:
     # RCV000005966    ENSG00000156475    PPP2R2B    trinucleotide_repeat_expansion
-    consequences = consequences[['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType']]
+    output_columns = ['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType']
+    if include_transcripts:
+        output_columns.append('EnsemblTranscriptID')
+    consequences = consequences[output_columns]
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
     # Check that there are no empty cells in the final consequences table
     assert consequences.isnull().to_numpy().sum() == 0
@@ -255,7 +278,7 @@ def main(clinvar_xml, include_transcripts, output_consequences=None, output_data
     variants = annotate_ensembl_gene_info(variants, include_transcripts)
 
     logger.info('Determine variant type and whether the record is complete')
-    variants = variants.apply(lambda row: determine_complete(row), axis=1)
+    variants = variants.apply(lambda row: determine_complete(row, include_transcripts), axis=1)
 
     logger.info('Postprocess data and output the two final tables')
     if output_dataframe is not None:
