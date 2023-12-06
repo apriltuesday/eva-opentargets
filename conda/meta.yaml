@@ -1,4 +1,4 @@
-{% set version = "3.0.6.dev3" %}
+{% set version = "3.0.6.dev4" %}
 
 package:
   name: cmat
