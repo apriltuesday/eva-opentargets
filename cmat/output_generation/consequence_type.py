@@ -15,6 +15,7 @@ def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
 
 
 def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
+    # TODO adapt for transcripts if present
     """
     Return a dictionary of consequence information extracted from the given file.
     If consequence_type_dict is provided then the information will be merge into this dictionary.

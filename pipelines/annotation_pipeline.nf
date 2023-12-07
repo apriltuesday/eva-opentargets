@@ -8,11 +8,12 @@ def helpMessage() {
     Generate ClinVar evidence strings for Open Targets, or annotated ClinVar XML.
     
     Params:
-        --output_dir    Directory for output
-        --schema        Open Targets JSON schema version (optional, will output XML if omitted)
-        --clinvar       ClinVar XML file (optional, will download latest if omitted)
-        --mappings      Trait mappings file (optional, will use a default path if omitted)
-        --evaluate      Whether to run evaluation or not (default false)
+        --output_dir           Directory for output
+        --schema               Open Targets JSON schema version (optional, will output XML if omitted)
+        --clinvar              ClinVar XML file (optional, will download latest if omitted)
+        --mappings             Trait mappings file (optional, will use a default path if omitted)
+        --include_transcripts  Whether to include transcripts in consequences (default false)
+        --evaluate             Whether to run evaluation or not (default false)
     """
 }
 
@@ -21,6 +22,7 @@ params.output_dir = null
 params.schema = null
 params.clinvar = null
 params.mappings = '${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv'
+params.include_transcripts = false
 params.evaluate = false
 
 if (params.help) {
@@ -31,7 +33,7 @@ if (!params.output_dir) {
 }
 batchRoot = params.output_dir
 codeRoot = "${projectDir}/.."
-
+includeTranscriptsFlag = params.include_transcripts ? "--include-transcripts" : ""
 
 /*
  * Main workflow.
@@ -135,6 +137,7 @@ process runSnpIndel {
         -N 200               `# Number of records (lines) per worker`                                     \
         --tmpdir .           `# Store temporary files in the current directory to avoid /tmp overflow`    \
         \${PYTHON_BIN} "${codeRoot}/cmat/consequence_prediction/snp_indel_variants/pipeline.py" \
+            ${includeTranscriptsFlag} \
     | sort -u > consequences_snp.tsv
     """
 }
@@ -161,6 +164,7 @@ process runRepeat {
    """
    \${PYTHON_BIN} ${codeRoot}/bin/consequence_prediction/run_repeat_expansion_variants.py \
         --clinvar-xml ${clinvarXml} \
+        ${includeTranscriptsFlag} \
         --output-consequences consequences_repeat.tsv
 
     # create an empty file if nothing generated
@@ -191,6 +195,7 @@ process runStructural {
    """
    \${PYTHON_BIN} ${codeRoot}/bin/consequence_prediction/run_structural_variants.py \
         --clinvar-xml ${clinvarXml} \
+        ${includeTranscriptsFlag} \
         --output-consequences consequences_structural.tsv
 
     # create an empty file if nothing generated

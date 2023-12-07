@@ -53,7 +53,8 @@ def load_clinvar_data(clinvar_xml):
 def main(clinvar_xml, output_file):
     """Load ClinVar XML, map to Ensembl gene IDs, and dump results to TSV."""
     variants = load_clinvar_data(clinvar_xml)
-    annotated_variants = annotate_ensembl_gene_info(variants)
+    # Don't include transcripts for evaluation
+    annotated_variants = annotate_ensembl_gene_info(variants, include_transcripts=False)
     annotated_variants[['RCVaccession', 'EnsemblGeneID']].to_csv(output_file, sep='\t', index=False, header=False)
 
 

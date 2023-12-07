@@ -91,6 +91,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.overall_counts['both_measure_and_trait'] += 1
 
     def annotate_and_count_measure(self, record):
+        # TODO include transcript if present in variant_to_gene_mappings
         consequence_types, variant_category = get_consequence_types(record.measure, self.variant_to_gene_mappings)
         record.measure.add_ensembl_annotations(consequence_types)
 
