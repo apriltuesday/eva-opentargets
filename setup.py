@@ -6,6 +6,8 @@ from setuptools import setup, find_packages
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+version = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'bin', 'cmat', 'VERSION')).read().strip()
+
 
 def get_requires():
     requires = []
@@ -27,7 +29,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='cmat',
-      version='3.0.5',
+      version=version,
       author_email='opentargets-clinvar@ebi.ac.uk',
       url='https://github.com/EBIvariation/CMAT',
       packages=find_packages(),
