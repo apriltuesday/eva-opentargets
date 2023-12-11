@@ -91,7 +91,6 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.overall_counts['both_measure_and_trait'] += 1
 
     def annotate_and_count_measure(self, record):
-        # TODO include transcript if present in variant_to_gene_mappings
         consequence_types, variant_category = get_consequence_types(record.measure, self.variant_to_gene_mappings)
         record.measure.add_ensembl_annotations(consequence_types)
 
@@ -242,8 +241,14 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
             so_elt = ET.Element('XRef', attrib={'ID': self.format_so_term(consequence_attributes.so_term),
                                                 'DB': 'Sequence Ontology'})
-            ensembl_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_gene_id, 'DB': 'Ensembl'})
-            attr_set_elt.extend((attribute_elt, so_elt, ensembl_elt))
+            ensembl_gene_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_gene_id,
+                                                          'DB': 'Ensembl Gene'})
+            attr_set_elt.extend((attribute_elt, so_elt, ensembl_gene_elt))
+            # Add transcript if present
+            if consequence_attributes.ensembl_transcript_id:
+                ensembl_transcript_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_transcript_id,
+                                                                    'DB': 'Ensembl Transcript'})
+                attr_set_elt.append(ensembl_transcript_elt)
             consequence_elts.append(attr_set_elt)
         self.measure_xml.extend(consequence_elts)
 
