@@ -73,6 +73,7 @@ nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --mappings ${LATEST_MAPPINGS} \
   -resume
 ```
+You can use the `--include_transcripts` flag to also include transcript annotations with the functional consequences.
 
 By default, the pipeline will download and annotate the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 

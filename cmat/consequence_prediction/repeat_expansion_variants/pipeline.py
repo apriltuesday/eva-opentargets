@@ -249,7 +249,7 @@ def main(clinvar_xml, include_transcripts, output_consequences=None, output_data
 
     Args:
         clinvar_xml: filepath to the ClinVar XML file.
-        include_transcripts:
+        include_transcripts: whether to include transcript IDs along with consequence terms.
         output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
             compatible with the VEP mapping pipeline (see /consequence_prediction/README.md).
         output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
