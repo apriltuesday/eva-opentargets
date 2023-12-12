@@ -14,17 +14,17 @@ def test_get_ontology_label_from_ols():
 
 def test_is_current_and_in_efo():
     with requests_mock.mock() as m:
-        url = f"{ols.OLS_EFO_SERVER}/api/ontologies/efo/terms/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_425"
+        url = f"{ols.OLS_SERVER}/api/ontologies/efo/terms/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_425"
         m.get(url,
               json=test_ols_data.TestIsCurrentAndInEfoData.orphanet_425_ols_efo_json)
 
-        assert ols.is_current_and_in_efo("http://www.orpha.net/ORDO/Orphanet_425") == True
+        assert ols.is_current_and_in_ontology("http://www.orpha.net/ORDO/Orphanet_425") == True
 
 
 def test_is_in_efo():
     with requests_mock.mock() as m:
-        url = f"{ols.OLS_EFO_SERVER}/api/ontologies/efo/terms/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_425"
+        url = f"{ols.OLS_SERVER}/api/ontologies/efo/terms/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_425"
         m.get(url,
               json=test_ols_data.TestIsInEfoData.orphanet_425_ols_efo_json)
 
-        assert ols.is_in_efo("http://www.orpha.net/ORDO/Orphanet_425") == True
+        assert ols.is_in_ontology("http://www.orpha.net/ORDO/Orphanet_425") == True

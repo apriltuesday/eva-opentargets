@@ -197,6 +197,7 @@ process checkDuplicates {
 /*
  * Add generated date to header of final mappings file.
  */
+ // TODO add target ontology to header
 process addDateToHeader {
     publishDir "${curationRoot}",
         overwrite: true,

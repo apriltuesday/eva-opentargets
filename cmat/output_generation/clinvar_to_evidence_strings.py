@@ -113,7 +113,7 @@ def validate_evidence_string(ev_string, ot_schema_contents):
 
 def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
     os.makedirs(dir_out, exist_ok=True)
-    string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
+    string_to_efo_mappings = load_ontology_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
     report = clinvar_to_evidence_strings(
@@ -336,22 +336,22 @@ def write_string_list_to_file(string_list, filename):
         out_file.write('\n'.join(string_list))
 
 
-def load_efo_mapping(efo_mapping_file):
-    trait_2_efo = defaultdict(list)
-    n_efo_mappings = 0
+def load_ontology_mapping(trait_mapping_file):
+    trait_2_ontology = defaultdict(list)
+    n_ontology_mappings = 0
 
-    with open(efo_mapping_file, 'rt') as f:
+    with open(trait_mapping_file, 'rt') as f:
         for line in f:
             line = line.rstrip()
             if line.startswith('#') or not line:
                 continue
             line_list = line.split('\t')
-            assert len(line_list) == 3, f'Incorrect string to EFO mapping format for line {line}'
+            assert len(line_list) == 3, f'Incorrect string to ontology mapping format for line {line}'
             clinvar_name, ontology_id, ontology_label = line_list
-            trait_2_efo[clinvar_name.lower()].append((ontology_id, ontology_label))
-            n_efo_mappings += 1
-    logger.info('{} EFO mappings loaded'.format(n_efo_mappings))
-    return trait_2_efo
+            trait_2_ontology[clinvar_name.lower()].append((ontology_id, ontology_label))
+            n_ontology_mappings += 1
+    logger.info('{} ontology mappings loaded'.format(n_ontology_mappings))
+    return trait_2_ontology
 
 
 def get_terms_from_file(terms_file_path):

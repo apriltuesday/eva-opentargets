@@ -63,7 +63,7 @@ class Trait:
                 continue
 
             for mapping in mapping.mapping_list:
-                if mapping.in_efo and mapping.is_current:
+                if mapping.in_ontology and mapping.is_current:
                     ontology_entry = OntologyEntry(mapping.uri, mapping.ontology_label)
                     self.finished_mapping_set.add(ontology_entry)
 
@@ -74,7 +74,7 @@ class Trait:
         """
         for result in self.oxo_result_list:
             for mapping in result.mapping_list:
-                if mapping.in_efo and mapping.is_current and mapping.distance == 1:
+                if mapping.in_ontology and mapping.is_current and mapping.distance == 1:
                     uri = str(mapping.uri)
                     ontology_label = mapping.ontology_label
                     ontology_entry = OntologyEntry(uri, ontology_label)

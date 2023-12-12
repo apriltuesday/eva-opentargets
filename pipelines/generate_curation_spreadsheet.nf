@@ -45,6 +45,7 @@ workflow {
         clinvarXml = downloadClinvar()
     }
 
+    // TODO get target ontology from mappings file
     parseTraits(clinvarXml)
     splitTraits(parseTraits.out.parsedTraits)
     processTraits(splitTraits.out.traitChunk.flatten())

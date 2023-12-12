@@ -103,7 +103,7 @@ def parse_traits(input_filepath, output_traits_filepath, output_for_platform=Non
 
 
 def process_traits(traits_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host,
-                   oxo_target_list, oxo_distance):
+                   oxo_target_list, oxo_distance, ontology):
     trait_list = read_traits_from_csv(traits_filepath)
     logger.info(f'Read {len(trait_list)} traits from file')
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
@@ -124,7 +124,7 @@ def process_traits(traits_filepath, output_mappings_filepath, output_curation_fi
         logger.info('Writing output with the processed traits')
         finished_source_counts = Counter()
         for trait in processed_trait_list:
-            output_trait(trait, mapping_writer, curation_writer, finished_source_counts)
+            output_trait(trait, mapping_writer, curation_writer, finished_source_counts, ontology)
 
     logger.info('Finished processing trait names')
     logger.info(f'Source counts for finished mappings: {finished_source_counts}')

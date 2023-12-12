@@ -301,7 +301,7 @@ process generateAnnotatedXml {
     """
     \${PYTHON_BIN} ${codeRoot}/bin/generate_annotated_xml.py \
         --clinvar-xml ${clinvarXml} \
-        --efo-mapping ${params.mappings} \
+        --trait-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
         ${evalGeneFlag} ${evalXrefFlag} ${evalLatestFlag} \
         --output-xml annotated_clinvar.xml.gz

@@ -9,7 +9,7 @@ def launch():
 
     main.process_traits(parser.input_traits_filepath, parser.output_mappings_filepath,
                         parser.output_curation_filepath, parser.filters, parser.zooma_host,
-                        parser.oxo_target_list, parser.oxo_distance)
+                        parser.oxo_target_list, parser.oxo_distance, parser.target_ontology)
 
 
 class ArgParser:
@@ -27,8 +27,8 @@ class ArgParser:
                             help="path to output file for mappings")
         parser.add_argument("-c", dest="output_curation_filepath", required=True,
                             help="path to output file for curation")
-        parser.add_argument("-n", dest="ontologies", default="efo,ordo,hp,mondo",
-                            help="ontologies to use in query")
+        parser.add_argument("-n", dest="zooma_ontologies", default="efo,ordo,hp,mondo",
+                            help="ontologies to use in zooma query")
         parser.add_argument("-r", dest="required", default="cttv,eva-clinvar,clinvar-xrefs,gwas",
                             help="data sources to use in query.")
         parser.add_argument("-p", dest="preferred", default="eva-clinvar,cttv,gwas,clinvar-xrefs",
@@ -39,6 +39,8 @@ class ArgParser:
                             help="target ontologies to use with OxO")
         parser.add_argument("-d", dest="oxo_distance", default=3,
                             help="distance to use to query OxO.")
+        parser.add_argument('--target-ontology', help='ID of target ontology (default EFO, for allowable values see'
+                                                      'https://www.ebi.ac.uk/ols/ontologies)', default='EFO')
 
         args = parser.parse_args(args=argv[1:])
 
@@ -46,13 +48,14 @@ class ArgParser:
         self.output_mappings_filepath = args.output_mappings_filepath
         self.output_curation_filepath = args.output_curation_filepath
 
-        self.filters = {"ontologies": args.ontologies,
+        self.filters = {"ontologies": args.zooma_ontologies,
                         "required": args.required,
                         "preferred": args.preferred}
 
         self.zooma_host = args.zooma_host
         self.oxo_target_list = [target.strip() for target in args.oxo_target_list.split(",")]
         self.oxo_distance = args.oxo_distance
+        self.target_ontology = args.target_ontology
 
 
 if __name__ == '__main__':

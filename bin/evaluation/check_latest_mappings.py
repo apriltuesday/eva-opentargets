@@ -3,13 +3,13 @@ import argparse
 import csv
 import multiprocessing
 
-from cmat.output_generation.clinvar_to_evidence_strings import load_efo_mapping
+from cmat.output_generation.clinvar_to_evidence_strings import load_ontology_mapping
 from cmat.output_generation.evaluation.ols_utils import fetch_eval_data
 
 
 def main(mapping_file, output_file):
     """Load mapping file, map identifiers to synonyms in OLS, and dump results to TSV."""
-    mappings = load_efo_mapping(mapping_file)
+    mappings = load_ontology_mapping(mapping_file)
     all_uris = [uri for v in mappings.values() for uri, _ in v]
     process_pool = multiprocessing.Pool(processes=24)
     annotated_traits = [

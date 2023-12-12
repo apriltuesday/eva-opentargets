@@ -105,6 +105,7 @@ nextflow run ${CODE_ROOT}/pipelines/generate_curation_spreadsheet.nf \
   --comments ${CURATOR_COMMENTS} \
   -resume
 ```
+! TODO document use of other ontologies https://www.ebi.ac.uk/ols4/ontologies
 
 By default, the pipeline will download and map the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 

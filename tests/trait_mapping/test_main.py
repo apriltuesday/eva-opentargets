@@ -43,7 +43,8 @@ def run_pipeline(resource_name):
         filters=filters,
         zooma_host='https://www.ebi.ac.uk',
         oxo_target_list=['Orphanet', 'efo', 'hp', 'mondo'],
-        oxo_distance=3
+        oxo_distance=3,
+        ontology='EFO'
     )
     output_traits = [row for row in csv.reader(open(traits_file.name), delimiter=',')]
     output_mappings = [line.rstrip().split('\t') for line in open(mappings_file.name).read().splitlines()]

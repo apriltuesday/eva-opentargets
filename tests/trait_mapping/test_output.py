@@ -44,7 +44,7 @@ def test_get_non_efo_mapping():
                                           'abnormal bleeding', 'HIGH', 'eva-clinvar')
     mapping = test_zooma_result.mapping_list[0]
     mapping.confidence = zooma.ZoomaConfidence.HIGH
-    mapping.in_efo = False
+    mapping.in_ontology = False
     mapping.is_current = False
     mapping.ontology_label = ""
     mapping.source = 'eva-clinvar'
@@ -59,7 +59,7 @@ def test_get_obsolete_efo_mapping():
                                           'HIGH', 'eva-clinvar')
     mapping = test_zooma_result.mapping_list[0]
     mapping.confidence = zooma.ZoomaConfidence.HIGH
-    mapping.in_efo = True
+    mapping.in_ontology = True
     mapping.is_current = False
     mapping.ontology_label = "Adenine phosphoribosyltransferase deficiency"
     mapping.source = 'eva-clinvar'
@@ -74,7 +74,7 @@ def test_get_current_efo_mapping():
                                           'MEDIUM', 'eva-clinvar')
     mapping = test_zooma_result.mapping_list[0]
     mapping.confidence = zooma.ZoomaConfidence.HIGH
-    mapping.in_efo = True
+    mapping.in_ontology = True
     mapping.is_current = True
     mapping.ontology_label = "Abnormal neutrophil chemotactic response"
     mapping.source = 'eva-clinvar'
@@ -93,7 +93,7 @@ def test_output_for_curation():
                                     "HP:0006740")
         test_oxo_mapping = OxOMapping("bladder transitional cell carcinoma", "EFO:0006544", 2,
                                       "HP:0006740")
-        test_oxo_mapping.in_efo = test_oxo_mapping.is_current = True
+        test_oxo_mapping.in_ontology = test_oxo_mapping.is_current = True
         test_oxo_mapping.ontology_label = "bladder transitional cell carcinoma"
         test_oxo_result.mapping_list = [test_oxo_mapping]
 
