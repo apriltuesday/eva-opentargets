@@ -17,16 +17,18 @@ class AnnotatingClinVarDataset(ClinVarDataset):
     """This class provides the ability to parse ClinVar records (RCVs) and annotate them with ontology mappings and
     consequence mappings on the fly."""
 
-    def __init__(self, clinvar_xml, string_to_ontology_mappings, variant_to_gene_mappings,
+    def __init__(self, clinvar_xml, string_to_ontology_mappings, variant_to_gene_mappings, target_ontology,
                  eval_gene_mappings=None, eval_xref_mappings=None, eval_latest_mappings=None):
         super().__init__(clinvar_xml)
         self.header_attr['ProcessedBy'] = PROCESSOR
         self.string_to_ontology_mappings = string_to_ontology_mappings
         self.variant_to_gene_mappings = variant_to_gene_mappings
+        self.target_ontology = target_ontology
 
         self.eval_gene_mappings = eval_gene_mappings
         self.eval_xref_mappings = eval_xref_mappings
         self.eval_latest_mappings = eval_latest_mappings
+        self.do_eval = (self.eval_gene_mappings and self.eval_xref_mappings and self.eval_latest_mappings)
         self.overall_counts = {}
         self.obsolete_counts = {}
         self.gene_metrics = None
@@ -61,8 +63,9 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.complex_variant_metrics = (SetComparisonMetrics(), SetComparisonMetrics())
 
         self.trait_metrics = SetComparisonMetrics()
-        self.mismatches_file = open('mismatches.tsv', 'w+')
-        self.mismatches_file.write('RCV\tCV\tCMAT\n')
+        if self.do_eval:
+            self.mismatches_file = open('mismatches.tsv', 'w+')
+            self.mismatches_file.write('RCV\tCV\tCMAT\n')
 
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             record = AnnotatedClinVarRecord(rcv)
@@ -75,7 +78,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
         self.trait_metrics.finalise()
         for metrics in self.simple_variant_metrics + self.repeat_variant_metrics + self.complex_variant_metrics:
             metrics.finalise()
-        self.mismatches_file.close()
+        if self.do_eval:
+            self.mismatches_file.close()
 
     def annotate(self, record):
         self.overall_counts['total'] += 1
@@ -130,7 +134,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
                 for ontology_id, ontology_label
                 in self.string_to_ontology_mappings.get(trait.preferred_or_other_valid_name.lower(), [])
             ]
-            trait.add_ontology_mappings(target_ontology_ids)
+            trait.add_ontology_mappings(target_ontology_ids, self.target_ontology)
 
             # Evaluation
             if self.eval_xref_mappings and self.eval_latest_mappings:
@@ -215,14 +219,13 @@ class AnnotatedClinVarRecord(ClinVarRecord):
 
 class OntologyMappedClinVarTrait(ClinVarTrait):
 
-    def add_ontology_mappings(self, ontology_ids):
+    def add_ontology_mappings(self, ontology_ids, target_ontology):
         ontology_elts = []
         for ontology_id in ontology_ids:
             ontology_id = self.format_ontology_id(ontology_id)
             # Include Status attribute so this isn't included among current xrefs
             ontology_elts.append(ET.Element('XRef', attrib={
-                'ID': ontology_id, 'DB': 'EFO', 'Status': 'annotated', 'providedBy': PROCESSOR}))
-            # TODO change attrib - parse from mappings file header e.g. #ontology=EFO
+                'ID': ontology_id, 'DB': target_ontology, 'Status': 'annotated', 'providedBy': PROCESSOR}))
         self.trait_xml.extend(ontology_elts)
 
     @staticmethod
@@ -313,7 +316,7 @@ def generate_annotated_clinvar_xml(clinvar_xml_file, trait_mapping_file, gene_ma
                                    eval_gene_file=None, eval_xref_file=None, eval_latest_file=None):
     """Generate an annotated XML file of ClinVar RCVs based on trait mapping and gene mapping files (as documented in
     clinvar_to_evidence_strings)."""
-    string_to_ontology_mappings = load_ontology_mapping(trait_mapping_file)
+    string_to_ontology_mappings, target_ontology = load_ontology_mapping(trait_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     # Need all files to do an evaluation
     if eval_gene_file and eval_xref_file and eval_latest_file:
@@ -321,10 +324,12 @@ def generate_annotated_clinvar_xml(clinvar_xml_file, trait_mapping_file, gene_ma
         eval_xref_mappings = load_evaluation_xref_mappings(eval_xref_file)
         eval_latest_mappings = load_evaluation_latest(eval_latest_file)
         dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_ontology_mappings, variant_to_gene_mappings,
+                                           target_ontology,
                                            eval_gene_mappings=eval_gene_mappings,
                                            eval_xref_mappings=eval_xref_mappings,
                                            eval_latest_mappings=eval_latest_mappings)
     else:
-        dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_ontology_mappings, variant_to_gene_mappings)
+        dataset = AnnotatingClinVarDataset(clinvar_xml_file, string_to_ontology_mappings, variant_to_gene_mappings,
+                                           target_ontology)
     dataset.write(output_xml_file)
     dataset.report()

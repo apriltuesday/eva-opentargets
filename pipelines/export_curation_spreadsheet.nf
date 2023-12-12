@@ -81,6 +81,7 @@ process exportTable {
 
     script:
     """
+    # TODO keep target ontology from header
     grep -v "^#" ${params.mappings} > previous_mappings.tsv
     """
  }

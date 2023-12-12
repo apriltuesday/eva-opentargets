@@ -46,9 +46,10 @@ workflow {
     }
 
     // TODO get target ontology from mappings file
+    targetOntology = ...
     parseTraits(clinvarXml)
     splitTraits(parseTraits.out.parsedTraits)
-    processTraits(splitTraits.out.traitChunk.flatten())
+    processTraits(splitTraits.out.traitChunk.flatten(), targetOntology)
     collectAutomatedMappings(processTraits.out.automatedTraits.collect())
     collectCurationTraits(processTraits.out.traitsForCuration.collect())
     createCurationTable(collectCurationTraits.out.curationTraits)
@@ -111,6 +112,7 @@ process processTraits {
 
     input:
     each path(traitChunk)
+    val targetOntology
 
     output:
     path "automated_traits_*.tsv", emit: automatedTraits
@@ -120,6 +122,7 @@ process processTraits {
     """
     \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/process_traits.py \
         -i ${traitChunk} \
+        --target-ontology ${targetOntology} \
         -o automated_traits_${traitChunk}.tsv \
         -c curation_traits_${traitChunk}.tsv
     """

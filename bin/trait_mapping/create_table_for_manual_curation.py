@@ -68,12 +68,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '-o', '--output',
         help='Output TSV to be loaded in Google Sheets for manual curation')
-    parser.add_argument('--target-ontology', help='ID of target ontology (default EFO, for allowable values see'
-                                                  'https://www.ebi.ac.uk/ols/ontologies)', default='EFO')
     args = parser.parse_args()
 
     # Load all previous mappings: ClinVar trait name to ontology URI
-    previous_mappings = load_ontology_mapping(args.previous_mappings)
+    previous_mappings, target_ontology = load_ontology_mapping(args.previous_mappings)
 
     # Load previous curator comments: ClinVar trait name to comment string
     try:
@@ -95,7 +93,7 @@ if __name__ == '__main__':
         mappings = fields[3:53]
         exact_mapping = find_exact_mapping(trait_name, mappings)
         for previous_mapping, replacement_mapping in previous_and_replacement_mappings(trait_name, previous_mappings,
-                                                                                       args.target_ontology):
+                                                                                       target_ontology):
             rows.append([trait_name, trait_freq, notes, previous_mapping, exact_mapping, replacement_mapping]
                         + mappings)
 
