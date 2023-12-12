@@ -43,7 +43,7 @@ def fetch_eval_data(*, db_iden=None, uri=None, include_neighbors=False, target_o
     if json_response and '_embedded' in json_response:
         for term in json_response['_embedded']['terms']:
             # Get only target ontology terms (even if imported)
-            if term['ontology_name'] == target_ontology:
+            if term['ontology_name'].lower() == target_ontology.lower():
                 synonyms, is_obsolete = extract_synonyms_and_obsolete(term)
                 # If requested, fetch the parents and children of this term
                 if include_neighbors:
