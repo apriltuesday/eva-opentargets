@@ -2,6 +2,8 @@
 
 nextflow.enable.dsl=2
 
+include { getTargetOntology } from './utils.nf'
+
 
 def helpMessage() {
     log.info"""
@@ -37,10 +39,11 @@ codeRoot = "${projectDir}/.."
 workflow {
     exportTable()
     combineManualAndAutomated(exportTable.out.finishedMappings)
+    getTargetOntology(params.mappings)
     stripMappingsHeader()
     mergeWithLatestMappings(combineManualAndAutomated.out.newMappings, stripMappingsHeader.out.previousMappings)
     checkDuplicates(mergeWithLatestMappings.out.newMappings)
-    addDateToHeader(checkDuplicates.out.duplicatesOk, mergeWithLatestMappings.out.newMappings)
+    addMappingsHeader(checkDuplicates.out.duplicatesOk, mergeWithLatestMappings.out.newMappings, getTargetOntology.out.targetOntology)
     if (params.with_feedback) {
         createEfoTable(exportTable.out.importTerms)
         generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
@@ -81,7 +84,6 @@ process exportTable {
 
     script:
     """
-    # TODO keep target ontology from header
     grep -v "^#" ${params.mappings} > previous_mappings.tsv
     """
  }
@@ -196,10 +198,9 @@ process checkDuplicates {
 }
 
 /*
- * Add generated date to header of final mappings file.
+ * Add generated date and target ontology to header of final mappings file.
  */
- // TODO add target ontology to header
-process addDateToHeader {
+process addMappingsHeader {
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -208,6 +209,7 @@ process addDateToHeader {
     input:
     val duplicatesOk
     path newMappings
+    val targetOntology
 
     output:
     path "trait_names_to_ontology_mappings.tsv", emit: finalMappings
@@ -215,6 +217,7 @@ process addDateToHeader {
     script:
     """
     printf '#generated-date=%(%Y-%m-%d)T\n' > trait_names_to_ontology_mappings.tsv
+    printf '#ontology=${targetOntology}\n' >> trait_names_to_ontology_mappings.tsv
     cat ${newMappings} >> trait_names_to_ontology_mappings.tsv
     """
 }

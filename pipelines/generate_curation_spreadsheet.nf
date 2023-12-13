@@ -2,6 +2,8 @@
 
 nextflow.enable.dsl=2
 
+include { getTargetOntology } from './utils.nf'
+
 
 def helpMessage() {
     log.info"""
@@ -44,12 +46,10 @@ workflow {
     } else {
         clinvarXml = downloadClinvar()
     }
-
-    // TODO get target ontology from mappings file
-    targetOntology = ...
+    getTargetOntology(params.mappings)
     parseTraits(clinvarXml)
     splitTraits(parseTraits.out.parsedTraits)
-    processTraits(splitTraits.out.traitChunk.flatten(), targetOntology)
+    processTraits(splitTraits.out.traitChunk.flatten(), getTargetOntology.out.targetOntology)
     collectAutomatedMappings(processTraits.out.automatedTraits.collect())
     collectCurationTraits(processTraits.out.traitsForCuration.collect())
     createCurationTable(collectCurationTraits.out.curationTraits)
