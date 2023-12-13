@@ -3,7 +3,7 @@
  */
 process getTargetOntology {
     input:
-    path mappingsFile
+    val mappingsFile
 
     output:
     env ONTOLOGY, emit: targetOntology
