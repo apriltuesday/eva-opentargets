@@ -55,6 +55,7 @@ def run_pipeline(resource_name):
 
 
 @pytest.mark.integration
+@pytest.mark.skip('Redundant with new end-to-end tests, to be replaced with unit tests of trait_mapping.main')
 def test_main():
     """Basic sanity test of output files, using a random sample of records."""
     output_traits, output_mappings, output_curation = run_pipeline('sample.xml.gz')
