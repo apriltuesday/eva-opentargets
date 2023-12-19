@@ -241,8 +241,14 @@ class EnsemblAnnotatedClinVarMeasure(ClinVarRecordMeasure):
             attribute_elt.text = consequence_attributes.so_term.so_name.replace('_', ' ')
             so_elt = ET.Element('XRef', attrib={'ID': self.format_so_term(consequence_attributes.so_term),
                                                 'DB': 'Sequence Ontology'})
-            ensembl_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_gene_id, 'DB': 'Ensembl'})
-            attr_set_elt.extend((attribute_elt, so_elt, ensembl_elt))
+            ensembl_gene_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_gene_id,
+                                                          'DB': 'Ensembl Gene'})
+            attr_set_elt.extend((attribute_elt, so_elt, ensembl_gene_elt))
+            # Add transcript if present
+            if consequence_attributes.ensembl_transcript_id:
+                ensembl_transcript_elt = ET.Element('XRef', attrib={'ID': consequence_attributes.ensembl_transcript_id,
+                                                                    'DB': 'Ensembl Transcript'})
+                attr_set_elt.append(ensembl_transcript_elt)
             consequence_elts.append(attr_set_elt)
         self.measure_xml.extend(consequence_elts)
 

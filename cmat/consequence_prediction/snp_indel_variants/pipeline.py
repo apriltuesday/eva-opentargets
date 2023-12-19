@@ -15,6 +15,10 @@ from retry import retry
 from cmat.consequence_prediction.common.vep import query_vep, extract_consequences, deduplicate_list
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument(
+    '--include-transcripts', required=False, action='store_true',
+    help='Whether to include transcript IDs along with consequence terms'
+)
 
 logging.basicConfig()
 logger = logging.getLogger('consequence_mapping')
@@ -106,14 +110,15 @@ def get_variants_without_consequences(results_by_variant):
     })
 
 
-def process_variants(variants):
+def process_variants(variants, include_transcripts):
     """Given a list of variant IDs, return a list of consequence types (each including Ensembl gene name & ID and a
     functional consequence code) for a given variant.
     """
     # Query VEP with default parameters, looking for variants affecting protein coding and miRNA transcripts
     # up to a standard distance (5000 nucleotides either way, which is default for VEP) from the variant.
     vep_results = query_vep(variants=variants)
-    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'})
+    results_by_variant = extract_consequences(vep_results=vep_results, acceptable_biotypes={'protein_coding', 'miRNA'},
+                                              include_transcripts=include_transcripts)
 
     # See if there are variants with no consequences up to the default distance
     variants_without_consequences = get_variants_without_consequences(results_by_variant)
@@ -136,9 +141,13 @@ def main():
     variants_to_query = [colon_based_id_to_vep_id(v) for v in sys.stdin.read().splitlines()]
 
     # Query VEP with all variants at once (for the purpose of efficiency), print out the consequences to STDOUT.
-    consequences = process_variants(variants_to_query)
-    for variant_id, gene_id, gene_symbol, consequence_term in consequences:
-        print('\t'.join([vep_id_to_colon_id(variant_id), gene_id, gene_symbol, consequence_term]))
+    consequences = process_variants(variants_to_query, args.include_transcripts)
+    if args.include_transcripts:
+        for variant_id, gene_id, gene_symbol, consequence_term, transcript_id in consequences:
+            print('\t'.join([vep_id_to_colon_id(variant_id), gene_id, gene_symbol, consequence_term, transcript_id]))
+    else:
+        for variant_id, gene_id, gene_symbol, consequence_term in consequences:
+            print('\t'.join([vep_id_to_colon_id(variant_id), gene_id, gene_symbol, consequence_term]))
 
     logger.info('Successfully processed {} variants'.format(len(variants_to_query)))
 

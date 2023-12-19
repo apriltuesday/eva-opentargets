@@ -4,7 +4,11 @@ manually extracted from the main ClinVar XML to check specific cases."""
 import os
 import tempfile
 
+import pandas as pd
+import pytest
+
 from cmat.consequence_prediction.repeat_expansion_variants import pipeline
+from cmat.consequence_prediction.repeat_expansion_variants.pipeline import annotate_ensembl_gene_info, assert_uniqueness
 
 
 def get_test_resource(resource_name):
@@ -24,7 +28,7 @@ def run_pipeline(resource_name):
     """Runs the pipeline on a given test resource and returns the output consequences as a list of lists."""
     input_filename = get_test_resource(resource_name)
     output_consequences, output_dataframe = [tempfile.NamedTemporaryFile(delete=False) for _ in range(2)]
-    pipeline.main(input_filename, output_consequences.name, output_dataframe.name)
+    pipeline.main(input_filename, False, output_consequences.name, output_dataframe.name)
     consequences = [line.rstrip().split('\t') for line in open(output_consequences.name).read().splitlines()]
     for temp_file in (output_consequences, output_dataframe):
         os.remove(temp_file.name)
@@ -100,3 +104,62 @@ def test_missing_names_and_hgvs():
         # ref=T, alt=TACACACACACAC => classified as trinucleotide repeat without repeating unit inference.
         ['RCV001356600', 'ENSG00000136869', 'TLR4', 'trinucleotide_repeat_expansion']
     ]
+
+
+def test_assert_uniqueness():
+    uniqueness_columns = ['letter', 'number']
+    target_column = 'target'
+    df = pd.DataFrame([
+        ['A', 1, 'not important', 'something'],
+        ['A', 1, 'not important', 'something'],
+        ['B', 2, 'not important', 'something else']
+    ], columns=uniqueness_columns + ['not important column', target_column])
+    result_df = assert_uniqueness(df, uniqueness_columns, target_column, 'failure')
+    assert result_df.equals(pd.DataFrame([
+        ['A', 1, 'something'],
+        ['B', 2, 'something else']
+    ], columns=uniqueness_columns + [target_column]))
+
+
+def test_assert_uniqueness_failure():
+    uniqueness_columns = ['letter', 'number']
+    target_column = 'target'
+    df = pd.DataFrame([
+        ['A', 1, 'something'],
+        ['A', 1, 'something else'],
+        ['B', 2, 'something']
+    ], columns=uniqueness_columns + [target_column])
+    with pytest.raises(AssertionError):
+        assert_uniqueness(df, uniqueness_columns, target_column, 'failure')
+
+
+def test_annotate_genes_with_transcripts():
+    """Tests annotation with genes and transcripts, using multiple sources (HGNC, gene symbol, RefSeq transcript)"""
+    variants = pd.DataFrame([
+        ['variant_with_hgnc', 'RCV1', '-', 'HGNC:11850', None, None],
+        ['variant_with_gene_symbol', 'RCV2', 'PRDM12', '-', None, None],
+        ['variant_with_refseq', 'RCV3', '-', '-', 'NM_001377405', None],
+        ['variant_not_found', 'RCV4', 'blah', 'HGNC:blah', 'NM_blah', None]
+    ], columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID', 'TranscriptID', 'RepeatType'))
+    annotated_variants = annotate_ensembl_gene_info(variants, include_transcripts=True)
+    assert annotated_variants.shape == (7, 11)
+
+    # Helper function to check gene/transcript annotations for a particular variant
+    def assert_gene_transcript(name, arr):
+        assert (
+            annotated_variants[annotated_variants['Name'] == name][['EnsemblGeneID', 'EnsemblTranscriptID']]
+            .values == arr
+        ).all()
+
+    assert_gene_transcript('variant_with_hgnc', [
+        ['ENSG00000136869', 'ENST00000472304'],
+        ['ENSG00000136869', 'ENST00000394487'],
+        ['ENSG00000136869', 'ENST00000355622'],
+        ['ENSG00000136869', 'ENST00000490685'],
+    ])
+    assert_gene_transcript('variant_with_gene_symbol', [
+        ['ENSG00000130711', 'ENST00000253008'],
+        ['ENSG00000130711', 'ENST00000676323'],
+    ])
+    assert_gene_transcript('variant_with_refseq', [['ENSG00000163635', 'ENST00000674280']])
+    assert 'variant_not_found' not in annotated_variants['Name']

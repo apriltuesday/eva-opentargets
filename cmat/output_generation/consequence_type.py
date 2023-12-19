@@ -10,14 +10,14 @@ from cmat.trait_mapping.ols import OLS_EFO_SERVER
 logger = logging.getLogger(__package__)
 
 
-def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
-    consequence_type_dict[variant_id].append(ConsequenceType(ensembl_gene_id, SoTerm(so_term)))
+def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term, ensembl_transcript_id=None):
+    consequence_type_dict[variant_id].append(ConsequenceType(ensembl_gene_id, SoTerm(so_term), ensembl_transcript_id))
 
 
 def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
     """
     Return a dictionary of consequence information extracted from the given file.
-    If consequence_type_dict is provided then the information will be merge into this dictionary.
+    If consequence_type_dict is provided then the information will be merged into this dictionary.
     """
     logger.info('Loading mapping rs -> ENSG/SOterms')
     if consequence_type_dict is None:
@@ -40,7 +40,12 @@ def process_consequence_type_file(snp_2_gene_file, consequence_type_dict=None):
                 logger.warning('Skip line with missing gene ID: {}'.format(line))
                 continue
 
-            process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
+            # Include transcript if present
+            if len(line_list) >= 5:
+                ensembl_transcript_id = line_list[4]
+                process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term, ensembl_transcript_id)
+            else:
+                process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
     logger.info('{} rs->ENSG/SOterms mappings loaded'.format(len(consequence_type_dict)))
     return consequence_type_dict
@@ -111,9 +116,10 @@ class ConsequenceType:
     with relationship to ensembl gene IDs and SO terms
     """
 
-    def __init__(self, ensembl_gene_id, so_term):
+    def __init__(self, ensembl_gene_id, so_term, ensembl_transcript_id=None):
         self.ensembl_gene_id = ensembl_gene_id
         self.so_term = so_term
+        self.ensembl_transcript_id = ensembl_transcript_id
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__

@@ -92,7 +92,7 @@ def load_clinvar_data(clinvar_xml):
     return variants.sort_values(by=['Name']), stats
 
 
-def annotate_ensembl_gene_info(variants):
+def annotate_ensembl_gene_info(variants, include_transcripts):
     """Annotate the `variants` dataframe with information about Ensembl gene ID and name"""
 
     # Ensembl gene ID can be determined using three ways, listed in the order of decreasing priority. Having multiple
@@ -103,68 +103,73 @@ def annotate_ensembl_gene_info(variants):
         ('GeneSymbol',   'external_gene_name', lambda i: i != '-'),
         ('TranscriptID',        'refseq_mrna', lambda i: pd.notnull(i)),
     )
-    # This copy of the dataframe is required to facilitate filling in data using the `combine_first()` method. This
-    # allows us to apply priorities: e.g., if a gene ID was already populated using HGNC_ID, it will not be overwritten
-    # by a gene ID determined using GeneSymbol.
-    variants_original = variants.copy(deep=True)
+    query_columns = [('ensembl_gene_id', 'EnsemblGeneID')]
+    if include_transcripts:
+        query_columns.append(('ensembl_transcript_id', 'EnsemblTranscriptID'))
+
+    # Make a copy of the variants dataframe to query. Variants will be removed from this copy as Ensembl gene IDs are
+    # found, ensuring that we don't make unnecessary queries.
+    variants_to_query = variants
+
+    # Empty dataframe to collect annotated rows
+    annotated_variants = pd.DataFrame()
 
     for column_name_in_dataframe, column_name_in_biomart, filtering_function in gene_annotation_sources:
         # Get all identifiers we want to query BioMart with
         identifiers_to_query = sorted({
-            i for i in variants[column_name_in_dataframe]
+            i for i in variants_to_query[column_name_in_dataframe]
             if filtering_function(i)
         })
         # Query BioMart for Ensembl Gene IDs
         annotation_info = biomart.query_biomart(
             key_column=(column_name_in_biomart, column_name_in_dataframe),
-            query_column=('ensembl_gene_id', 'EnsemblGeneID'),
+            query_columns=query_columns,
             identifier_list=identifiers_to_query,
         )
+
         # Make note where the annotations came from
         annotation_info['GeneAnnotationSource'] = column_name_in_dataframe
-        # Combine the information we received with the *original* dataframe (a copy made before any iterations of this
-        # cycle were allowed to run). This is similar to SQL merge.
-        annotation_df = pd.merge(variants_original, annotation_info, on=column_name_in_dataframe, how='left')
-        # Update main dataframe with the new values. This replaces the NaN values in the dataframe with the ones
-        # available in another dataframe we just created, `annotation_df`.
-        variants = variants \
-            .set_index([column_name_in_dataframe]) \
-            .combine_first(annotation_df.set_index([column_name_in_dataframe]))
+        # Combine the information we received with the *original* dataframe using an outer join.
+        total_merge = pd.merge(variants, annotation_info, on=column_name_in_dataframe, how='outer', indicator=True)
 
-    # Reset index to default
-    variants.reset_index(inplace=True)
-    # Some records are being annotated to multiple Ensembl genes. For example, HGNC:10560 is being resolved to
-    # ENSG00000285258 and ENSG00000163635. We need to explode dataframe by that column.
-    variants = variants.explode('EnsemblGeneID')
+        # Variants annotated in this round are those present in both tables in the join, add these to the
+        # cumulative results.
+        annotated_variants = pd.concat((annotated_variants, total_merge[total_merge['_merge'] == 'both']))
+        annotated_variants.drop('_merge', axis=1, inplace=True)
+
+        # Variants that still need to be queried are those present only in the left table in the join.
+        variants_to_query = total_merge[total_merge['_merge'] == 'left_only']
+        variants_to_query.drop('_merge', axis=1, inplace=True)
+        if len(variants_to_query) == 0:
+            break
 
     # Based on the Ensembl gene ID, annotate (1) gene name and (2) which chromosome it is on
     gene_query_columns = (
         ('external_gene_name', 'EnsemblGeneName'),
         ('chromosome_name', 'EnsemblChromosomeName'),
     )
-    for column_name_in_biomart, column_name_in_dataframe in gene_query_columns:
-        annotation_info = biomart.query_biomart(
-            key_column=('ensembl_gene_id', 'EnsemblGeneID'),
-            query_column=(column_name_in_biomart, column_name_in_dataframe),
-            identifier_list=sorted({str(i) for i in variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
-        )
-        variants = pd.merge(variants, annotation_info, on='EnsemblGeneID', how='left')
-        # Check that there are no multiple mappings for any given ID
-        assert variants[column_name_in_dataframe].str.len().dropna().max() == 1, \
-            'Found multiple gene ID → gene attribute mappings!'
-        # Convert the one-item list into a plain column
-        variants = variants.explode(column_name_in_dataframe)
+    annotation_info = biomart.query_biomart(
+        key_column=('ensembl_gene_id', 'EnsemblGeneID'),
+        query_columns=gene_query_columns,
+        identifier_list=sorted({str(i) for i in annotated_variants['EnsemblGeneID'] if str(i).startswith('ENSG')}),
+    )
+    annotated_variants = pd.merge(annotated_variants, annotation_info, on='EnsemblGeneID', how='left')
+    # Check that there are no multiple mappings for any given ID
+    for _, column_name_in_dataframe in gene_query_columns:
+        assert_uniqueness(annotated_variants, ['EnsemblGeneID'], column_name_in_dataframe,
+                          'Found multiple gene ID → gene attribute mappings!')
 
-    return variants
+    return annotated_variants
 
 
-def determine_complete(row):
+def determine_complete(row, include_transcripts):
     """Depending on the information, determine whether the record is complete, i.e., whether it has all necessary
         fields to be output for the final "consequences" table."""
     row['RecordIsComplete'] = (
         pd.notnull(row['EnsemblGeneID']) and
         pd.notnull(row['EnsemblGeneName']) and
         pd.notnull(row['RepeatType']) and
+        (pd.notnull(row['EnsemblTranscriptID']) if include_transcripts else True) and
         row['EnsemblChromosomeName'] in STANDARD_CHROMOSOME_NAMES
     )
     return row
@@ -172,11 +177,10 @@ def determine_complete(row):
 
 def generate_consequences_file(consequences, output_consequences):
     """Output final table."""
-
     if consequences.empty:
         logger.info('There are no records ready for output')
         return
-    # Write the consequences table. This is used by the main evidence string generation pipeline.
+    # Write the consequences table. This is used by the main annotation pipeline.
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
     # Output statistics
     logger.info(f'Generated {len(consequences)} consequences in total:')
@@ -184,21 +188,44 @@ def generate_consequences_file(consequences, output_consequences):
     logger.info(f'  {sum(consequences.RepeatType == "short_tandem_repeat_expansion")} short tandem repeat expansion')
 
 
-def extract_consequences(variants):
-    # Generate consequences table
-    consequences = variants[variants['RecordIsComplete']] \
-        .groupby(['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName'], group_keys=False)['RepeatType'] \
-        .apply(set).reset_index(name='RepeatType')
+def assert_uniqueness(df, uniqueness_columns, target_column, error_msg):
+    """
+    Check uniqueness of values in target_column with respect to tuples in uniqueness_columns.
+
+    Args:
+        df: dataframe to check
+        uniqueness_columns: iterable of column names
+        target_column: name of column that should be unique
+        error_msg: message to report if uniqueness check fails
+    Returns:
+        result_df: input df containing only uniqueness_columns and target_column
+    """
+    result_df = df.groupby(uniqueness_columns, group_keys=False)[target_column].apply(set).reset_index(name=target_column)
+    if result_df.empty:
+        return result_df
+    assert result_df[target_column].apply(len).dropna().max() == 1, error_msg
+    # Get rid of sets
+    result_df[target_column] = result_df[target_column].apply(list)
+    result_df = result_df.explode(target_column)
+    return result_df
+
+
+def extract_consequences(variants, include_transcripts):
+    """Generate consequences table"""
+    # Check that for every (RCV, gene) pair or (RCV, gene, transcript) triple there is only one consequence type
+    unique_repeat_type_columns = ['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName']
+    if include_transcripts:
+        unique_repeat_type_columns.append('EnsemblTranscriptID')
+    consequences = assert_uniqueness(variants[variants['RecordIsComplete']], unique_repeat_type_columns, 'RepeatType',
+                                     'Multiple (RCV, gene) → variant type mappings!')
     if consequences.empty:
         return consequences
-    # Check that for every (RCV, gene) pair there is only one consequence type
-    assert consequences['RepeatType'].str.len().dropna().max() == 1, 'Multiple (RCV, gene) → variant type mappings!'
-    # Get rid of sets
-    consequences['RepeatType'] = consequences['RepeatType'].apply(list)
-    consequences = consequences.explode('RepeatType')
     # Form a four-column file compatible with the consequence mapping pipeline, for example:
     # RCV000005966    ENSG00000156475    PPP2R2B    trinucleotide_repeat_expansion
-    consequences = consequences[['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType']]
+    output_columns = ['RCVaccession', 'EnsemblGeneID', 'EnsemblGeneName', 'RepeatType']
+    if include_transcripts:
+        output_columns.append('EnsemblTranscriptID')
+    consequences = consequences[output_columns]
     consequences.sort_values(by=['RepeatType', 'RCVaccession', 'EnsemblGeneID'], inplace=True)
     # Check that there are no empty cells in the final consequences table
     assert consequences.isnull().to_numpy().sum() == 0
@@ -217,11 +244,12 @@ def generate_all_variants_file(output_dataframe, variants):
     variants.to_csv(output_dataframe, sep='\t', index=False)
 
 
-def main(clinvar_xml, output_consequences=None, output_dataframe=None):
+def main(clinvar_xml, include_transcripts, output_consequences=None, output_dataframe=None):
     """Process data and generate output files.
 
     Args:
         clinvar_xml: filepath to the ClinVar XML file.
+        include_transcripts: whether to include transcript IDs along with consequence terms.
         output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
             compatible with the VEP mapping pipeline (see /consequence_prediction/README.md).
         output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
@@ -246,16 +274,16 @@ def main(clinvar_xml, output_consequences=None, output_dataframe=None):
         logger.info('No variants to process')
         return None
 
-    logger.info('Match each record to Ensembl gene ID and name')
-    variants = annotate_ensembl_gene_info(variants)
+    logger.info(f'Match each record to Ensembl gene ID{", transcript ID," if include_transcripts else ""} and gene name')
+    variants = annotate_ensembl_gene_info(variants, include_transcripts)
 
     logger.info('Determine variant type and whether the record is complete')
-    variants = variants.apply(lambda row: determine_complete(row), axis=1)
+    variants = variants.apply(lambda row: determine_complete(row, include_transcripts), axis=1)
 
     logger.info('Postprocess data and output the two final tables')
     if output_dataframe is not None:
         generate_all_variants_file(output_dataframe, variants)
-    consequences = extract_consequences(variants)
+    consequences = extract_consequences(variants, include_transcripts)
     if output_consequences is not None:
         generate_consequences_file(consequences, output_consequences)
 
