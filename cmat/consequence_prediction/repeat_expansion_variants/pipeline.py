@@ -274,7 +274,7 @@ def main(clinvar_xml, include_transcripts, output_consequences=None, output_data
         logger.info('No variants to process')
         return None
 
-    logger.info('Match each record to Ensembl gene ID and name')
+    logger.info(f'Match each record to Ensembl gene ID{", transcript ID," if include_transcripts else ""} and gene name')
     variants = annotate_ensembl_gene_info(variants, include_transcripts)
 
     logger.info('Determine variant type and whether the record is complete')
