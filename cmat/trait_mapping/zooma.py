@@ -2,7 +2,7 @@ from enum import Enum
 from functools import total_ordering
 import logging
 
-from cmat.trait_mapping.ols import get_ontology_label_from_ols, is_current_and_in_efo, is_in_efo
+from cmat.trait_mapping.ols import get_ontology_label_from_ols, is_current_and_in_ontology, is_in_ontology
 from cmat.trait_mapping.utils import json_request
 
 
@@ -37,7 +37,7 @@ class ZoomaMapping:
         self.confidence = ZoomaConfidence[confidence.upper()]
         self.source = source
         self.ontology_label = ""
-        self.in_efo = False
+        self.in_ontology = False
         # For non-EFO mappings, `is_current` property does not make sense and it not used
         self.is_current = False
 
@@ -45,14 +45,14 @@ class ZoomaMapping:
         if not isinstance(other, type(self)):
             return False
         if (self.uri != other.uri or self.confidence != other.confidence
-                or self.ontology_label != other.ontology_label or self.in_efo != other.in_efo
+                or self.ontology_label != other.ontology_label or self.in_ontology != other.in_ontology
                 or self.is_current != other.is_current):
             return False
         return True
 
     def __lt__(self, other):
-        return ((self.confidence, self.in_efo, self.is_current) <
-                (other.confidence, other.in_efo, other.is_current))
+        return ((self.confidence, self.in_ontology, self.is_current) <
+                (other.confidence, other.in_ontology, other.is_current))
 
 
 class ZoomaResult:
@@ -81,7 +81,7 @@ class ZoomaResult:
                 self.mapping_list == other.mapping_list)
 
 
-def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
+def get_zooma_results(trait_name: str, filters: dict, zooma_host: str, target_ontology: str = 'EFO') -> list:
     """
     Given a trait name, Zooma filters in a dict and a hostname to use, query Zooma and return a list
     of Zooma mappings for this trait.
@@ -94,6 +94,7 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
     :param trait_name: A string containing a trait name from a ClinVar record.
     :param filters: A dictionary containing filters used when querying OxO
     :param zooma_host: Hostname of a Zooma instance to query.
+    :param target_ontology: ID of target ontology (default EFO)
     :return: List of ZoomaResults
     """
 
@@ -114,13 +115,13 @@ def get_zooma_results(trait_name: str, filters: dict, zooma_host: str) -> list:
                 # If no label is returned (because OLS failed to provide it), keep the existing one from ZOOMA
                 zooma_mapping.ontology_label = zooma_result.zooma_label
 
-            uri_is_current_and_in_efo = is_current_and_in_efo(zooma_mapping.uri)
-            if not uri_is_current_and_in_efo:
-                uri_is_in_efo = is_in_efo(zooma_mapping.uri)
-                zooma_mapping.in_efo = uri_is_in_efo
+            uri_is_current_and_in_ontology = is_current_and_in_ontology(zooma_mapping.uri, target_ontology)
+            if not uri_is_current_and_in_ontology:
+                uri_is_in_ontology = is_in_ontology(zooma_mapping.uri, target_ontology)
+                zooma_mapping.in_ontology = uri_is_in_ontology
             else:
-                zooma_mapping.in_efo = uri_is_current_and_in_efo
-                zooma_mapping.is_current = uri_is_current_and_in_efo
+                zooma_mapping.in_ontology = uri_is_current_and_in_ontology
+                zooma_mapping.is_current = uri_is_current_and_in_ontology
 
     return zooma_result_list
 

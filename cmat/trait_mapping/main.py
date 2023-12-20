@@ -30,7 +30,7 @@ def get_uris_for_oxo(zooma_result_list: list) -> set:
     return uri_set
 
 
-def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list: list, oxo_distance: int) -> Trait:
+def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list: list, oxo_distance: int, target_ontology: str = 'EFO') -> Trait:
     """
     Process a single trait. Find any mappings in Zooma. If there are no high confidence Zooma
     mappings that are in EFO then query OxO with any high confidence mappings not in EFO.
@@ -42,11 +42,12 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
                             which ontologies should be queried using OxO.
     :param oxo_distance: int specifying the maximum number of steps to use to query OxO. i.e. OxO's
                          "distance" parameter.
+    :param target_ontology: ID of target ontology (default EFO)
     :return: The original trait after querying Zooma and possibly OxO, with any results found.
     """
     logger.debug('Processing trait {}'.format(trait.name))
 
-    trait.zooma_result_list = get_zooma_results(trait.name, filters, zooma_host)
+    trait.zooma_result_list = get_zooma_results(trait.name, filters, zooma_host, target_ontology)
     trait.process_zooma_results()
     if (trait.is_finished
             or len(trait.zooma_result_list) == 0
@@ -103,7 +104,7 @@ def parse_traits(input_filepath, output_traits_filepath, output_for_platform=Non
 
 
 def process_traits(traits_filepath, output_mappings_filepath, output_curation_filepath, filters, zooma_host,
-                   oxo_target_list, oxo_distance):
+                   oxo_target_list, oxo_distance, ontology):
     trait_list = read_traits_from_csv(traits_filepath)
     logger.info(f'Read {len(trait_list)} traits from file')
     with open(output_mappings_filepath, "w", newline='') as mapping_file, \
@@ -116,7 +117,7 @@ def process_traits(traits_filepath, output_mappings_filepath, output_curation_fi
         processed_trait_list = [
             trait_process_pool.apply(
                 process_trait,
-                args=(trait, filters, zooma_host, oxo_target_list, oxo_distance)
+                args=(trait, filters, zooma_host, oxo_target_list, oxo_distance, ontology)
             )
             for trait in trait_list
         ]
@@ -124,7 +125,7 @@ def process_traits(traits_filepath, output_mappings_filepath, output_curation_fi
         logger.info('Writing output with the processed traits')
         finished_source_counts = Counter()
         for trait in processed_trait_list:
-            output_trait(trait, mapping_writer, curation_writer, finished_source_counts)
+            output_trait(trait, mapping_writer, curation_writer, finished_source_counts, ontology)
 
     logger.info('Finished processing trait names')
     logger.info(f'Source counts for finished mappings: {finished_source_counts}')

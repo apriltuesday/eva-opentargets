@@ -43,7 +43,11 @@ jobs:
       run: python -m pytest --cov=cmat --cov-append tests -k integration
 
     - name: End-to-end test of evidence string generation pipeline
-      run: bash tests/output_generation/test_pipeline.sh
+      run: bash tests/pipelines/test_annotation_pipeline.sh
+
+# TODO Takes too long to run regularly, maybe just on tags?
+#    - name: End-to-end test of curation pipelines
+#      run: bash tests/pipelines/test_curation_pipelines.sh
     
     - name: Upload the coverage data to Coveralls
       env: 

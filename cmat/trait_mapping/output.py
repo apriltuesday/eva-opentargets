@@ -17,7 +17,7 @@ def output_trait_mapping(trait: Trait, mapping_writer: csv.writer, finished_sour
         zooma_mapping = None
         for zooma_result in trait.zooma_result_list:
             for zm in zooma_result.mapping_list:
-                if (zm.in_efo and zm.is_current and ontology_entry.uri == zm.uri
+                if (zm.in_ontology and zm.is_current and ontology_entry.uri == zm.uri
                         and ontology_entry.label == zm.ontology_label):
                     zooma_mapping = zm
                     break
@@ -31,18 +31,19 @@ def get_mappings_for_curation(result_list) -> list:
     curation_mapping_list = []
     for result in result_list:
         for mapping in result.mapping_list:
-            if (mapping.in_efo and mapping.is_current) or (not mapping.in_efo):
+            if (mapping.in_ontology and mapping.is_current) or (not mapping.in_ontology):
                 curation_mapping_list.append(mapping)
     curation_mapping_list.sort(reverse=True)
     return curation_mapping_list
 
 
-def output_for_curation(trait: Trait, curation_writer: csv.writer):
+def output_for_curation(trait: Trait, curation_writer: csv.writer, ontology: str = 'EFO'):
     """
     Write any non-finished Zooma or OxO mappings of a trait to a file for manual curation.
     Also outputs traits without any ontology mappings.
 
     :param trait: A Trait with no finished ontology mappings in finished_mapping_set
+    :param ontology: ID of target ontology (default EFO)
     :param curation_writer: A csv.writer to write non-finished ontology mappings for manual curation
     """
 
@@ -54,28 +55,30 @@ def output_for_curation(trait: Trait, curation_writer: csv.writer):
 
     for zooma_mapping in zooma_mapping_list:
         cell = [zooma_mapping.uri, zooma_mapping.ontology_label, str(zooma_mapping.confidence),
-                zooma_mapping.source, 'EFO_CURRENT' if zooma_mapping.in_efo else 'NOT_CONTAINED']
+                zooma_mapping.source, f'{ontology.upper()}_CURRENT' if zooma_mapping.in_ontology else 'NOT_CONTAINED']
         output_row.append("|".join(cell))
 
     oxo_mapping_list = get_mappings_for_curation(trait.oxo_result_list)
 
     for oxo_mapping in oxo_mapping_list:
         cell = [str(oxo_mapping.uri), oxo_mapping.ontology_label, str(oxo_mapping.distance),
-                oxo_mapping.query_id, 'EFO_CURRENT' if oxo_mapping.in_efo else 'NOT_CONTAINED']
+                oxo_mapping.query_id, f'{ontology.upper()}_CURRENT' if oxo_mapping.in_ontology else 'NOT_CONTAINED']
         output_row.append("|".join(cell))
 
     curation_writer.writerow(output_row)
 
 
-def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer, finished_source_counts: Counter):
+def output_trait(trait: Trait, mapping_writer: csv.writer, curation_writer: csv.writer, finished_source_counts: Counter,
+                 ontology: str = 'EFO'):
     """
     Output finished ontology mappings of a trait, or non-finished mappings (if any) for curation.
 
     :param trait: A trait which has been used to query Zooma and possibly OxO.
     :param mapping_writer: A csv.writer to write the finished mappings
     :param curation_writer: A csv.writer to write non-finished ontology mappings for manual curation
+    :param ontology: ID of target ontology (default EFO)
     """
     if trait.is_finished:
         output_trait_mapping(trait, mapping_writer, finished_source_counts)
     else:
-        output_for_curation(trait, curation_writer)
+        output_for_curation(trait, curation_writer, ontology)

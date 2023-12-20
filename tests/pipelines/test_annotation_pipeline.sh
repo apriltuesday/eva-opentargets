@@ -6,7 +6,7 @@ export LC_COLLATE=C
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export CODE_ROOT="$(dirname $(dirname "${SCRIPT_DIR}"))"
 
-export BATCH_ROOT_BASE=${SCRIPT_DIR}/resources/end2end
+export BATCH_ROOT_BASE=${SCRIPT_DIR}/resources
 
 CWD=${PWD}
 BATCH_ROOT=${BATCH_ROOT_BASE}/test_batch

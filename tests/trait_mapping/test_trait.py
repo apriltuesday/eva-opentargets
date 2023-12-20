@@ -22,7 +22,7 @@ def test_process_zooma_result():
                                           'HIGH', 'eva-clinvar')
     entry = test_zooma_result.mapping_list[0]
     entry.confidence = zooma.ZoomaConfidence.HIGH
-    entry.in_efo = True
+    entry.in_ontology = True
     entry.is_current = True
     entry.ontology_label = "Adenine phosphoribosyltransferase deficiency"
     entry.source = 'eva-clinvar'
@@ -41,11 +41,11 @@ def test_process_oxo_mappings():
 
     test_oxo_mapping_1 = oxo.OxOMapping('Isolated polycystic liver disease', 'Orphanet:2924', 2,
                                         'HP:0006706')
-    test_oxo_mapping_1.in_efo = True
+    test_oxo_mapping_1.in_ontology = True
     test_oxo_mapping_1.is_current = True
 
     test_oxo_mapping_2 = oxo.OxOMapping('cystic liver disease', 'EFO:1001505', 1, 'HP:0006706')
-    test_oxo_mapping_2.in_efo = True
+    test_oxo_mapping_2.in_ontology = True
     test_oxo_mapping_2.is_current = True
 
     test_oxo_result.mapping_list = [test_oxo_mapping_1, test_oxo_mapping_2]

@@ -12,7 +12,7 @@ from cmat.output_generation.clinvar_to_evidence_strings import MAX_TARGET_GENES
 
 import config
 
-EFO_MAPPINGS = clinvar_to_evidence_strings.load_efo_mapping(config.efo_mapping_file)
+EFO_MAPPINGS, _ = clinvar_to_evidence_strings.load_ontology_mapping(config.efo_mapping_file)
 GENE_MAPPINGS = CT.process_consequence_type_file(config.snp_2_gene_file)
 
 

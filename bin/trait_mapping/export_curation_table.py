@@ -20,7 +20,7 @@ def export_table(input_filepath, done_filepath, import_filepath, comments_filepa
 
     # Comments column
     comment_rows = curation_table[curation_table['Comment'].notna() & curation_table['Status'].notna()]
-    comment_rows = comment_rows[['ClinVar label', 'Comment']]
+    comment_rows = comment_rows[['ClinVar label', 'Comment']].astype(str)
     # Remove double quotes as they just cause problems
     comment_rows['Comment'] = comment_rows['Comment'].str.replace('"', '')
     comment_rows.to_csv(comments_filepath, sep='\t', header=False, index=False)

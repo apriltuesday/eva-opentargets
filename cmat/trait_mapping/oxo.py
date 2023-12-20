@@ -3,8 +3,8 @@ import logging
 import re
 import requests
 
-from cmat.trait_mapping.ols import get_ontology_label_from_ols, is_in_efo
-from cmat.trait_mapping.ols import is_current_and_in_efo
+from cmat.trait_mapping.ols import get_ontology_label_from_ols, is_in_ontology
+from cmat.trait_mapping.ols import is_current_and_in_ontology
 from cmat.trait_mapping.utils import json_request
 
 
@@ -45,7 +45,7 @@ class OxOMapping:
         self.uri = OntologyUri(self.id_, self.db)
         self.distance = distance
         self.query_id = query_id
-        self.in_efo = False
+        self.in_ontology = False
         # For non-EFO mappings, `is_current` property does not make sense and it not used
         self.is_current = False
         self.ontology_label = ""
@@ -54,12 +54,12 @@ class OxOMapping:
         if not isinstance(other, type(self)):
             return False
         return (self.label == other.label, self.db == other.db, self.id_ == other.id_,
-                self.distance == other.distance, self.in_efo == other.in_efo,
+                self.distance == other.distance, self.in_ontology == other.in_ontology,
                 self.is_current == other.is_current, self.ontology_label == other.ontology_label)
 
     def __lt__(self, other):
-        return ((other.distance, self.in_efo, self.is_current) <
-                (self.distance, other.in_efo, other.is_current))
+        return ((other.distance, self.in_ontology, self.is_current) <
+                (self.distance, other.in_ontology, other.is_current))
 
     def __str__(self):
         return "{}, {}, {}, {}".format(self.label, self.curie, self.distance, self.query_id)
@@ -155,11 +155,12 @@ def build_oxo_payload(id_list: list, target_list: list, distance: int) -> dict:
     return payload
 
 
-def get_oxo_results_from_response(oxo_response: dict) -> list:
+def get_oxo_results_from_response(oxo_response: dict, target_ontology: str = 'EFO') -> list:
     """
     For a json(/dict) response from an OxO request, parse the data into a list of OxOResults
 
     :param oxo_response: Response from OxO request
+    :param target_ontology: ID of target ontology (default EFO)
     :return: List of OxOResults based upon the response from OxO
     """
     oxo_result_list = []
@@ -183,13 +184,13 @@ def get_oxo_results_from_response(oxo_response: dict) -> list:
             if ontology_label is not None:
                 oxo_mapping.ontology_label = ontology_label
 
-            uri_is_current_and_in_efo = is_current_and_in_efo(uri)
-            if not uri_is_current_and_in_efo:
-                uri_is_in_efo = is_in_efo(uri)
-                oxo_mapping.in_efo = uri_is_in_efo
+            uri_is_current_and_in_ontology = is_current_and_in_ontology(uri, target_ontology)
+            if not uri_is_current_and_in_ontology:
+                uri_is_in_ontology = is_in_ontology(uri, target_ontology)
+                oxo_mapping.in_ontology = uri_is_in_ontology
             else:
-                oxo_mapping.in_efo = uri_is_current_and_in_efo
-                oxo_mapping.is_current = uri_is_current_and_in_efo
+                oxo_mapping.in_ontology = uri_is_current_and_in_ontology
+                oxo_mapping.is_current = uri_is_current_and_in_ontology
 
             oxo_result.mapping_list.append(oxo_mapping)
 

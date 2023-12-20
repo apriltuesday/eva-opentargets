@@ -38,6 +38,10 @@ export CODE_ROOT=
 export LATEST_MAPPINGS=${CODE_ROOT}/mappings/latest_mappings.tsv
 ```
 
+If this is your first time running the pipelines with a specific target ontology (i.e. you don't have a latest mappings file to use),
+you can use an empty TSV file containing just the header `#ontology=<code>`, where `<code>` is taken from [this list](https://www.ebi.ac.uk/ols4/ontologies) of supportable ontologies.
+This file will be filled with automated and manually curated mappings as processing continues.
+
 To confirm everything is set up properly, you can run the annotation pipeline on the small dataset included with the tests.
 It should take a couple minutes to run and generate a file `annotated_clinvar.xml.gz` in the test directory.
 ```bash

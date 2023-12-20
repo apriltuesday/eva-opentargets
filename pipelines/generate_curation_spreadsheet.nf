@@ -2,6 +2,8 @@
 
 nextflow.enable.dsl=2
 
+include { getTargetOntology } from './utils.nf'
+
 
 def helpMessage() {
     log.info"""
@@ -44,10 +46,10 @@ workflow {
     } else {
         clinvarXml = downloadClinvar()
     }
-
+    getTargetOntology(params.mappings)
     parseTraits(clinvarXml)
     splitTraits(parseTraits.out.parsedTraits)
-    processTraits(splitTraits.out.traitChunk.flatten())
+    processTraits(splitTraits.out.traitChunk.flatten(), getTargetOntology.out.targetOntology)
     collectAutomatedMappings(processTraits.out.automatedTraits.collect())
     collectCurationTraits(processTraits.out.traitsForCuration.collect())
     createCurationTable(collectCurationTraits.out.curationTraits)
@@ -110,15 +112,21 @@ process processTraits {
 
     input:
     each path(traitChunk)
+    val targetOntology
 
     output:
     path "automated_traits_*.tsv", emit: automatedTraits
     path "curation_traits_*.tsv", emit: traitsForCuration
 
     script:
+    // If targetOntology is anything but EFO, we set the query ontologies for Zooma and OxO to be the same,
+    // and do not use the data sources search option for Zooma.
+    def queryOntologyFlag = targetOntology.equalsIgnoreCase("EFO")? "" : "-n ${targetOntology.toLowerCase()} -t ${targetOntology.toLowerCase()} -r none"
     """
     \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/process_traits.py \
         -i ${traitChunk} \
+        --target-ontology ${targetOntology} \
+        ${queryOntologyFlag} \
         -o automated_traits_${traitChunk}.tsv \
         -c curation_traits_${traitChunk}.tsv
     """

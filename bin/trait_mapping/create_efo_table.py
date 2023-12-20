@@ -4,7 +4,7 @@ import argparse
 import re
 import requests
 
-from cmat.trait_mapping.ols import OLS_EFO_SERVER
+from cmat.trait_mapping.ols import OLS_SERVER
 from requests import HTTPError
 from retry import retry
 
@@ -31,7 +31,7 @@ webulous_joiner = ' || '
 
 def ols_url_template(ontology, term):
     # OLS url to query for a term details
-    return f'{OLS_EFO_SERVER}/api/ontologies/{ontology}/terms?iri={term}'
+    return f'{OLS_SERVER}/api/ontologies/{ontology}/terms?iri={term}'
 
 
 def oxo_url_template(curie):

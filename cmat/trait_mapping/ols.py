@@ -7,7 +7,7 @@ from retry import retry
 
 from cmat.trait_mapping.utils import json_request, ServerError
 
-OLS_EFO_SERVER = 'https://www.ebi.ac.uk/ols4'
+OLS_SERVER = 'https://www.ebi.ac.uk/ols4'
 # The setting for local OLS installation should be uncommented if necessary. Note that the link
 # for the local deployment is different from the production link in three regards: (1) it must use
 # HTTP instead of HTTPS; (2) it must include the port which you used when deploying the Docker
@@ -19,7 +19,7 @@ logger = logging.getLogger(__package__)
 
 def build_ols_query(ontology_uri: str) -> str:
     """Build a url to query OLS for a given ontology uri."""
-    return "{}/api/terms?iri={}".format(OLS_EFO_SERVER, ontology_uri)
+    return "{}/api/terms?iri={}".format(OLS_SERVER, ontology_uri)
 
 
 @lru_cache(maxsize=16384)
@@ -61,30 +61,31 @@ def double_encode_uri(uri: str) -> str:
 
 
 @retry(exceptions=(ConnectionError, ServerError), logger=logger, tries=8, delay=2, backoff=1.2, jitter=(1, 3))
-def ols_efo_query(uri: str) -> requests.Response:
+def ols_ontology_query(uri: str, ontology: str = 'EFO') -> requests.Response:
     """
-    Query EFO using OLS for a given ontology uri, returning the response from the request.
+    Query target ontology using OLS for a given ontology uri, returning the response from the request.
 
-    :param uri: Ontology uri to use in querying EFO using OLS
+    :param uri: Ontology uri to use in querying target ontology using OLS
+    :param ontology: ID of target ontology to query (default EFO)
     :return: Response from OLS
     """
     double_encoded_uri = double_encode_uri(uri)
-    response = requests.get(
-        "{}/api/ontologies/efo/terms/{}".format(OLS_EFO_SERVER, double_encoded_uri))
+    response = requests.get(f"{OLS_SERVER}/api/ontologies/{ontology}/terms/{double_encoded_uri}")
     if 500 <= response.status_code < 600:
         raise ServerError
     return response
 
 
 @lru_cache(maxsize=16384)
-def is_current_and_in_efo(uri: str) -> bool:
+def is_current_and_in_ontology(uri: str, ontology: str = 'EFO') -> bool:
     """
-    Checks whether given ontology uri is a valid and non-obsolete term in EFO.
+    Checks whether given ontology uri is a valid and non-obsolete term in target ontology.
 
-    :param uri: Ontology uri to use in querying EFO using OLS
-    :return: Boolean value, true if ontology uri is valid and non-obsolete term in EFO
+    :param uri: Ontology uri to use in querying target ontology using OLS
+    :param ontology: ID of target ontology to query (default EFO)
+    :return: Boolean value, true if ontology uri is valid and non-obsolete term in target ontology
     """
-    response = ols_efo_query(uri)
+    response = ols_ontology_query(uri, ontology)
     if response.status_code != 200:
         return False
     response_json = response.json()
@@ -92,26 +93,28 @@ def is_current_and_in_efo(uri: str) -> bool:
 
 
 @lru_cache(maxsize=16384)
-def is_in_efo(uri: str) -> bool:
+def is_in_ontology(uri: str, ontology: str = 'EFO') -> bool:
     """
-    Checks whether given ontology uri is a valid term in EFO.
+    Checks whether given ontology uri is a valid term in target ontology.
 
-    :param uri: Ontology uri to use in querying EFO using OLS
-    :return: Boolean value, true if ontology uri is valid term in EFO
+    :param uri: Ontology uri to use in querying target ontology using OLS
+    :param ontology: ID of target ontology to query (default EFO)
+    :return: Boolean value, true if ontology uri is valid term in target ontology
     """
-    response = ols_efo_query(uri)
+    response = ols_ontology_query(uri, ontology)
     return response.status_code == 200
 
 
 @lru_cache(maxsize=16384)
-def get_replacement_term(uri: str) -> str:
+def get_replacement_term(uri: str, ontology: str = 'EFO') -> str:
     """
-    Finds replacement term in EFO (if present) for the given ontology uri.
+    Finds replacement term in target ontology (if present) for the given ontology uri.
 
-    :param uri: Ontology uri to use in querying EFO using OLS
+    :param uri: Ontology uri to use in querying target ontology using OLS
+    :param ontology: ID of target ontology to query (default EFO)
     :return: Replacement term URI or empty string if not obsolete
     """
-    response = ols_efo_query(uri)
+    response = ols_ontology_query(uri, ontology)
     if response.status_code != 200:
         return ""
     response_json = response.json()
