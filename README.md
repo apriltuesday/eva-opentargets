@@ -52,6 +52,19 @@ nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --mappings ${LATEST_MAPPINGS}
 ```
 
+### Conda
+
+You can also install CMAT using Conda.
+For example the following installs CMAT in a new environment called `cmat`, activates the environment, and prints usage:
+```bash
+conda create -n cmat -c conda-forge -c bioconda cmat
+conda activate cmat
+cmat
+```
+
+Note that with conda installation you can't invoke the pipelines directly via Nextflow, so you will need to use the corresponding `cmat` commands - e.g. `cmat annotate` instead of `nextflow run annotation_pipeline.nf`.
+All the same command line options apply.
+
 ## Run
 
 CMAT includes a main annotation pipeline (which also performs consequence and gene mapping), as well as two pipelines to help manage trait mapping curation.
