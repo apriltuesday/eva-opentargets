@@ -85,6 +85,7 @@ cd ${ANNOTATION_ROOT}
 mkdir -p gene_mapping logs
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
+# For conda, use instead: cmat annotate
 nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
   --output_dir ${ANNOTATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \
@@ -116,6 +117,7 @@ mkdir -p ${CURATION_ROOT}
 cd ${CURATION_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
+# For conda, use instead: cmat generate-curation
 nextflow run ${CODE_ROOT}/pipelines/generate_curation_spreadsheet.nf \
   --curation_root ${CURATION_ROOT} \
   --mappings ${LATEST_MAPPINGS} \
@@ -143,6 +145,7 @@ Download the spreadsheet as a CSV file, making sure that all the data is visible
 cd ${CURATION_ROOT}
 
 # Run the nextflow pipeline, resuming execution of previous attempt if possible.
+# For conda, use instead: cmat export-curation
 nextflow run ${CODE_ROOT}/pipelines/export_curation_spreadsheet.nf \
   --input_csv ${CURATION_ROOT}/finished_curation_spreadsheet.csv \
   --curation_root ${CURATION_ROOT} \
