@@ -47,7 +47,7 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
     """
     logger.debug('Processing trait {}'.format(trait.name))
 
-    trait.zooma_result_list = get_zooma_results(trait.name, filters, zooma_host, target_ontology)
+    trait.zooma_result_list = get_zooma_results(trait.name.lower(), filters, zooma_host, target_ontology)
     trait.process_zooma_results()
     if (trait.is_finished
             or len(trait.zooma_result_list) == 0

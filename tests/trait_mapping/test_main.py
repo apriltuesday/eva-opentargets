@@ -6,7 +6,8 @@ import tempfile
 
 import pytest
 
-from cmat.trait_mapping.main import parse_traits, process_traits
+from cmat.trait_mapping.main import parse_traits, process_traits, process_trait
+from cmat.trait_mapping.trait import Trait
 
 
 def get_test_resource(resource_name):
@@ -62,3 +63,27 @@ def test_main():
     mapped_terms = {x[0] for x in output_mappings}
     curation_terms = {x[0] for x in output_curation}
     assert len(mapped_terms) + len(curation_terms) == len(all_terms)
+
+
+def test_process_trait_exact_match():
+    # Exact match with MONDO:0009061 (in EFO and Mondo)
+    trait_name = 'Cystic Fibrosis'
+    # Don't use any data sources in Zooma as those will come back as high-confidence matches
+    zooma_filters = {'ontologies': 'efo,mondo,hp',
+                     'required': 'none',
+                     'preferred': 'none'}
+    zooma_host = 'https://www.ebi.ac.uk'
+    # Don't use OxO
+    oxo_targets = []
+    oxo_distance = 0
+
+    # This should be marked as finished, as it's an exact string match with a term contained in the target ontology
+    efo_trait = process_trait(Trait(trait_name, None, None), zooma_filters, zooma_host, oxo_targets, oxo_distance,
+                              target_ontology='efo')
+    assert efo_trait.is_finished
+
+    # This should not be marked as finished, even though Zooma finds an exact match in one of its ontologies, it's not
+    # the requested target ontology and thus still needs to be curated
+    hpo_trait = process_trait(Trait(trait_name, None, None), zooma_filters, zooma_host, oxo_targets, oxo_distance,
+                              target_ontology='hp')
+    assert not hpo_trait.is_finished
