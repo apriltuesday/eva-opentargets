@@ -6,7 +6,7 @@ The goals of the manual curation:
 * _Suggested previous mapping_ traits should be checked for any terms that have become obsolete since the last iteration. These will be colored red and likely have a _suggested replacement mapping_ provided in the appropriate column. If no replacement is provided, curate as usual.
 * For the rest of the traits, we curate as many as possible.
 
-Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/ORDO/MONDO terms will also be in EFO but some are not. These can be imported to EFO using the Webulous submission service.
+Good mappings must be eyeballed to ensure they are actually good. Alternative mappings for medium or low quality mappings can be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. Most HP/MONDO terms will also be in EFO but some are not.
 
 ## Criteria to manually evaluate mapping quality
 * Exact string for string matches are _good_
@@ -20,7 +20,10 @@ Good mappings must be eyeballed to ensure they are actually good. Alternative ma
 In general, complex traits with modifiers (e.g. "autosomal recessive", "early onset", or "history of") should not be mapped to the more general term (i.e. without modifiers) because it loses important information. For now the curator should follow the same protocol as for any other term and request to import/create a new term containing the necessary modifiers.
 
 ## Unmapped trait names
-Trait names that haven't been automatically mapped against any ontology term can also be searched for using OLS. If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name. If these are not already in EFO they should be imported to EFO using the Webulous submission service.
+Trait names that haven't been automatically mapped against any ontology term can also be searched for using OLS.
+If a mapping can't be found in EFO, look for a mapping to a HP, ORDO, or MONDO trait name.
+HP and MONDO terms can be imported into EFO if not present.
+ORDO terms cannot be directly imported but can be used as the basis for new EFO terms.
 
 ## Curation workflow
 Curation should be done by subsequently applying filters to appropriate columns, then making decisions for the traits in the filtered selection.
@@ -43,8 +46,13 @@ Curation should be done by subsequently applying filters to appropriate columns,
   * 3.1. Set the Status column to only include "blank" entries
   * 3.2. Search for suitable mappings using OLS - https://www.ebi.ac.uk/ols4/
 
+The curator can also leverage any additional mappings provided, which have the format `URL|LABEL|ZOOMA_QUALITY|ZOOMA_SOURCE|EFO_STATUS`.
+* `ZOOMA_QUALITY` indicates the confidence returned by Zooma (high/medium/low), or "not specified" if the term originates from outside Zooma.
+* `ZOOMA_SOURCE` indicates the datasource of the mapping in Zooma (e.g. EVA or ClinVar Xrefs, or a specific ontology), or can indicate the source is a previously-used or replacement mapping.
+* `EFO_STATUS` indicates whether the term is current, obsolete, or not present in EFO.
+
 ### Time-saving options
-The new manual workflow can be shortened if necessary, while the quality of the results will be _at least as good as for the old workflow_ (because we're reusing the results of previous curations):
+The manual workflow can be shortened if necessary, while the quality of the results will be _at least as good as for the old workflow_ (because we're reusing the results of previous curations):
 * Complete all Step 1 instances from the Curation workflow
 * All subsections of Step 2 - they involve review of mappings previously selected by ourselves. The only changes will be those where the previously mapped term has now become obsolete, however a new mapping can be found during step 2.1
 
@@ -60,10 +68,12 @@ Make sure **not** to use a mixed format, `URL|LABEL|ZOOMA_QUALITY|ZOOMA_SOURCE||
 ### Marking the status of curated terms
 The “Status” column has the following acceptable values:
 * **DONE** — an acceptable trait contained in EFO has been found for the trait
-* **IMPORT** — an acceptable trait has been found from the MONDO/ORDO/HP ontologies which is not contained in EFO and must be imported
+* **IMPORT** — an acceptable trait has been found from the MONDO/HP ontologies which is not contained in EFO and must be imported
 * **NEW** — new term must be created in EFO
 * **SKIP** — trait is going to be skipped in this iteration, due to being too non-specific, or just having a low frequency
 * **UNSURE** — temporary status; traits to be discussed with reviewers/the team
+
+Note that IMPORT and NEW terms are processed in Step 4, for now you should ignore the `Add EFO disease` spreadsheet and simply mark the status appropriately.
 
 ### Comment field for curation review
 The "Comment" field can be used to enter arbitrary additional information which will be used by reviewers. Precede any text with initials e.g. "BK - example comment". Comments should be ordered chronologically in reverse: most recent ones at the top.
