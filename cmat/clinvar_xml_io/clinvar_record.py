@@ -22,11 +22,14 @@ class ClinVarRecord:
     # number of "gold stars" displayed on ClinVar website. See details here:
     # https://www.ncbi.nlm.nih.gov/clinvar/docs/details/#review_status
     score_map = {
-        "no assertion provided": 0,
+        'no assertion provided': 0,  # v1 only
+        'no classification provided': 0,
+        'no classification for the single variant': 0,
         'no assertion criteria provided': 0,
         'no classifications from unflagged records': 0,
         'criteria provided, single submitter': 1,
-        'criteria provided, conflicting interpretations': 1,
+        'criteria provided, conflicting interpretations': 1,  # v1 only
+        'criteria provided, conflicting classifications': 1,
         'criteria provided, multiple submitters, no conflicts': 2,
         'reviewed by expert panel': 3,
         'practice guideline': 4,
@@ -37,9 +40,10 @@ class ClinVarRecord:
     # Some records have been flagged by ClinVar and should not be used.
     INVALID_CLINICAL_SIGNFICANCES = {'no classifications from unflagged records'}
 
-    def __init__(self, rcv, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
+    def __init__(self, rcv, xsd_version, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
         """Initialise a ClinVar record object from an RCV XML record."""
         self.rcv = rcv
+        self.xsd_version = xsd_version
 
         # Add a list of traits
         self.trait_set = []
@@ -87,6 +91,7 @@ class ClinVarRecord:
     def last_evaluated_date(self):
         """This tracks the latest (re)evaluation date for the clinical interpretation.
         See https://github.com/opentargets/platform/issues/1161#issuecomment-683938510 for details."""
+        # TODO update for v2
         # The DateLastEvaluated attribute is not always present. In this case, this property will be None.
         return find_mandatory_unique_element(self.rcv, './ClinicalSignificance').attrib.get('DateLastEvaluated')
 
@@ -94,6 +99,7 @@ class ClinVarRecord:
     def review_status(self):
         """Return a review status text for the assigned clinical significance. See score_map above for the list of
         possible values."""
+        # TODO update for v2
         review_status = find_mandatory_unique_element(self.rcv, './ClinicalSignificance/ReviewStatus').text
         assert review_status in self.score_map, f'Unknown review status {review_status} in RCV {self.accession}'
         return review_status
@@ -129,11 +135,13 @@ class ClinVarRecord:
         """The references of this type represent evidence support for this specific variant being observed in this
         specific disease. These are the references displayed on the ClinVar website in the "Assertion and evidence
         details" section at the bottom of the page."""
+        # TODO update? see last bullet point here: https://github.com/ncbi/clinvar/tree/master/xsds_preview
         return [int(elem.text)
                 for elem in find_elements(self.rcv, './ObservedIn/ObservedData/Citation/ID[@Source="PubMed"]')]
 
     @property
     def clinical_significance_raw(self):
+        # TODO update for v2 - germline vs. somatic
         """The original clinical significance string as stored in ClinVar. Example: 'Benign/Likely benign'."""
         return find_mandatory_unique_element(self.rcv, './ClinicalSignificance/Description').text
 
@@ -151,6 +159,7 @@ class ClinVarRecord:
 
     @property
     def allele_origins(self):
+        # TODO update? see last bullet point here: https://github.com/ncbi/clinvar/tree/master/xsds_preview
         return {elem.text for elem in find_elements(self.rcv, './ObservedIn/Sample/Origin')}
 
     @property

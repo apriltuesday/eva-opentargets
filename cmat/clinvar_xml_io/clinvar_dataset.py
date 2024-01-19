@@ -1,5 +1,6 @@
 import gzip
 import logging
+import re
 from datetime import date
 
 from cmat.clinvar_xml_io.clinvar_record import ClinVarRecord
@@ -15,10 +16,20 @@ class ClinVarDataset:
         self.clinvar_xml = clinvar_xml
         self.header_attr = parse_header_attributes(clinvar_xml)
         self.header_attr['LastProcessed'] = date.today().strftime('%Y-%m-%d')
+        self.xsd_version = self.get_xsd_version()
 
     def __iter__(self):
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
-            yield ClinVarRecord(rcv)
+            yield ClinVarRecord(rcv, self.xsd_version)
+
+    def get_xsd_version(self):
+        # For format, see https://github.com/ncbi/clinvar/blob/master/FTPSiteXsdChanges.md
+        url = self.header_attr['xsi:noNamespaceSchemaLocation']
+        m = re.search(r'clinvar_public_([0-9.]+)\.xsd', url)
+        if m and m.group(1):
+            return float(m.group(1))
+        # If we cannot parse, assume v2
+        return 2.0
 
     def write_header(self, output_file):
         header = b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<ReleaseSet'
