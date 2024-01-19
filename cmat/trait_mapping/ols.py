@@ -7,7 +7,7 @@ import urllib
 
 from retry import retry
 
-from cmat.trait_mapping.oxo import OntologyUri
+from cmat.trait_mapping.ontology_uri import OntologyUri
 from cmat.trait_mapping.utils import json_request, ServerError
 
 OLS_SERVER = 'https://www.ebi.ac.uk/ols4'
