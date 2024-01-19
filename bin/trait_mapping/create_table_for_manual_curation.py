@@ -21,12 +21,15 @@ def previous_and_replacement_mappings(trait_name, previous_mappings, ontology):
         yield trait_string, replacement_string
 
 
-def find_replacement_mapping(previous_uri, ontology):
+def find_replacement_mapping(previous_uri, ontology, max_depth=1):
     replacement_uri = get_replacement_term(previous_uri, ontology)
     if not replacement_uri:
         return ''
     label = get_ontology_label(replacement_uri)
     trait_status = get_trait_status(replacement_uri, ontology)
+    # If this term is also obsolete, try to find its replacement (at most max_depth times)
+    if 'OBSOLETE' in trait_status and replacement_uri.startswith('http') and max_depth > 0:
+        return find_replacement_mapping(replacement_uri, ontology, max_depth-1)
     trait_string = '|'.join([replacement_uri, label, 'NOT_SPECIFIED', 'replacement', trait_status])
     return trait_string
 
