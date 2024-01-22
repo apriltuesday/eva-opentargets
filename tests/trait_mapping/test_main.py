@@ -68,10 +68,10 @@ def test_main():
 def test_process_trait_exact_match():
     # Exact match with MONDO:0009061 (in EFO and Mondo)
     trait_name = 'Cystic Fibrosis'
-    # Don't use any data sources in Zooma as those will come back as high-confidence matches
-    zooma_filters = {'ontologies': 'efo,mondo,hp',
-                     'required': 'none',
-                     'preferred': 'none'}
+    # Use our default Zooma filters
+    zooma_filters = {'ontologies': 'efo,ordo,hp,mondo',
+                     'required': 'cttv,eva-clinvar,clinvar-xrefs,gwas',
+                     'preferred': 'eva-clinvar,cttv,gwas,clinvar-xrefs'}
     zooma_host = 'https://www.ebi.ac.uk'
     # Don't use OxO
     oxo_targets = []

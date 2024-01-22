@@ -4,10 +4,11 @@ import multiprocessing
 from collections import Counter
 
 from cmat.clinvar_xml_io import ClinVarTrait
+from cmat.trait_mapping.ols import get_uri_from_exact_match
 from cmat.trait_mapping.output import output_trait
 from cmat.trait_mapping.oxo import get_oxo_results
 from cmat.trait_mapping.oxo import uris_to_oxo_format
-from cmat.trait_mapping.trait import Trait
+from cmat.trait_mapping.trait import Trait, OntologyEntry
 from cmat.trait_mapping.trait_names_parsing import parse_trait_names
 from cmat.trait_mapping.zooma import get_zooma_results
 
@@ -32,8 +33,9 @@ def get_uris_for_oxo(zooma_result_list: list) -> set:
 
 def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list: list, oxo_distance: int, target_ontology: str = 'EFO') -> Trait:
     """
-    Process a single trait. Find any mappings in Zooma. If there are no high confidence Zooma
-    mappings that are in EFO then query OxO with any high confidence mappings not in EFO.
+    Process a single trait. First look for an exact string match in the target ontology and return immediately if found.
+    Otherwise find any mappings in Zooma. If there are no high confidence Zooma mappings that are in EFO then query OxO
+    with any high confidence mappings not in EFO.
 
     :param trait: The trait to be processed.
     :param filters: A dictionary of filters to use for querying Zooma.
@@ -46,6 +48,11 @@ def process_trait(trait: Trait, filters: dict, zooma_host: str, oxo_target_list:
     :return: The original trait after querying Zooma and possibly OxO, with any results found.
     """
     logger.debug('Processing trait {}'.format(trait.name))
+
+    string_match_uri = get_uri_from_exact_match(trait.name.lower(), target_ontology)
+    if string_match_uri:
+        trait.finished_mapping_set.add(OntologyEntry(string_match_uri, trait.name.lower()))
+        return trait
 
     trait.zooma_result_list = get_zooma_results(trait.name.lower(), filters, zooma_host, target_ontology)
     trait.process_zooma_results()
