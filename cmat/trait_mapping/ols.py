@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 import logging
 import requests
@@ -121,3 +122,31 @@ def get_replacement_term(uri: str, ontology: str = 'EFO') -> str:
     if response_json["term_replaced_by"] is not None:
         return response_json["term_replaced_by"]
     return ""
+
+
+@lru_cache(maxsize=16384)
+@retry(exceptions=(ConnectionError, requests.RequestException), tries=4, delay=2, backoff=1.2, jitter=(1, 3))
+def get_uri_from_exact_match(text, ontology='EFO'):
+    """
+    Finds URI from target ontology for a given text based on exact string match.
+
+    :param text: String to search for
+    :param ontology: ID of target ontology to query (default EFO)
+    :return: URI of matching term or None if not found
+    """
+    search_url = os.path.join(OLS_SERVER, f'api/search?ontology={ontology}&q={text}&queryFields=label&exact=true')
+    response = requests.get(search_url)
+    response.raise_for_status()
+    data = response.json()
+    if 'response' in data:
+        results = data['response']['docs']
+        candidates = set()
+        for result in results:
+            # Check that we've found the term exactly (strict case-insensitive string match)
+            if result['label'].lower() == text.lower():
+                candidates.add(result['iri'])
+        # Only return a result if we can find it unambiguously
+        if len(candidates) == 1:
+            return candidates.pop()
+    logger.warning(f'Could not find an IRI for {text}')
+    return None

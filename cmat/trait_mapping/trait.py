@@ -58,12 +58,11 @@ class Trait:
         Check whether any Zooma mappings can be output as a finished ontology mapping.
         Put any finished mappings in finished_mapping_set
         """
-        for mapping in self.zooma_result_list:
-            if mapping.confidence.lower() != "high":
-                continue
-
-            for mapping in mapping.mapping_list:
-                if mapping.in_ontology and mapping.is_current:
+        for zooma_result in self.zooma_result_list:
+            for mapping in zooma_result.mapping_list:
+                # Accept current mappings in the target ontology with either high-confidence or exact string matches
+                if mapping.in_ontology and mapping.is_current and (zooma_result.confidence.lower() == "high"
+                                                                   or zooma_result.zooma_label.lower() == self.name.lower()):
                     ontology_entry = OntologyEntry(mapping.uri, mapping.ontology_label)
                     self.finished_mapping_set.add(ontology_entry)
 
