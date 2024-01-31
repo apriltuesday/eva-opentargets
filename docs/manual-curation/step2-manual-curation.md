@@ -73,7 +73,7 @@ The “Status” column has the following acceptable values:
 * **SKIP** — trait is going to be skipped in this iteration, due to being too non-specific, or just having a low frequency
 * **UNSURE** — temporary status; traits to be discussed with reviewers/the team
 
-Note that IMPORT and NEW terms are processed in Step 4, for now you should ignore the `Add EFO disease` spreadsheet and simply mark the status appropriately.
+Note that IMPORT and NEW terms are processed in Step 4, for now you should ignore the `Add EFO disease` tab within the manual curation spreadsheet and simply mark the status appropriately.
 
 ### Comment field for curation review
 The "Comment" field can be used to enter arbitrary additional information which will be used by reviewers. Precede any text with initials e.g. "BK - example comment". Comments should be ordered chronologically in reverse: most recent ones at the top.
