@@ -1,4 +1,5 @@
 import os
+import re
 from functools import lru_cache
 import logging
 import requests
@@ -6,6 +7,7 @@ import urllib
 
 from retry import retry
 
+from cmat.trait_mapping.ontology_uri import OntologyUri
 from cmat.trait_mapping.utils import json_request, ServerError
 
 OLS_SERVER = 'https://www.ebi.ac.uk/ols4'
@@ -120,7 +122,15 @@ def get_replacement_term(uri: str, ontology: str = 'EFO') -> str:
         return ""
     response_json = response.json()
     if response_json["term_replaced_by"] is not None:
-        return response_json["term_replaced_by"]
+        replacement_uri = response_json["term_replaced_by"]
+        if not replacement_uri.startswith('http'):
+            try:
+                # Attempt to correct the most common weirdness found in this field - MONDO:0020783 or HP_0045074
+                db, iden = re.split(':|_', replacement_uri)
+                replacement_uri = OntologyUri(iden, db.lower()).uri
+            except:
+                logger.warning(f'Could not normalise replacement term: {replacement_uri}')
+        return replacement_uri
     return ""
 
 

@@ -5,31 +5,11 @@ import requests
 
 from cmat.trait_mapping.ols import get_ontology_label_from_ols, is_in_ontology
 from cmat.trait_mapping.ols import is_current_and_in_ontology
+from cmat.trait_mapping.ontology_uri import OntologyUri
 from cmat.trait_mapping.utils import json_request
 
 
 logger = logging.getLogger(__package__)
-
-
-class OntologyUri:
-    db_to_uri_dict = {
-        "orphanet": "http://www.orpha.net/ORDO/Orphanet_{}",
-        "omim": "http://identifiers.org/omim/{}",
-        "efo": "http://www.ebi.ac.uk/efo/EFO_{}",
-        "mesh": "http://identifiers.org/mesh/{}",
-        "medgen": "http://identifiers.org/medgen/{}",
-        "hp": "http://purl.obolibrary.org/obo/HP_{}",
-        "doid": "http://purl.obolibrary.org/obo/DOID_{}",
-        "mondo": "http://purl.obolibrary.org/obo/MONDO_{}",
-    }
-
-    def __init__(self, id_, db):
-        self.id_ = id_
-        self.db = db
-        self.uri = self.db_to_uri_dict[self.db.lower()].format(self.id_)
-
-    def __str__(self):
-        return self.uri
 
 
 @total_ordering
