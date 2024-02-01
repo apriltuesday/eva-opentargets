@@ -47,7 +47,7 @@ workflow {
     if (params.with_feedback) {
         createEfoTable(exportTable.out.importTerms)
         generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
-        updateLinks(addDateToHeader.out.finalMappings, generateZoomaFeedback.out.zoomaFeedback)
+        updateLinks(addMappingsHeader.out.finalMappings, generateZoomaFeedback.out.zoomaFeedback)
     }
 }
 
