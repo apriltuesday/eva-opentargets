@@ -101,11 +101,12 @@ class Report:
 def validate_evidence_string(ev_string, ot_schema_contents):
     try:
         jsonschema.validate(ev_string, ot_schema_contents, format_checker=jsonschema.FormatChecker())
+        return True
     except jsonschema.exceptions.ValidationError as err:
         logger.error('Error: evidence string does not validate against schema.')
         logger.error(f'Error message: {err}')
         logger.error(f'Complete evidence string: {json.dumps(ev_string)}')
-        sys.exit(1)
+        return False
     except jsonschema.exceptions.SchemaError:
         logger.error('Error: OpenTargets schema file is invalid')
         sys.exit(1)
@@ -135,72 +136,80 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')
 
-        # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
-        # potentially mappable name).
-        if not clinvar_record.traits_with_valid_names:
-            report.clinvar_fatal_no_valid_traits += 1
+        # Catch any exceptions for this record so we can continue processing.
+        try:
+            # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
+            # potentially mappable name).
+            if not clinvar_record.traits_with_valid_names:
+                report.clinvar_fatal_no_valid_traits += 1
+                continue
+
+            # Failure mode 2 (skip). A ClinVar record contains an unsupported variation type.
+            if clinvar_record.measure is None:
+                report.clinvar_skip_unsupported_variation += 1
+                continue
+
+            # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
+            # origins, (2) EFO mappings, and (3) genes where the variant has effect.
+            grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
+            consequence_types, _ = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
+            grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
+                                                             string_to_efo_mappings)
+
+            # Failure mode 3 (skip). No functional consequences are available.
+            if not consequence_types:
+                report.clinvar_skip_no_functional_consequences += 1
+                continue
+
+            # Gather consequence mapping counts for variants of interest
+            if clinvar_record.measure.is_repeat_expansion_variant:
+                report.repeat_expansion_variants += len(consequence_types)
+            if is_structural_variant(clinvar_record.measure):
+                report.structural_variants += len(consequence_types)
+
+            # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
+            # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
+            # failure so we can continue to measure mapping coverage.
+            if not any(group[-1] for group in grouped_diseases):
+                report.clinvar_skip_missing_efo_mapping += 1
+                unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
+                report.unmapped_trait_names[unmapped_trait_name] += 1
+
+            assert grouped_allele_origins and grouped_diseases and consequence_types, \
+                'Some of the attribute lists are still empty even after passing all checks.'
+
+            complete_evidence_strings_generated = 0
+            evidence_strings_generated = 0
+            for allele_origins, disease_attributes, consequence_attributes in itertools.product(
+                    grouped_allele_origins, grouped_diseases, consequence_types):
+                disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
+                evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
+                                                           disease_mapped_efo_id, consequence_attributes)
+
+                # Validate and immediately output the evidence string (not keeping everything in memory).
+                is_valid = validate_evidence_string(evidence_string, ot_schema_contents)
+                if is_valid:
+                    output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
+
+                    # Record some evidence string and trait metrics.
+                    evidence_strings_generated += 1
+                    if disease_mapped_efo_id is not None:
+                        complete_evidence_strings_generated += 1
+                        report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
+
+            assert evidence_strings_generated != 0, 'No evidence strings generated despite all attributes passing checks.'
+            if complete_evidence_strings_generated == 1:
+                report.clinvar_done_one_complete_evidence_string += 1
+            elif complete_evidence_strings_generated > 1:
+                report.clinvar_done_multiple_complete_evidence_strings += 1
+
+            report.complete_evidence_string_count += complete_evidence_strings_generated
+            report.evidence_string_count += evidence_strings_generated
+
+        except Exception as e:
+            logger.error(f'Problem generating evidence for {clinvar_record.accession}')
+            logger.error(f'Error: {e}')
             continue
-
-        # Failure mode 2 (skip). A ClinVar record contains an unsupported variation type.
-        if clinvar_record.measure is None:
-            report.clinvar_skip_unsupported_variation += 1
-            continue
-
-        # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
-        # origins, (2) EFO mappings, and (3) genes where the variant has effect.
-        grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
-        consequence_types, _ = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
-        grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
-                                                         string_to_efo_mappings)
-
-        # Failure mode 3 (skip). No functional consequences are available.
-        if not consequence_types:
-            report.clinvar_skip_no_functional_consequences += 1
-            continue
-
-        # Gather consequence mapping counts for variants of interest
-        if clinvar_record.measure.is_repeat_expansion_variant:
-            report.repeat_expansion_variants += len(consequence_types)
-        if is_structural_variant(clinvar_record.measure):
-            report.structural_variants += len(consequence_types)
-
-        # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
-        # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
-        # failure so we can continue to measure mapping coverage.
-        if not any(group[-1] for group in grouped_diseases):
-            report.clinvar_skip_missing_efo_mapping += 1
-            unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
-            report.unmapped_trait_names[unmapped_trait_name] += 1
-
-        assert grouped_allele_origins and grouped_diseases and consequence_types, \
-            'Some of the attribute lists are still empty even after passing all checks.'
-
-        complete_evidence_strings_generated = 0
-        evidence_strings_generated = 0
-        for allele_origins, disease_attributes, consequence_attributes in itertools.product(
-                grouped_allele_origins, grouped_diseases, consequence_types):
-            disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
-            evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
-                                                       disease_mapped_efo_id, consequence_attributes)
-
-            # Validate and immediately output the evidence string (not keeping everything in memory).
-            validate_evidence_string(evidence_string, ot_schema_contents)
-            output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
-
-            # Record some evidence string and trait metrics.
-            evidence_strings_generated += 1
-            if disease_mapped_efo_id is not None:
-                complete_evidence_strings_generated += 1
-                report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
-
-        assert evidence_strings_generated != 0, 'No evidence strings generated despite all attributes passing checks.'
-        if complete_evidence_strings_generated == 1:
-            report.clinvar_done_one_complete_evidence_string += 1
-        elif complete_evidence_strings_generated > 1:
-            report.clinvar_done_multiple_complete_evidence_strings += 1
-
-        report.complete_evidence_string_count += complete_evidence_strings_generated
-        report.evidence_string_count += evidence_strings_generated
 
     output_evidence_strings_file.close()
     return report
