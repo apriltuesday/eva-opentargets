@@ -24,6 +24,7 @@ class ClinVarRecord:
     score_map = {
         "no assertion provided": 0,
         'no assertion criteria provided': 0,
+        'no classifications from unflagged records': 0,
         'criteria provided, single submitter': 1,
         'criteria provided, conflicting interpretations': 1,
         'criteria provided, multiple submitters, no conflicts': 2,
