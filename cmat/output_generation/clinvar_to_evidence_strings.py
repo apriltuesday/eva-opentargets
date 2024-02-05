@@ -197,7 +197,6 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                         complete_evidence_strings_generated += 1
                         report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
 
-            assert evidence_strings_generated != 0, 'No evidence strings generated despite all attributes passing checks.'
             if complete_evidence_strings_generated == 1:
                 report.clinvar_done_one_complete_evidence_string += 1
             elif complete_evidence_strings_generated > 1:
