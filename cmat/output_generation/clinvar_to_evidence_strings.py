@@ -75,6 +75,7 @@ class Report:
                     Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
                     No functional consequences\t{self.clinvar_skip_no_functional_consequences}
                     Missing EFO mapping\t{self.clinvar_skip_missing_efo_mapping}
+                    Invalid evidence string\t{self.clinvar_skip_invalid_evidence_string}
                 Done: Generated at least one complete evidence string\t{clinvar_done}
                     One complete evidence string\t{self.clinvar_done_one_complete_evidence_string}
                     Multiple complete evidence strings\t{self.clinvar_done_multiple_complete_evidence_strings}
@@ -208,7 +209,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                 report.clinvar_done_one_complete_evidence_string += 1
             elif complete_evidence_strings_generated > 1:
                 report.clinvar_done_multiple_complete_evidence_strings += 1
-            else:
+
+            if evidence_strings_generated == 0:
                 report.clinvar_skip_invalid_evidence_string += 1
 
             report.complete_evidence_string_count += complete_evidence_strings_generated
