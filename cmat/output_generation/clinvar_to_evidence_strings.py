@@ -42,6 +42,7 @@ class Report:
         self.clinvar_skip_unsupported_variation = 0
         self.clinvar_skip_no_functional_consequences = 0
         self.clinvar_skip_missing_efo_mapping = 0
+        self.clinvar_skip_invalid_evidence_string = 0
         self.clinvar_done_one_complete_evidence_string = 0
         self.clinvar_done_multiple_complete_evidence_strings = 0
 
@@ -57,17 +58,15 @@ class Report:
         self.repeat_expansion_variants = 0
         self.structural_variants = 0
 
-    def collate_report(self):
+    def print_report_and_check_counts(self):
         # ClinVar tallies.
         clinvar_fatal = self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
-                           self.clinvar_skip_missing_efo_mapping)
+                           self.clinvar_skip_missing_efo_mapping + self.clinvar_skip_invalid_evidence_string)
         clinvar_done = (self.clinvar_done_one_complete_evidence_string +
                         self.clinvar_done_multiple_complete_evidence_strings)
-        assert clinvar_fatal + clinvar_skipped + clinvar_done == self.clinvar_total, \
-            'ClinVar evidence string tallies do not add up to the total amount.'
 
-        return f'''Total number of evidence strings generated\t{self.evidence_string_count}
+        report = f'''Total number of evidence strings generated\t{self.evidence_string_count}
             Total number of complete evidence strings generated\t{self.complete_evidence_string_count}
 
             Total number of ClinVar records\t{self.clinvar_total}
@@ -91,6 +90,14 @@ class Report:
             Total number of variant to consequence mappings\t{self.total_consequence_mappings}
                 Number of repeat expansion variants\t{self.repeat_expansion_variants}
                 Number of structural variants \t{self.structural_variants}'''.replace('\n' + ' ' * 12, '\n')
+        print(report)
+
+        # Confirm counts as expected, exit with error if not.
+        expected_total = clinvar_fatal + clinvar_skipped + clinvar_done
+        if expected_total != self.clinvar_total:
+            logger.error(f'ClinVar evidence string tallies do not add up to the total amount: '
+                         f'fatal + skipped + done = {expected_total}, total = {self.clinvar_total}')
+            sys.exit(1)
 
     def write_unmapped_terms(self, dir_out):
         with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
@@ -120,7 +127,7 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
     report = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
         output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
-    print(report.collate_report())
+    report.print_report_and_check_counts()
     report.write_unmapped_terms(dir_out)
 
 
@@ -201,11 +208,15 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                 report.clinvar_done_one_complete_evidence_string += 1
             elif complete_evidence_strings_generated > 1:
                 report.clinvar_done_multiple_complete_evidence_strings += 1
+            else:
+                report.clinvar_skip_invalid_evidence_string += 1
 
             report.complete_evidence_string_count += complete_evidence_strings_generated
             report.evidence_string_count += evidence_strings_generated
 
         except Exception as e:
+            # Note while we catch exceptions here, this may or may not cause inconsistencies in the counts,
+            # in which case the pipeline will crash after processing all records and printing the report.
             logger.error(f'Problem generating evidence for {clinvar_record.accession}')
             logger.error(f'Error: {e}')
             continue
