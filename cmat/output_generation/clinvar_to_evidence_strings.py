@@ -59,6 +59,7 @@ class Report:
         self.structural_variants = 0
 
     def print_report_and_check_counts(self):
+        """Print report of counts and return True if counts are consistent, False otherwise."""
         # ClinVar tallies.
         clinvar_fatal = self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
@@ -98,7 +99,8 @@ class Report:
         if expected_total != self.clinvar_total:
             logger.error(f'ClinVar evidence string tallies do not add up to the total amount: '
                          f'fatal + skipped + done = {expected_total}, total = {self.clinvar_total}')
-            sys.exit(1)
+            return False
+        return True
 
     def write_unmapped_terms(self, dir_out):
         with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
@@ -125,11 +127,13 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
     string_to_efo_mappings, _ = load_ontology_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
-    report = clinvar_to_evidence_strings(
+    report, exception_raised = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
         output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
-    report.print_report_and_check_counts()
+    counts_consistent = report.print_report_and_check_counts()
     report.write_unmapped_terms(dir_out)
+    if exception_raised or not counts_consistent:
+        sys.exit(1)
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
@@ -137,6 +141,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
     report = Report(trait_mappings=string_to_efo_mappings, consequence_mappings=variant_to_gene_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
+    exception_raised = False
 
     logger.info('Processing ClinVar records')
     for clinvar_record in ClinVarDataset(clinvar_xml):
@@ -217,14 +222,15 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             report.evidence_string_count += evidence_strings_generated
 
         except Exception as e:
-            # Note while we catch exceptions here, this may or may not cause inconsistencies in the counts,
-            # in which case the pipeline will crash after processing all records and printing the report.
+            # We catch exceptions but record when one is thrown, so that the pipeline will crash after processing all
+            # records and printing the report.
             logger.error(f'Problem generating evidence for {clinvar_record.accession}')
             logger.error(f'Error: {e}')
+            exception_raised = True
             continue
 
     output_evidence_strings_file.close()
-    return report
+    return report, exception_raised
 
 
 def format_creation_date(s):
