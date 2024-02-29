@@ -60,6 +60,7 @@ class Report:
 
     def print_report_and_check_counts(self):
         """Print report of counts and return True if counts are consistent, False otherwise."""
+        # TODO dump to a file so counts can be aggregated
         # ClinVar tallies.
         clinvar_fatal = self.clinvar_fatal_no_valid_traits
         clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
@@ -122,14 +123,14 @@ def validate_evidence_string(ev_string, ot_schema_contents):
         sys.exit(1)
 
 
-def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
+def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out, start, end):
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings, _ = load_ontology_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
     report, exception_raised = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
-        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
+        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME), start=start, end=end)
     counts_consistent = report.print_report_and_check_counts()
     report.write_unmapped_terms(dir_out)
     if exception_raised or not counts_consistent:
@@ -137,14 +138,22 @@ def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_sc
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
-                                output_evidence_strings):
+                                output_evidence_strings, start=None, end=None):
     report = Report(trait_mappings=string_to_efo_mappings, consequence_mappings=variant_to_gene_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
     exception_raised = False
 
     logger.info('Processing ClinVar records')
+    i = -1
     for clinvar_record in ClinVarDataset(clinvar_xml):
+        # If start & end provided, only process records in the range [start, end)
+        i += 1
+        if start and i < start:
+            continue
+        if end and i >= end:
+            break
+
         report.clinvar_total += 1
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')

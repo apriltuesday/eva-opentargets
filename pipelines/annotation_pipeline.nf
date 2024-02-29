@@ -34,6 +34,8 @@ if (!params.output_dir) {
 batchRoot = params.output_dir
 codeRoot = "${projectDir}/.."
 includeTranscriptsFlag = params.include_transcripts ? "--include-transcripts" : ""
+// Number of chunks to run in parallel for evidence generation
+numChunks = 10
 
 /*
  * Main workflow.
@@ -56,11 +58,23 @@ workflow {
     if (params.schema != null) {
         // Open Targets evidence string output
         downloadJsonSchema()
+        // Get start/end indices to break XML into chunks
+        countClinvarRecords(clinvarXml)
+        .map { strN ->
+            n = Integer.parseInt(strN.trim())
+            step = (Integer)Math.ceil(n / numChunks)
+            startIndices = (0..n-1).step(step)
+            endIndices = startIndices[1..-1] + [n]
+            [startIndices, endIndices].transpose()
+        }
+        .set { startEndPairs }
+        // Generate evidence for each chunk and concatenate
         generateEvidence(clinvarXml,
                          downloadJsonSchema.out.jsonSchema,
-                         combineConsequences.out.consequencesCombined)
-
-        checkDuplicates(generateEvidence.out.evidenceStrings)
+                         combineConsequences.out.consequencesCombined,
+                         startEndPairs.collect())
+        collectEvidenceStrings(generateEvidence.out.evidenceStrings.collect())
+        checkDuplicates(collectEvidenceStrings.out.evidenceStrings)
         convertXrefs(clinvarXml)
 
     } else {
@@ -309,24 +323,36 @@ process generateAnnotatedXml {
 }
 
 /*
+ * Count number of RCV records in ClinVar.
+ */
+process countClinvarRecords {
+    input:
+    path clinvarXml
+
+    output:
+    stdout emit: count
+
+    script:
+    """
+    \${PYTHON_BIN} ${codeRoot}/bin/count_clinvar_rcvs.py --clinvar-xml ${clinvarXml}
+    """
+}
+
+/*
  * Generate the evidence strings for submission to Open Targets.
  */
 process generateEvidence {
-    clusterOptions "-o ${batchRoot}/logs/evidence_string_generation.out \
-                    -e ${batchRoot}/logs/evidence_string_generation.err"
-
-    publishDir "${batchRoot}/evidence_strings",
-        overwrite: true,
-        mode: "copy",
-        pattern: "*.json"
+    clusterOptions "-o ${batchRoot}/logs/evidence_string_generation_${startEnd[0]}.out \
+                    -e ${batchRoot}/logs/evidence_string_generation_${startEnd[0]}.err"
 
     input:
     path clinvarXml
     path jsonSchema
     path consequenceMappings
+    each startEnd
 
     output:
-    path "evidence_strings.json", emit: evidenceStrings
+    path "evidence_strings_*.json", emit: evidenceStrings
 
     script:
     """
@@ -335,7 +361,31 @@ process generateEvidence {
         --efo-mapping ${params.mappings} \
         --gene-mapping ${consequenceMappings} \
         --ot-schema ${jsonSchema} \
-        --out .
+        --out . \
+        --start ${startEnd[0]} \
+        --end ${startEnd[1]}
+    mv evidence_strings.json evidence_strings_${startEnd[0]}.json
+    """
+}
+
+/*
+ * Concatenate evidence strings into a single file.
+ */
+process collectEvidenceStrings {
+    publishDir "${batchRoot}/evidence_strings",
+        overwrite: true,
+        mode: "copy",
+        pattern: "*.json"
+
+    input:
+    path "evidence_strings_*.json"
+
+    output:
+    path "evidence_strings.json", emit: evidenceStrings
+
+    script:
+    """
+    cat evidence_strings_*.json >> evidence_strings.json
     """
 }
 
