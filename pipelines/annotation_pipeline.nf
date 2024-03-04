@@ -353,8 +353,8 @@ process generateEvidence {
     each startEnd
 
     output:
-    path "evidence_strings_*.json", emit: evidenceStrings
-    path "counts_*.yml", emit: countsYml
+    path "evidence_strings.json", emit: evidenceStrings
+    path "counts.yml", emit: countsYml
 
     script:
     """
@@ -366,8 +366,6 @@ process generateEvidence {
         --out . \
         --start ${startEnd[0]} \
         --end ${startEnd[1]}
-    mv evidence_strings.json evidence_strings_${startEnd[0]}.json
-    mv counts.yml counts_${startEnd[0]}.yml
     """
 }
 

@@ -52,9 +52,14 @@ class Report:
         self.repeat_expansion_variants = 0
         self.structural_variants = 0
 
+    def __eq__(self, other):
+        if not isinstance(other, Report):
+            return NotImplemented
+        return self.__dict__ == other.__dict__
+
     def __add__(self, other):
         if not isinstance(other, Report):
-            raise ValueError('Both operands must be Report objects')
+            return NotImplemented
         result = Report()
         for var_name in vars(self).keys() | vars(other).keys():
             if var_name == 'total_trait_mappings':
