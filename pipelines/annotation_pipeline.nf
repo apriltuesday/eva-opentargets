@@ -74,6 +74,7 @@ workflow {
                          combineConsequences.out.consequencesCombined,
                          startEndPairs.collect())
         collectEvidenceStrings(generateEvidence.out.evidenceStrings.collect())
+        collectCounts(generateEvidence.out.countsYml.collect())
         checkDuplicates(collectEvidenceStrings.out.evidenceStrings)
         convertXrefs(clinvarXml)
 
@@ -353,6 +354,7 @@ process generateEvidence {
 
     output:
     path "evidence_strings_*.json", emit: evidenceStrings
+    path "counts_*.yml", emit: countsYml
 
     script:
     """
@@ -365,6 +367,7 @@ process generateEvidence {
         --start ${startEnd[0]} \
         --end ${startEnd[1]}
     mv evidence_strings.json evidence_strings_${startEnd[0]}.json
+    mv counts.yml counts_${startEnd[0]}.yml
     """
 }
 
@@ -386,6 +389,27 @@ process collectEvidenceStrings {
     script:
     """
     cat evidence_strings_*.json >> evidence_strings.json
+    """
+}
+
+/*
+ * Aggregate counts into a single file and print the report.
+ */
+process collectCounts {
+    publishDir "${batchRoot}/logs",
+        overwrite: true,
+        mode: "copy",
+        pattern: "*.yml"
+
+    input:
+    path "counts_*.yml"
+
+    output:
+    path "counts.yml", emit: countsYml
+
+    script:
+    """
+    \${PYTHON_BIN} ${codeRoot}/bin/aggregate_counts.py --counts-yml counts_*.yml
     """
 }
 
