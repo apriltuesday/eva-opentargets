@@ -82,20 +82,25 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             if not clinvar_record.traits_with_valid_names:
                 report.clinvar_fatal_no_valid_traits += 1
                 continue
+            # Failure mode 2 (fatal). A ClinVar record contains no valid clinical significance terms, likely due to
+            # submissions being flagged.
+            if not clinvar_record.valid_clinical_significances:
+                report.clinvar_fatal_no_clinical_significance += 1
+                continue
 
-            # Failure mode 2 (skip). A ClinVar record contains an unsupported variation type.
+            # Failure mode 3 (skip). A ClinVar record contains an unsupported variation type.
             if clinvar_record.measure is None:
                 report.clinvar_skip_unsupported_variation += 1
                 continue
 
-            # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
-            # origins, (2) EFO mappings, and (3) genes where the variant has effect.
+            # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid
+            # allele origins, (2) EFO mappings, and (3) genes where the variant has effect.
             grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
             consequence_types, _ = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
             grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                              string_to_efo_mappings)
 
-            # Failure mode 3 (skip). No functional consequences are available.
+            # Failure mode 4 (skip). No functional consequences are available.
             if not consequence_types:
                 report.clinvar_skip_no_functional_consequences += 1
                 continue
@@ -106,9 +111,9 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             if is_structural_variant(clinvar_record.measure):
                 report.structural_variants += len(consequence_types)
 
-            # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
-            # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
-            # failure so we can continue to measure mapping coverage.
+            # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no
+            # suitable EFO mappings were found in the database. This will still generate an evidence string, but is
+            # tracked as a failure so we can continue to measure mapping coverage.
             if not any(group[-1] for group in grouped_diseases):
                 report.clinvar_skip_missing_efo_mapping += 1
                 unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
@@ -122,8 +127,9 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                     grouped_allele_origins, grouped_diseases, consequence_types):
                 disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
-                evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
-                                                           disease_mapped_efo_id, consequence_attributes)
+                evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name,
+                                                           disease_source_id, disease_mapped_efo_id,
+                                                           consequence_attributes)
 
                 # Validate and immediately output the evidence string (not keeping everything in memory).
                 is_valid = validate_evidence_string(evidence_string, ot_schema_contents)
@@ -185,7 +191,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'allelicRequirements': clinvar_record.mode_of_inheritance,
 
         # Levels of clinical significance reported for the variant.
-        'clinicalSignificances': clinvar_record.clinical_significance_list,
+        'clinicalSignificances': clinvar_record.valid_clinical_significances,
 
         # Confidence (review status).
         'confidence': clinvar_record.review_status,

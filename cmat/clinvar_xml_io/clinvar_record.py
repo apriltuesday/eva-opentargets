@@ -34,6 +34,8 @@ class ClinVarRecord:
 
     # Some allele origin terms in ClinVar are essentially conveying lack of information and are thus not useful.
     NONSPECIFIC_ALLELE_ORIGINS = {'unknown', 'not provided', 'not applicable', 'tested-inconclusive', 'not-reported'}
+    # Some records have been flagged by ClinVar and should not be used.
+    INVALID_CLINICAL_SIGNFICANCES = {'no classifications from unflagged records'}
 
     def __init__(self, rcv, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
         """Initialise a ClinVar record object from an RCV XML record."""
@@ -142,6 +144,10 @@ class ClinVarRecord:
         lexicographically. Example: 'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor'].
         See /data-exploration/clinvar-variant-types/README.md for further explanation."""
         return sorted(list(set(re.split('/|, |; ', self.clinical_significance_raw.lower().replace('_', ' ')))))
+
+    @property
+    def valid_clinical_significances(self):
+        return [cs for cs in self.clinical_significance_list if cs.lower() not in self.INVALID_CLINICAL_SIGNFICANCES]
 
     @property
     def allele_origins(self):

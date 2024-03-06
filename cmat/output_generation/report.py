@@ -26,6 +26,7 @@ class Report:
         # ClinVar record counters.
         self.clinvar_total = 0
         self.clinvar_fatal_no_valid_traits = 0
+        self.clinvar_fatal_no_clinical_significance = 0
         self.clinvar_skip_unsupported_variation = 0
         self.clinvar_skip_no_functional_consequences = 0
         self.clinvar_skip_missing_efo_mapping = 0
@@ -86,7 +87,7 @@ class Report:
 
     def compute_record_tallies(self):
         """Compute tallies of records fatal/skipped/done based on the more granular counts."""
-        self.clinvar_fatal = self.clinvar_fatal_no_valid_traits
+        self.clinvar_fatal = self.clinvar_fatal_no_valid_traits + self.clinvar_fatal_no_clinical_significance
         self.clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
                                 self.clinvar_skip_missing_efo_mapping + self.clinvar_skip_invalid_evidence_string)
         self.clinvar_done = (self.clinvar_done_one_complete_evidence_string +
@@ -110,6 +111,7 @@ class Report:
 
             Total number of ClinVar records\t{self.clinvar_total}
                 Fatal: No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
+                    No clinical significance\t{self.clinvar_fatal_no_clinical_significance}
                 Skipped: Can be rescued by future improvements\t{self.clinvar_skipped}
                     Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
                     No functional consequences\t{self.clinvar_skip_no_functional_consequences}
