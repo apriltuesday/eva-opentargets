@@ -30,6 +30,7 @@ def test_dump_and_load():
 
 def test_add_operator():
     report_1 = get_test_report()
+    report_1.total_trait_mappings = 100
 
     report_2 = Report()
     report_2.evidence_string_count = 13

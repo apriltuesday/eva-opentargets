@@ -65,10 +65,10 @@ class Report:
         for var_name in vars(self).keys() | vars(other).keys():
             if var_name == 'total_trait_mappings':
                 result.total_trait_mappings = max(self.total_trait_mappings, other.total_trait_mappings)
-            if var_name == 'total_consequence_mappings':
+            elif var_name == 'total_consequence_mappings':
                 result.total_consequence_mappings = max(self.total_consequence_mappings,
                                                         other.total_consequence_mappings)
-            if var_name == 'used_trait_mappings':
+            elif var_name == 'used_trait_mappings':
                 result.used_trait_mappings = self.used_trait_mappings | other.used_trait_mappings
             else:
                 result.__setattr__(var_name, self.__getattribute__(var_name) + other.__getattribute__(var_name))
