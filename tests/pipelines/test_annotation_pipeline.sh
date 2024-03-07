@@ -22,7 +22,8 @@ nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
 diff ${BATCH_ROOT}/gene_mapping/consequences_snp.tsv ${BATCH_ROOT_BASE}/expected/consequences_snp.tsv
 diff ${BATCH_ROOT}/gene_mapping/consequences_repeat.tsv ${BATCH_ROOT_BASE}/expected/consequences_repeat.tsv
 diff ${BATCH_ROOT}/gene_mapping/consequences_structural.tsv ${BATCH_ROOT_BASE}/expected/consequences_structural.tsv
-diff ${BATCH_ROOT}/evidence_strings/evidence_strings.json ${BATCH_ROOT_BASE}/expected/evidence_strings.json
+# Nextflow parallelism means ordering might not be stable
+diff <(sort ${BATCH_ROOT}/evidence_strings/evidence_strings.json) <(sort ${BATCH_ROOT_BASE}/expected/evidence_strings.json)
 
 cd ${CWD}
 rm -r ${BATCH_ROOT}

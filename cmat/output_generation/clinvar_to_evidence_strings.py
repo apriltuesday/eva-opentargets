@@ -4,12 +4,13 @@ import json
 import re
 import sys
 import os
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 import jsonschema
 
 from cmat.clinvar_xml_io import ClinVarDataset
 from cmat.output_generation import consequence_type as CT
+from cmat.output_generation.report import Report
 
 logger = logging.getLogger(__package__)
 
@@ -22,90 +23,6 @@ MAX_TARGET_GENES = 3
 # Output file names.
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
 EVIDENCE_RECORDS_FILE_NAME = 'evidence_records.tsv'
-UNMAPPED_TRAITS_FILE_NAME = 'unmapped_traits.tsv'
-
-
-class Report:
-    """Holds counters and other records for a pipeline run."""
-
-    def __init__(self, trait_mappings, consequence_mappings):
-        self.report_strings = []
-
-        # The main evidence string counter.
-        self.evidence_string_count = 0
-        # Complete evidence strings are ones with an EFO mapping.
-        self.complete_evidence_string_count = 0
-
-        # ClinVar record counters.
-        self.clinvar_total = 0
-        self.clinvar_fatal_no_valid_traits = 0
-        self.clinvar_skip_unsupported_variation = 0
-        self.clinvar_skip_no_functional_consequences = 0
-        self.clinvar_skip_missing_efo_mapping = 0
-        self.clinvar_skip_invalid_evidence_string = 0
-        self.clinvar_done_one_complete_evidence_string = 0
-        self.clinvar_done_multiple_complete_evidence_strings = 0
-
-        # Total number of trait-to-ontology mappings present in the database.
-        self.total_trait_mappings = sum([len(mappings) for mappings in trait_mappings.values()])
-        # All distinct (trait name, EFO ID) mappings used in the evidence strings.
-        self.used_trait_mappings = set()
-        # All unmapped trait names which prevented evidence string generation and their counts.
-        self.unmapped_trait_names = Counter()
-
-        # Variant-to-consequence mapping counts.
-        self.total_consequence_mappings = sum([len(mappings) for mappings in consequence_mappings.values()])
-        self.repeat_expansion_variants = 0
-        self.structural_variants = 0
-
-    def print_report_and_check_counts(self):
-        """Print report of counts and return True if counts are consistent, False otherwise."""
-        # ClinVar tallies.
-        clinvar_fatal = self.clinvar_fatal_no_valid_traits
-        clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
-                           self.clinvar_skip_missing_efo_mapping + self.clinvar_skip_invalid_evidence_string)
-        clinvar_done = (self.clinvar_done_one_complete_evidence_string +
-                        self.clinvar_done_multiple_complete_evidence_strings)
-
-        report = f'''Total number of evidence strings generated\t{self.evidence_string_count}
-            Total number of complete evidence strings generated\t{self.complete_evidence_string_count}
-
-            Total number of ClinVar records\t{self.clinvar_total}
-                Fatal: No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
-                Skipped: Can be rescued by future improvements\t{clinvar_skipped}
-                    Unsupported variation type\t{self.clinvar_skip_unsupported_variation}
-                    No functional consequences\t{self.clinvar_skip_no_functional_consequences}
-                    Missing EFO mapping\t{self.clinvar_skip_missing_efo_mapping}
-                    Invalid evidence string\t{self.clinvar_skip_invalid_evidence_string}
-                Done: Generated at least one complete evidence string\t{clinvar_done}
-                    One complete evidence string\t{self.clinvar_done_one_complete_evidence_string}
-                    Multiple complete evidence strings\t{self.clinvar_done_multiple_complete_evidence_strings}
-            Percentage of all potentially supportable ClinVar records which generated at least one complete evidence string\t{
-                clinvar_done / (clinvar_skipped + clinvar_done):.1%}
-
-            Total number of trait-to-ontology mappings in the database\t{self.total_trait_mappings}
-                The number of distinct trait-to-ontology mappings used in the evidence strings\t{
-                    len(self.used_trait_mappings)}
-            The number of distinct unmapped trait names which prevented complete evidence string generation\t{
-                len(self.unmapped_trait_names)}
-
-            Total number of variant to consequence mappings\t{self.total_consequence_mappings}
-                Number of repeat expansion variants\t{self.repeat_expansion_variants}
-                Number of structural variants \t{self.structural_variants}'''.replace('\n' + ' ' * 12, '\n')
-        print(report)
-
-        # Confirm counts as expected, exit with error if not.
-        expected_total = clinvar_fatal + clinvar_skipped + clinvar_done
-        if expected_total != self.clinvar_total:
-            logger.error(f'ClinVar evidence string tallies do not add up to the total amount: '
-                         f'fatal + skipped + done = {expected_total}, total = {self.clinvar_total}')
-            return False
-        return True
-
-    def write_unmapped_terms(self, dir_out):
-        with open(os.path.join(dir_out, UNMAPPED_TRAITS_FILE_NAME), 'w') as unmapped_traits_file:
-            for trait, number_of_occurrences in sorted(self.unmapped_trait_names.items(), key=lambda x: -x[1]):
-                unmapped_traits_file.write(f'{trait}\t{number_of_occurrences}\n')
 
 
 def validate_evidence_string(ev_string, ot_schema_contents):
@@ -122,29 +39,38 @@ def validate_evidence_string(ev_string, ot_schema_contents):
         sys.exit(1)
 
 
-def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
+def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out, start, end):
     os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings, _ = load_ontology_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
 
     report, exception_raised = clinvar_to_evidence_strings(
         string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
-        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME))
-    counts_consistent = report.print_report_and_check_counts()
-    report.write_unmapped_terms(dir_out)
+        output_evidence_strings=os.path.join(dir_out, EVIDENCE_STRINGS_FILE_NAME), start=start, end=end)
+    counts_consistent = report.check_counts()
+    report.print_report()
+    report.dump_to_file(dir_out)
     if exception_raised or not counts_consistent:
         sys.exit(1)
 
 
 def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
-                                output_evidence_strings):
+                                output_evidence_strings, start=None, end=None):
     report = Report(trait_mappings=string_to_efo_mappings, consequence_mappings=variant_to_gene_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
     output_evidence_strings_file = open(output_evidence_strings, 'wt')
     exception_raised = False
 
     logger.info('Processing ClinVar records')
+    i = -1
     for clinvar_record in ClinVarDataset(clinvar_xml):
+        # If start & end provided, only process records in the range [start, end)
+        i += 1
+        if start and i < start:
+            continue
+        if end and i >= end:
+            break
+
         report.clinvar_total += 1
         if report.clinvar_total % 1000 == 0:
             logger.info(f'{report.clinvar_total} records processed')
@@ -156,20 +82,25 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             if not clinvar_record.traits_with_valid_names:
                 report.clinvar_fatal_no_valid_traits += 1
                 continue
+            # Failure mode 2 (fatal). A ClinVar record contains no valid clinical significance terms, likely due to
+            # submissions being flagged.
+            if not clinvar_record.valid_clinical_significances:
+                report.clinvar_fatal_no_clinical_significance += 1
+                continue
 
-            # Failure mode 2 (skip). A ClinVar record contains an unsupported variation type.
+            # Failure mode 3 (skip). A ClinVar record contains an unsupported variation type.
             if clinvar_record.measure is None:
                 report.clinvar_skip_unsupported_variation += 1
                 continue
 
-            # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid allele
-            # origins, (2) EFO mappings, and (3) genes where the variant has effect.
+            # Within each ClinVar record, an evidence string is generated for all possible permutations of (1) valid
+            # allele origins, (2) EFO mappings, and (3) genes where the variant has effect.
             grouped_allele_origins = convert_allele_origins(clinvar_record.valid_allele_origins)
             consequence_types, _ = get_consequence_types(clinvar_record.measure, variant_to_gene_mappings)
             grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                              string_to_efo_mappings)
 
-            # Failure mode 3 (skip). No functional consequences are available.
+            # Failure mode 4 (skip). No functional consequences are available.
             if not consequence_types:
                 report.clinvar_skip_no_functional_consequences += 1
                 continue
@@ -180,9 +111,9 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             if is_structural_variant(clinvar_record.measure):
                 report.structural_variants += len(consequence_types)
 
-            # Failure mode 4 (skip). A ClinVar record has at least one trait with at least one valid name, but no suitable
-            # EFO mappings were found in the database. This will still generate an evidence string, but is tracked as a
-            # failure so we can continue to measure mapping coverage.
+            # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no
+            # suitable EFO mappings were found in the database. This will still generate an evidence string, but is
+            # tracked as a failure so we can continue to measure mapping coverage.
             if not any(group[-1] for group in grouped_diseases):
                 report.clinvar_skip_missing_efo_mapping += 1
                 unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
@@ -196,8 +127,9 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             for allele_origins, disease_attributes, consequence_attributes in itertools.product(
                     grouped_allele_origins, grouped_diseases, consequence_types):
                 disease_name, disease_source_id, disease_mapped_efo_id = disease_attributes
-                evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name, disease_source_id,
-                                                           disease_mapped_efo_id, consequence_attributes)
+                evidence_string = generate_evidence_string(clinvar_record, allele_origins, disease_name,
+                                                           disease_source_id, disease_mapped_efo_id,
+                                                           consequence_attributes)
 
                 # Validate and immediately output the evidence string (not keeping everything in memory).
                 is_valid = validate_evidence_string(evidence_string, ot_schema_contents)
@@ -208,7 +140,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                     evidence_strings_generated += 1
                     if disease_mapped_efo_id is not None:
                         complete_evidence_strings_generated += 1
-                        report.used_trait_mappings.add((disease_name, disease_mapped_efo_id))
+                        report.used_trait_mappings.add(disease_mapped_efo_id)
 
             if complete_evidence_strings_generated == 1:
                 report.clinvar_done_one_complete_evidence_string += 1
@@ -259,7 +191,7 @@ def generate_evidence_string(clinvar_record, allele_origins, disease_name, disea
         'allelicRequirements': clinvar_record.mode_of_inheritance,
 
         # Levels of clinical significance reported for the variant.
-        'clinicalSignificances': clinvar_record.clinical_significance_list,
+        'clinicalSignificances': clinvar_record.valid_clinical_significances,
 
         # Confidence (review status).
         'confidence': clinvar_record.review_status,
