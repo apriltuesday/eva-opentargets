@@ -2,6 +2,9 @@
  * Extract target ontology from mappings file header. Defaults to EFO if missing.
  */
 process getTargetOntology {
+    label 'short'
+    label 'small'
+
     input:
     val mappingsFile
 

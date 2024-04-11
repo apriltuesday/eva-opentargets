@@ -98,6 +98,8 @@ workflow {
  * Download ClinVar data, using the most recent XML dump.
  */
 process downloadClinvar {
+    label 'small'
+
     output:
     path "clinvar.xml.gz", emit: clinvarXml
 
@@ -112,6 +114,9 @@ process downloadClinvar {
  * Download the Open Targets JSON schema.
  */
 process downloadJsonSchema {
+    label 'short'
+    label 'small'
+
     output:
     path "opentargets-${params.schema}.json", emit: jsonSchema
 
@@ -222,6 +227,9 @@ process runStructural {
  * Unite results of consequence mapping.
  */
 process combineConsequences {
+    label 'short'
+    label 'small'
+
     input:
     path consequencesSnp
     path consequencesRepeat
@@ -327,6 +335,8 @@ process generateAnnotatedXml {
  * Count number of RCV records in ClinVar.
  */
 process countClinvarRecords {
+    label 'small'
+
     input:
     path clinvarXml
 
@@ -373,6 +383,9 @@ process generateEvidence {
  * Concatenate evidence strings into a single file.
  */
 process collectEvidenceStrings {
+    label 'short'
+    label 'small'
+
     publishDir "${batchRoot}/evidence_strings",
         overwrite: true,
         mode: "copy",
@@ -394,6 +407,9 @@ process collectEvidenceStrings {
  * Aggregate counts into a single file and print the report.
  */
 process collectCounts {
+    label 'short'
+    label 'small'
+
     publishDir "${batchRoot}/logs",
         overwrite: true,
         mode: "copy",
@@ -415,6 +431,9 @@ process collectCounts {
  * Check that the generated evidence strings do not contain any duplicated evidence strings.
  */
 process checkDuplicates {
+    label 'short'
+    label 'small'
+
     input:
     path evidenceStrings
 

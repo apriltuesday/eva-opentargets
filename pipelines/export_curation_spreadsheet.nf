@@ -55,6 +55,9 @@ workflow {
  * Extract the relevant columns from the input CSV.
  */
 process exportTable {
+    label 'short'
+    label 'small'
+
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -79,6 +82,9 @@ process exportTable {
  * Strip header from existing mappings file.
  */
  process stripMappingsHeader {
+    label 'short'
+    label 'small'
+
     output:
     path "previous_mappings.tsv", emit: previousMappings
 
@@ -92,6 +98,9 @@ process exportTable {
  * Concatenate finished automated and manual mappings into a single file.
  */
 process combineManualAndAutomated {
+    label 'short'
+    label 'small'
+
     input:
     path finishedMappings
 
@@ -111,6 +120,9 @@ process combineManualAndAutomated {
  * latest curation iteration.
  */
 process mergeWithLatestMappings {
+    label 'short'
+    label 'small'
+
     input:
     path newMappings
     path previousMappings
@@ -134,6 +146,8 @@ process mergeWithLatestMappings {
  * Prepare the table for EFO import.
  */
 process createEfoTable {
+    label 'short'
+    label 'small'
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -157,6 +171,8 @@ process createEfoTable {
  * Generate ZOOMA feedback.
  */
 process generateZoomaFeedback {
+    label 'short'
+    label 'small'
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -184,6 +200,9 @@ process generateZoomaFeedback {
  * Check there are no complete duplicates in the final mappings file.
  */
 process checkDuplicates {
+    label 'short'
+    label 'small'
+
     input:
     path newMappings
 
@@ -201,6 +220,8 @@ process checkDuplicates {
  * Add generated date and target ontology to header of final mappings file.
  */
 process addMappingsHeader {
+    label 'short'
+    label 'small'
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -226,6 +247,9 @@ process addMappingsHeader {
  * Update the symbolic links pointing to the location of the most recent curation result and ZOOMA feedback dataset.
  */
 process updateLinks {
+    label 'short'
+    label 'small'
+
     input:
     path finalMappings
     path zoomaFeedback

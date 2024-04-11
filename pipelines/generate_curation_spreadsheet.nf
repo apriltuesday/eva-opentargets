@@ -59,6 +59,8 @@ workflow {
  * Download ClinVar data, using the most recent XML dump.
  */
 process downloadClinvar {
+    label 'small'
+
     output:
     path "clinvar.xml.gz", emit: clinvarXml
 
@@ -91,6 +93,9 @@ process parseTraits {
  * Split parsed traits into multiple chunks.
  */
 process splitTraits {
+    label 'short'
+    label 'small'
+
     input:
     path parsedTraits
 
@@ -136,6 +141,8 @@ process processTraits {
  * Aggregate automated trait mappings into a single file.
  */
 process collectAutomatedMappings {
+    label 'short'
+    label 'small'
     publishDir "${curationRoot}",
         overwrite: true,
         mode: "copy",
@@ -158,6 +165,9 @@ process collectAutomatedMappings {
  * Aggregate traits for manual curation into a single file.
  */
 process collectCurationTraits {
+    label 'short'
+    label 'small'
+
     input:
     path "curation_traits_*.tsv"
 
