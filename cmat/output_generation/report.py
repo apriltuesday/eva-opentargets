@@ -110,7 +110,8 @@ class Report:
             Total number of complete evidence strings generated\t{self.complete_evidence_string_count}
 
             Total number of ClinVar records\t{self.clinvar_total}
-                Fatal: No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
+                Fatal: Cannot produce evidence\t{self.clinvar_fatal}
+                    No traits with valid names\t{self.clinvar_fatal_no_valid_traits}
                     No clinical significance\t{self.clinvar_fatal_no_clinical_significance}
                 Skipped: Can be rescued by future improvements\t{self.clinvar_skipped}
                     Unsupported variation type\t{self.clinvar_skip_unsupported_variation}

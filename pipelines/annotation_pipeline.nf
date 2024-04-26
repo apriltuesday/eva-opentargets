@@ -409,6 +409,8 @@ process collectEvidenceStrings {
 process collectCounts {
     label 'short_time'
     label 'small_mem'
+    clusterOptions "-o ${batchRoot}/logs/collect_counts.out \
+                    -e ${batchRoot}/logs/collect_counts.err"
 
     publishDir "${batchRoot}/logs",
         overwrite: true,
