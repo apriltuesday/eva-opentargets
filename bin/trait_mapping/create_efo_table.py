@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# TODO see if there's anything useful here before we remove it
 
 import argparse
 import re
