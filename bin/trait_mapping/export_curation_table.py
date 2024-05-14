@@ -13,11 +13,6 @@ def export_table(input_filepath, done_filepath, comments_filepath):
     done_rows = done_rows[['ClinVar label', 'URI of selected mapping', 'Label of selected mapping']]
     done_rows.to_csv(done_filepath, sep='\t', header=False, index=False)
 
-    # Terms for import - TODO QC these instead
-    import_rows = curation_table[curation_table['Status'] == 'IMPORT']
-    import_rows = import_rows['URI of selected mapping']
-    # import_rows.to_csv(import_filepath, header=False, index=False)
-
     # Comments column
     comment_rows = curation_table[curation_table['Comment'].notna() & curation_table['Status'].notna()]
     comment_rows = comment_rows[['ClinVar label', 'Comment']].astype(str)
