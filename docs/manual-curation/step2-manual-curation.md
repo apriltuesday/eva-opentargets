@@ -93,7 +93,7 @@ Once a term has been marked as IMPORT or NEW, it will automatically show up in t
 Terms for import do not require any additional manual intervention, but new terms require some additional information, in particular:
 * **Parent term** - Suggested parent term within EFO. This is required but does not need to be exact as it will be reviewed by EFO maintainers - a rough idea of the term hierarchy is acceptable.
 * **Child terms** - Suggested children within EFO (if any), should be added if possible.
-* **Description, synonyms, PubMed IDs** - Should be added if possible, for example taken from OMIM or MedGen, but can be skipped if needed.
+* **Description, synonyms, PubMed IDs** - Should be added if possible, for example taken from OMIM or MedGen, but can be skipped if the information cannot be found.
 * **MedGen, OMIM** - Links to the specified resource, useful references if any of the above cannot be found. These are often present in the "Suggested exact mapping" column.
 
 Any additional comments can be left in the final column, they will be passed on to EFO.
