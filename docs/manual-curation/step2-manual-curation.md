@@ -73,8 +73,6 @@ The “Status” column has the following acceptable values:
 * **SKIP** — trait is going to be skipped in this iteration, due to being too non-specific, or just having a low frequency
 * **UNSURE** — temporary status; traits to be discussed with reviewers/the team
 
-Note that IMPORT and NEW terms are processed in Step 4, for now you should ignore the `Add EFO disease` tab within the manual curation spreadsheet and simply mark the status appropriately.
-
 ### Comment field for curation review
 The "Comment" field can be used to enter arbitrary additional information which will be used by reviewers. Precede any text with initials e.g. "BK - example comment". Comments should be ordered chronologically in reverse: most recent ones at the top.
 Any comments will become available in the Notes field within the next iteration.
@@ -89,3 +87,13 @@ This provision does _not_ apply to cases where the source string contains additi
 
 ### Note on spaces and line breaks
 Sometimes, especially when copy-pasting information from external sources, a mapping label or URL can contain an additional space symbol (at the beginning or end) or an accidental line break. This causes problems in the downstream processing and must be manually removed. To minimise the occurences of this, Google Sheets template includes a validation formula for the first two columns (“URI of selected mapping” and “Label of selected mapping”). If it detects an extra space symbol or a line break, the cell will be highlighted in red.
+
+## New terms
+Once a term has been marked as IMPORT or NEW, it will automatically show up in the corresponding "Add to EFO" worksheet.
+Terms for import do not require any additional manual intervention, but new terms require some additional information, in particular:
+* **Parent term** - Suggested parent term within EFO. This is required but does not need to be exact as it will be reviewed by EFO maintainers - a rough idea of the term hierarchy is acceptable.
+* **Child terms** - Suggested children within EFO (if any), should be added if possible.
+* **Description, synonyms, PubMed IDs** - Should be added if possible, for example taken from OMIM or MedGen, but can be skipped if the information cannot be found.
+* **MedGen, OMIM** - Links to the specified resource, useful references if any of the above cannot be found. These are often present in the "Suggested exact mapping" column.
+
+Any additional comments can be left in the final column, they will be passed on to EFO.

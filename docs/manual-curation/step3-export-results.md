@@ -27,8 +27,10 @@ The automated pipeline checks for complete duplicates in the list of text-to-ont
 ## Check and correct known problematic mappings
 There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
 
-## Copy the table for EFO import
-The file `${CURATION_RELEASE_ROOT}/efo_import_table.tsv` will contain a partially ready table for EFO import. Copy its contents into the “Add EFO disease” sheet in the curation spreadsheet.
+## Submit feedback to EFO
+Tables for IMPORT and NEW terms will be created by curators during [step 2](step2-manual-curation.md).
+Open a new git issue with EFO to review and import these novel trait names, e.g. [https://github.com/EBISPOT/efo/issues/1898](https://github.com/EBISPOT/efo/issues/1898).
+
 
 ## Submit feedback to ZOOMA
 See more details on ZOOMA feedback in the [evidence string generation protocol](../generate-evidence-strings.md#submit-feedback-to-zooma). At this stage, only the **eva_clinvar** dataset is being submitted; clinvar_xrefs is submitted during evidence string generation.

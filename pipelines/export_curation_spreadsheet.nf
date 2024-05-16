@@ -45,7 +45,6 @@ workflow {
     checkDuplicates(mergeWithLatestMappings.out.newMappings)
     addMappingsHeader(checkDuplicates.out.duplicatesOk, mergeWithLatestMappings.out.newMappings, getTargetOntology.out.targetOntology)
     if (params.with_feedback) {
-        createEfoTable(exportTable.out.importTerms)
         generateZoomaFeedback(mergeWithLatestMappings.out.newMappings)
         updateLinks(addMappingsHeader.out.finalMappings, generateZoomaFeedback.out.zoomaFeedback)
     }
@@ -65,7 +64,6 @@ process exportTable {
 
     output:
     path "finished_mappings_curation.tsv", emit: finishedMappings
-    path "terms_for_efo_import.txt", emit: importTerms
     path "curator_comments.tsv", emit: curatorComments
 
     script:
@@ -73,7 +71,6 @@ process exportTable {
     \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/export_curation_table.py \
         -i ${params.input_csv} \
         -d finished_mappings_curation.tsv \
-        -m terms_for_efo_import.txt \
         -c curator_comments.tsv
     """
 }
@@ -139,31 +136,6 @@ process mergeWithLatestMappings {
         <(sort -t \$'\t' -k 1,1 ${previousMappings}) \
         <(comm -23 <(cut -d \$'\t' -f 1 ${previousMappings} | sort -u) <(cut -d \$'\t' -f 1 ${newMappings} | sort -u)) \
     >> ${newMappings}
-    """
-}
-
-/*
- * Prepare the table for EFO import.
- */
-process createEfoTable {
-    label 'short_time'
-    label 'small_mem'
-    publishDir "${curationRoot}",
-        overwrite: true,
-        mode: "copy",
-        pattern: "*.tsv"
-
-    input:
-    path importTerms
-
-    output:
-    path "efo_import_table.tsv", emit: efoImportTable
-
-    script:
-    """
-    \${PYTHON_BIN} ${codeRoot}/bin/trait_mapping/create_efo_table.py \
-        -i ${importTerms} \
-        -o efo_import_table.tsv
     """
 }
 

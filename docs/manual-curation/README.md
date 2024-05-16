@@ -9,7 +9,6 @@ The protocol consists of four parts which are done in sequence by different peop
 1. [**Fetch data**](step1-fetch-clinvar-data.md) (technical). The latest ClinVar data is downloaded and the trait names are extracted. They are attempted to be automatically mapped to ontology terms using ZOOMA. The traits which cannot be mapped automatically are output as a separate file, which is loaded into a Google spreadsheet.
 1. [**Curate**](step2-manual-curation.md) (biological). The curator goes through the spreadsheet and fills it in, performing manual curation. Other people review the results and comment on them.
 1. [**Extract results**](step3-export-results.md) (technical). Curation results are extracted from the spreadsheet into a TSV file. Some accompanying data is prepared for providing feedback to EFO.
-1. [**Provide feedback**](step4-submit-efo-feedback.md) (biological). The curator, using the data generated on the previous steps, submits feedback to EFO and follows up on this.
 
 ## Setting up environment
 To follow the technical steps of the protocol, you will need to set up the environment.
@@ -31,5 +30,6 @@ export CURATION_RELEASE_ROOT=${BATCH_ROOT_BASE}/manual_curation/${CURATION_RELEA
 * The number of traits in the `finished_mappings_curation.tsv` file is the same as in the spreadsheet after applying all relevant filters
 * _Important:_ spreadsheet does not contain line endings, or extraneous space symbols, in trait names (can be checked by a regexp search)
 * For submitting terms to EFO
-  + Cross-references has been populated for as many traits as possible
+  + Terms for import all have associated HP or MONDO IDs
+  + Information for new terms has been populated for as many traits as possible
   + GitHub issue has been created and linked in the issue
