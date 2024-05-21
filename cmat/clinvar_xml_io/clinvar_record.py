@@ -143,7 +143,9 @@ class ClinVarRecord:
     def clinical_significance_raw(self):
         # TODO update for v2 - germline vs. somatic
         """The original clinical significance string as stored in ClinVar. Example: 'Benign/Likely benign'."""
-        return find_mandatory_unique_element(self.rcv, './ClinicalSignificance/Description').text
+        if self.xsd_version < 2:
+            return find_mandatory_unique_element(self.rcv, './ClinicalSignificance/Description').text
+        return find_elements(self.rcv, './Classifications/GermlineClassification/Description')
 
     @property
     def clinical_significance_list(self):

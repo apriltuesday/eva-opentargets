@@ -10,7 +10,7 @@ def parse_header_attributes(clinvar_xml):
     """Parses out attributes to the root-level ReleaseSet element and returns them as a dict."""
     attrib = None
     with gzip.open(clinvar_xml, 'rt') as fh:
-        for event, elem in ElementTree.iterparse(fh):
+        for event, elem in ElementTree.iterparse(fh, events=['start']):
             if elem.tag == 'ReleaseSet':
                 attrib = elem.attrib
                 break

@@ -34,14 +34,14 @@ def filter_xml(input_xml, output_xml, filter_fct, max_num=None):
     """ Filter input_xml by boolean condition defined by filter_fct and write to output_xml.
     If max_num is given, will write at most max_num records, otherwise writes all."""
     header = b'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <ReleaseSet Dated="." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Type="full" xsi:noNamespaceSchemaLocation="http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_1.60.xsd">
+    <ReleaseSet Dated="." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Type="full" xsi:noNamespaceSchemaLocation="http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_2.0.xsd">
     '''
     count = 0
     with gzip.open(output_xml, 'wb') as output_file:
         output_file.write(header)
         for raw_cvs_xml in iterate_cvs_from_xml(input_xml):
             rcv = find_mandatory_unique_element(raw_cvs_xml, 'ReferenceClinVarAssertion')
-            record = ClinVarRecord(rcv)
+            record = ClinVarRecord(rcv, 2.0)
             if filter_fct(record):
                 output_file.write(ElementTree.tostring(raw_cvs_xml))
                 count += 1
