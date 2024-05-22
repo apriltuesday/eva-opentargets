@@ -93,7 +93,7 @@ nextflow run ${CODE_ROOT}/pipelines/annotation_pipeline.nf \
 ```
 You can use the `--include_transcripts` flag to also include transcript annotations with the functional consequences.
 
-By default, the pipeline will download and annotate the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
+By default, the pipeline will download and annotate the latest ClinVar RCV XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 
 ### Trait curation
 
@@ -125,9 +125,9 @@ nextflow run ${CODE_ROOT}/pipelines/generate_curation_spreadsheet.nf \
   -resume
 ```
 
-By default, the pipeline will download and map the latest ClinVar XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
+By default, the pipeline will download and map the latest ClinVar RCV XML dump from [FTP](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/). If you want to run it on an existing XML file, you can pass it via the `--clinvar` flag.
 
-To create the curation spreadsheet, first make your own copy of the [template](https://docs.google.com/spreadsheets/d/1PyDzRs3bO1klvvSv9XuHmx-x7nqZ0UAGeS6aV2SQ2Yg/edit?usp=sharing).
+To create the curation spreadsheet, first make your own copy of the [template](https://docs.google.com/spreadsheets/d/1GWAQAZjOpzsIkdCu0CSRDoehZEUB3VjZYYiHWp9Tn7Q/edit?usp=sharing).
 Then paste the contents of `${CURATION_ROOT}/google_sheets_table.tsv` into it, starting with column H “ClinVar label”.
 
 #### Manual curation
