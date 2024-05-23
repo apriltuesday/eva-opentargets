@@ -10,7 +10,7 @@ class TestClinvarRecord:
 
     def test_date(self):
         """Check that the last updated date of the referenceClinVarAssertion is loaded correctly"""
-        assert self.test_clinvar_record.date == '2020-09-16'
+        assert self.test_clinvar_record.date == '2024-04-15'
 
     def test_score(self):
         assert self.test_clinvar_record.score == 2
@@ -26,7 +26,7 @@ class TestClinvarRecord:
         assert self.test_clinvar_record.traits[0].preferred_or_other_valid_name == 'Leber congenital amaurosis 13'
 
     def test_trait_pubmed_refs(self):
-        assert self.test_clinvar_record.traits[0].pubmed_refs == [20301475, 20301590, 30285347]
+        assert self.test_clinvar_record.traits[0].pubmed_refs == [20301590, 30285347]
 
     def test_observed_pubmed_refs(self):
         assert self.test_clinvar_record.evidence_support_pubmed_refs == [15258582, 15322982]
