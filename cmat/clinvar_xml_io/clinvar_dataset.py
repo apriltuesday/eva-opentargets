@@ -24,10 +24,11 @@ class ClinVarDataset:
 
     def get_xsd_version(self):
         # For format, see https://github.com/ncbi/clinvar/blob/master/FTPSiteXsdChanges.md
-        url = self.header_attr['xsi:noNamespaceSchemaLocation']
-        m = re.search(r'clinvar_public_([0-9.]+)\.xsd', url)
-        if m and m.group(1):
-            return float(m.group(1))
+        if 'xsi:noNamespaceSchemaLocation' in self.header_attr:
+            url = self.header_attr['xsi:noNamespaceSchemaLocation']
+            m = re.search(r'(ClinVar_RCV|clinvar_public)_([0-9.]+)\.xsd', url, flags=re.IGNORECASE)
+            if m and m.group(2):
+                return float(m.group(2))
         # If we cannot parse, assume v2
         return 2.0
 
