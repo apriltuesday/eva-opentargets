@@ -7,7 +7,7 @@ resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
 
 
 def test_dataset_write():
-    input_file = os.path.join(resources_dir, 'test_clinvar_dataset.xml.gz')
+    input_file = os.path.join(resources_dir, 'clinvar_dataset_v2.xml.gz')
     output_file = os.path.join(resources_dir, 'test_output.xml.gz')
 
     input_dataset = ClinVarDataset(input_file)

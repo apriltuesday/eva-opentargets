@@ -13,10 +13,12 @@ def test_string_to_set():
     assert string_to_set('{}') == set()
 
 
-def run_generate_annotated_xml(input_file, expected_output_file):
+def test_generate_annotated_xml():
+    input_file = os.path.join(resources_dir, 'test_annotation_input.xml.gz')
     efo_mapping_file = os.path.join(resources_dir, 'string_to_ontology_mappings.tsv')
     gene_mapping_file = os.path.join(resources_dir, 'snp2gene_extract.tsv')
     output_file = os.path.join(resources_dir, 'test_output.xml.gz')
+    expected_output_file = os.path.join(resources_dir, 'expected_annotation_output.xml.gz')
 
     generate_annotated_clinvar_xml(input_file, efo_mapping_file, gene_mapping_file, output_file)
 
@@ -31,15 +33,3 @@ def run_generate_annotated_xml(input_file, expected_output_file):
 
     if os.path.exists(output_file):
         os.remove(output_file)
-
-
-def test_generate_annotated_xml_v1():
-    input_file = os.path.join(resources_dir, 'test_annotation_input_v1.xml.gz')
-    expected_output_file = os.path.join(resources_dir, 'expected_annotation_output_v1.xml.gz')
-    run_generate_annotated_xml(input_file, expected_output_file)
-
-
-def test_generate_annotated_xml_v2():
-    input_file = os.path.join(resources_dir, 'test_annotation_input_v2.xml.gz')
-    expected_output_file = os.path.join(resources_dir, 'expected_annotation_output_v2.xml.gz')
-    run_generate_annotated_xml(input_file, expected_output_file)
