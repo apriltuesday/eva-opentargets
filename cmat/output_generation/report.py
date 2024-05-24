@@ -31,6 +31,7 @@ class Report:
         self.clinvar_skip_no_functional_consequences = 0
         self.clinvar_skip_missing_efo_mapping = 0
         self.clinvar_skip_invalid_evidence_string = 0
+        self.clinvar_skip_multiple_clinical_classifications = 0
         self.clinvar_done_one_complete_evidence_string = 0
         self.clinvar_done_multiple_complete_evidence_strings = 0
         self.clinvar_fatal = 0
@@ -89,7 +90,8 @@ class Report:
         """Compute tallies of records fatal/skipped/done based on the more granular counts."""
         self.clinvar_fatal = self.clinvar_fatal_no_valid_traits + self.clinvar_fatal_no_clinical_significance
         self.clinvar_skipped = (self.clinvar_skip_unsupported_variation + self.clinvar_skip_no_functional_consequences +
-                                self.clinvar_skip_missing_efo_mapping + self.clinvar_skip_invalid_evidence_string)
+                                self.clinvar_skip_missing_efo_mapping + self.clinvar_skip_invalid_evidence_string +
+                                self.clinvar_skip_multiple_clinical_classifications)
         self.clinvar_done = (self.clinvar_done_one_complete_evidence_string +
                              self.clinvar_done_multiple_complete_evidence_strings)
 
@@ -118,6 +120,7 @@ class Report:
                     No functional consequences\t{self.clinvar_skip_no_functional_consequences}
                     Missing EFO mapping\t{self.clinvar_skip_missing_efo_mapping}
                     Invalid evidence string\t{self.clinvar_skip_invalid_evidence_string}
+                    Multiple clinical classifications\t{self.clinvar_skip_multiple_clinical_classifications}
                 Done: Generated at least one complete evidence string\t{self.clinvar_done}
                     One complete evidence string\t{self.clinvar_done_one_complete_evidence_string}
                     Multiple complete evidence strings\t{self.clinvar_done_multiple_complete_evidence_strings}

@@ -9,6 +9,7 @@ from collections import defaultdict
 import jsonschema
 
 from cmat.clinvar_xml_io import ClinVarDataset
+from cmat.clinvar_xml_io.clinical_classification import MultipleClinicalClassificationsError
 from cmat.output_generation import consequence_type as CT
 from cmat.output_generation.report import Report
 
@@ -77,6 +78,15 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
         # Catch any exceptions for this record so we can continue processing.
         try:
+            # Failure mode 0 (skip). Contains multiple clinical classification annotations.
+            # This is new as of V2 of the ClinVar XSD and should definitely be supported at some point,
+            # but as it can cause parsing complications we catch these cases first.
+            # See GH issue for context: https://github.com/EBIvariation/CMAT/issues/396
+            if len(clinvar_record.clinical_classifications) > 1:
+                logger.warning(f'Found multiple clinical classifications in record {clinvar_record.accession}')
+                report.clinvar_skip_multiple_clinical_classifications += 1
+                continue
+
             # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
             # potentially mappable name).
             if not clinvar_record.traits_with_valid_names:
@@ -152,6 +162,11 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             report.complete_evidence_string_count += complete_evidence_strings_generated
             report.evidence_string_count += evidence_strings_generated
+
+        except MultipleClinicalClassificationsError as mcce:
+            # Ensure we catch any of these that fall through (e.g. from multiple description text)
+            logger.error(str(mcce))
+            report.clinvar_skip_multiple_clinical_classifications += 1
 
         except Exception as e:
             # We catch exceptions but record when one is thrown, so that the pipeline will crash after processing all

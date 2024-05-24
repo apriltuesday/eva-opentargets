@@ -3,6 +3,12 @@ import re
 from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element, find_optional_unique_element
 
 
+class MultipleClinicalClassificationsError(NotImplementedError):
+    # Raised when we encounter multiples of clinical classifications or their attributes when not expected.
+    # This is new as of ClinVar XSD V2 and will be supported at some point in the future.
+    pass
+
+
 class ClinicalClassification:
 
     # A score for the review status of the assigned clinical significance ranges from 0 to 4 and corresponds to the
@@ -29,7 +35,8 @@ class ClinicalClassification:
         self.class_xml = class_xml
         self.clinvar_record = clinvar_record
         self.xsd_version = clinvar_record.xsd_version
-        # TODO log the type somewhere....
+        # Type of clinical classification: germline, somatic, or oncogenicity
+        self.type = class_xml.tag
 
     @property
     def last_evaluated_date(self):
@@ -45,8 +52,7 @@ class ClinicalClassification:
         """Return a review status text for the assigned clinical significance. See score_map above for the list of
         possible values."""
         review_status = find_mandatory_unique_element(self.class_xml, './ReviewStatus').text
-        # TODO replace this assert with something less crash-y
-        # assert review_status in self.score_map, f'Unknown review status {review_status} in RCV {self.accession}'
+        assert review_status in self.score_map, f'Unknown review status {review_status} in RCV {self.accession}'
         return review_status
 
     @property
@@ -60,8 +66,8 @@ class ClinicalClassification:
         try:
             return find_mandatory_unique_element(self.class_xml, './Description').text
         except AssertionError as e:
-            # TODO log
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple descriptions for one ClinicalClassification in '
+                                      f'{self.clinvar_record.accession}')
 
     @property
     def clinical_significance_list(self):

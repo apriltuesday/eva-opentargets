@@ -10,4 +10,4 @@ def test_parse_header_attributes():
     input_file = os.path.join(resources_dir, 'test_clinvar_dataset.xml.gz')
     header_attr = parse_header_attributes(input_file)
     assert header_attr['Dated'] == '2023-02-22'
-    assert header_attr['xsi:noNamespaceSchemaLocation'] == 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/clinvar_public_1.60.xsd'
+    assert header_attr['xsi:noNamespaceSchemaLocation'] == 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_public/RCV/ClinVar_RCV_2.0.xsd'

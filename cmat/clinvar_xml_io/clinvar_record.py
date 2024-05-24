@@ -3,7 +3,7 @@ import re
 import xml.etree.ElementTree as ElementTree
 from xml.dom import minidom
 
-from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification
+from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification, MultipleClinicalClassificationsError
 from cmat.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from cmat.clinvar_xml_io.clinvar_trait import ClinVarTrait
 from cmat.clinvar_xml_io.xml_parsing import find_elements, find_optional_unique_element, \
@@ -119,34 +119,34 @@ class ClinVarRecord:
 
     # The following properties are maintained for backwards compatibility, but are only present for a ClinVarRecord
     # if there is exactly one ClinicalClassification for the record.
-    # Otherwise these are best taken from the ClinicalClassification objects directly.
+    # Otherwise these should be taken from the ClinicalClassification objects directly.
 
     @property
     def last_evaluated_date(self):
         if len(self.clinical_classifications) > 1:
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple ClinicalClassifications for {self.accession}')
         return self.clinical_classifications[0].last_evaluated_date
 
     @property
     def review_status(self):
         if len(self.clinical_classifications) > 1:
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple ClinicalClassifications for {self.accession}')
         return self.clinical_classifications[0].review_status
 
     @property
     def score(self):
         if len(self.clinical_classifications) > 1:
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple ClinicalClassifications for {self.accession}')
         return self.clinical_classifications[0].score
 
     @property
     def clinical_significance_list(self):
         if len(self.clinical_classifications) > 1:
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple ClinicalClassifications for {self.accession}')
         return self.clinical_classifications[0].clinical_significance_list
 
     @property
     def valid_clinical_significances(self):
         if len(self.clinical_classifications) > 1:
-            return None
+            raise MultipleClinicalClassificationsError(f'Found multiple ClinicalClassifications for {self.accession}')
         return self.clinical_classifications[0].valid_clinical_significances
