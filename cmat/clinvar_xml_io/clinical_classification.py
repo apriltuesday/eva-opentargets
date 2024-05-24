@@ -57,8 +57,11 @@ class ClinicalClassification:
     @property
     def clinical_significance_raw(self):
         """The original clinical significance string as stored in ClinVar. Example: 'Benign/Likely benign'."""
-        # TODO is this unique?
-        return find_mandatory_unique_element(self.class_xml, './Description').text
+        try:
+            return find_mandatory_unique_element(self.class_xml, './Description').text
+        except AssertionError as e:
+            # TODO log
+            return None
 
     @property
     def clinical_significance_list(self):
