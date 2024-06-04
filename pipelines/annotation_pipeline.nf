@@ -106,7 +106,7 @@ process downloadClinvar {
     script:
     """
     wget -O clinvar.xml.gz \
-        https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
+        https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/RCV_release/ClinVarRCVRelease_00-latest.xml.gz
     """
 }
 

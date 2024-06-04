@@ -68,7 +68,7 @@ class AnnotatingClinVarDataset(ClinVarDataset):
             self.mismatches_file.write('RCV\tCV\tCMAT\n')
 
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
-            record = AnnotatedClinVarRecord(rcv)
+            record = AnnotatedClinVarRecord(rcv, self.xsd_version)
             self.annotate(record)
             yield record
 
@@ -213,8 +213,9 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
 class AnnotatedClinVarRecord(ClinVarRecord):
 
-    def __init__(self, rcv):
-        super().__init__(rcv, trait_class=OntologyMappedClinVarTrait, measure_class=EnsemblAnnotatedClinVarMeasure)
+    def __init__(self, rcv, xsd_version):
+        super().__init__(rcv, xsd_version, trait_class=OntologyMappedClinVarTrait,
+                         measure_class=EnsemblAnnotatedClinVarMeasure)
 
 
 class OntologyMappedClinVarTrait(ClinVarTrait):
