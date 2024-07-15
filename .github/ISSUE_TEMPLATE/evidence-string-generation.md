@@ -9,4 +9,4 @@ assignees: ''
 
 **Deadline for submission:**
 
-Refer to [documentation](https://github.com/EBIvariation/eva-opentargets/blob/master/docs/generate-evidence-strings.md) for full description of steps.
+Refer to [documentation](https://github.com/EBIvariation/CMAT/blob/master/docs/open-targets/generate-evidence-strings.md) for full description of steps.
