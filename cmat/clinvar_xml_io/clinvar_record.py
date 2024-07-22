@@ -70,6 +70,10 @@ class ClinVarRecord:
         return find_mandatory_unique_element(self.rcv, './ClinVarAccession').attrib['Acc']
 
     @property
+    def vcv(self):
+        return find_optional_unique_element(self.rcv, './MeasureSet').attrib['Acc']
+
+    @property
     def date(self):
         """This tracks the latest update date, counting even minor technical updates."""
         return self.rcv.attrib['DateLastUpdated']
