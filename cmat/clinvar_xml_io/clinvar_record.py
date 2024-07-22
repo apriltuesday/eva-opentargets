@@ -66,6 +66,9 @@ class ClinVarRecord:
         Appears differently in reference and submitted records."""
         raise NotImplementedError
 
+    def vcv(self):
+        return find_optional_unique_element(self.record_xml, './MeasureSet').attrib['Acc']
+
     @property
     def created_date(self):
         """This tracks the date the record was first made public on ClinVar.
