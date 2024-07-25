@@ -124,7 +124,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no
             # suitable EFO mappings were found in the database. This will still generate an evidence string, but is
             # tracked as a failure so we can continue to measure mapping coverage.
-            if not any(group[-1] for group in grouped_diseases):
+            if not contains_mapping(grouped_diseases):
                 report.clinvar_skip_missing_efo_mapping += 1
                 unmapped_trait_name = clinvar_record.traits_with_valid_names[0].preferred_or_other_valid_name
                 report.unmapped_trait_names[unmapped_trait_name] += 1
@@ -159,6 +159,10 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             if evidence_strings_generated == 0:
                 report.clinvar_skip_invalid_evidence_string += 1
+                # If this record also did not have any EFO-mapped traits, it has already been counted as "skip".
+                # Correct this so the counts match up but we retain the more important skip reason.
+                if not contains_mapping(grouped_diseases):
+                    report.clinvar_skip_missing_efo_mapping -= 1
 
             report.complete_evidence_string_count += complete_evidence_strings_generated
             report.evidence_string_count += evidence_strings_generated
@@ -408,3 +412,8 @@ def group_diseases_by_efo_mapping(clinvar_record_traits, string_to_efo_mappings)
         selected_trait = traits[0]
         grouped_tuples.append((selected_trait.preferred_or_other_valid_name, selected_trait.medgen_id, efo_id))
     return grouped_tuples
+
+
+def contains_mapping(grouped_diseases):
+    """Checks whether any disease tuple (as described above) contains an EFO mapping."""
+    return any(group[-1] for group in grouped_diseases)
