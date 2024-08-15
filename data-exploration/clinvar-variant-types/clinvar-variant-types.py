@@ -125,8 +125,8 @@ for clinvar_record in clinvar_xml_io.ClinVarDataset(args.clinvar_xml):
     rcv_id = clinvar_record.accession
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
-    measure_sets = clinvar_record.rcv.findall('MeasureSet')
-    genotype_sets = clinvar_record.rcv.findall('GenotypeSet')
+    measure_sets = clinvar_record.record_xml.findall('MeasureSet')
+    genotype_sets = clinvar_record.record_xml.findall('GenotypeSet')
     if len(measure_sets) == 1 and len(genotype_sets) == 0:
         # Most common case. RCV directly contains one measure set.
         measure_set = measure_sets[0]
