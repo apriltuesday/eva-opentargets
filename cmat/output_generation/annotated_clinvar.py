@@ -213,8 +213,8 @@ class AnnotatingClinVarDataset(ClinVarDataset):
 
 class AnnotatedClinVarRecord(ClinVarRecord):
 
-    def __init__(self, rcv, xsd_version):
-        super().__init__(rcv, xsd_version, trait_class=OntologyMappedClinVarTrait,
+    def __init__(self, record_xml, xsd_version):
+        super().__init__(record_xml, xsd_version, trait_class=OntologyMappedClinVarTrait,
                          measure_class=EnsemblAnnotatedClinVarMeasure)
 
 
