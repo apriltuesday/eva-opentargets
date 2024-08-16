@@ -1,6 +1,7 @@
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
+from functools import cached_property
 from xml.dom import minidom
 
 from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification, MultipleClinicalClassificationsError
@@ -43,16 +44,6 @@ class ClinVarRecord:
         else:
             self.measure = measure_class(variant_measure, self)
 
-        # List of clinical classifications (Germline, Somatic, or Oncogenecity)
-        self.clinical_classifications = []
-        if self.xsd_version < 2:
-            # V1 only ever has a single clinical classification / clinical significance
-            self.clinical_classifications.append(
-                ClinicalClassification(find_mandatory_unique_element(self.record_xml, './ClinicalSignificance'), self))
-        else:
-            for clin_class in find_elements(self.record_xml, './Classifications/*'):
-                self.clinical_classifications.append(ClinicalClassification(clin_class, self))
-
     def __str__(self):
         return f'ClinVarRecord object with accession {self.accession}'
 
@@ -70,7 +61,7 @@ class ClinVarRecord:
         return find_mandatory_unique_element(self.record_xml, './ClinVarAccession').attrib['Acc']
 
     @property
-    def date(self):
+    def last_updated_date(self):
         """This tracks the latest update date, counting even minor technical updates."""
         return self.record_xml.attrib['DateLastUpdated']
 
@@ -116,6 +107,19 @@ class ClinVarRecord:
     def valid_allele_origins(self):
         """Returns all valid allele origins, i.e. ones that are not in the list of nonspecific terms."""
         return {origin for origin in self.allele_origins if origin.lower() not in self.NONSPECIFIC_ALLELE_ORIGINS}
+
+    @cached_property
+    def clinical_classifications(self):
+        """List of clinical classifications (Germline, Somatic, or Oncogenecity)"""
+        clinical_classifications = []
+        if self.xsd_version < 2:
+            # V1 only ever has a single clinical classification / clinical significance
+            clinical_classifications.append(
+                ClinicalClassification(find_mandatory_unique_element(self.record_xml, './ClinicalSignificance'), self))
+        else:
+            for clin_class in find_elements(self.record_xml, './Classifications/*'):
+                clinical_classifications.append(ClinicalClassification(clin_class, self))
+        return clinical_classifications
 
     # The following properties are maintained for backwards compatibility, but are only present for a ClinVarRecord
     # if there is exactly one ClinicalClassification for the record.
