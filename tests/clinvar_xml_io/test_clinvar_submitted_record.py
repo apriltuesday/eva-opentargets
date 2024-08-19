@@ -27,8 +27,10 @@ def test_clinvar_set(clinvar_set):
 
 
 def test_clinvar_submitted_record(submitted_record):
-    assert submitted_record.accession == 'SCV000022285'
     assert submitted_record.submitter == 'OMIM'
+    assert submitted_record.submitter_id == '3'
+    assert submitted_record.submission_name is None
+    assert submitted_record.accession == 'SCV000022285'
     assert submitted_record.valid_allele_origins == {'germline'}
     assert submitted_record.evidence_support_pubmed_refs == [15258582, 15322982]
 
