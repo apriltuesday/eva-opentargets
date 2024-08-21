@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ElementTree
 from functools import cached_property
 from xml.dom import minidom
 
-from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification, MultipleClinicalClassificationsError
+from cmat.clinvar_xml_io.clinical_classification import MultipleClinicalClassificationsError
 from cmat.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from cmat.clinvar_xml_io.clinvar_trait import ClinVarTrait
 from cmat.clinvar_xml_io.xml_parsing import find_elements, find_optional_unique_element, \
@@ -15,10 +15,10 @@ logger.setLevel(logging.INFO)
 
 
 class ClinVarRecord:
-    """Instances of this class hold data on individual ClinVar records. See also:
-    * /data-exploration/clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model;
-    * Issue https://github.com/EBIvariation/eva-opentargets/issues/127 for the most recent discussions on changing
-      support of different ClinVar record types."""
+    """
+    Base class for both reference and submitted records in ClinVar. See also:
+    /data-exploration/clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model
+    """
 
     # Some allele origin terms in ClinVar are essentially conveying lack of information and are thus not useful.
     NONSPECIFIC_ALLELE_ORIGINS = {'unknown', 'not provided', 'not applicable', 'tested-inconclusive', 'not-reported'}
@@ -62,13 +62,15 @@ class ClinVarRecord:
 
     @property
     def last_updated_date(self):
-        """This tracks the latest update date, counting even minor technical updates."""
-        return self.record_xml.attrib['DateLastUpdated']
+        """This tracks the latest update date, counting even minor technical updates.
+        Appears differently in reference and submitted records."""
+        raise NotImplementedError
 
     @property
     def created_date(self):
-        """This tracks the date the record was first made public on ClinVar."""
-        return self.record_xml.attrib['DateCreated']
+        """This tracks the date the record was first made public on ClinVar.
+        Appears differently in reference and submitted records."""
+        raise NotImplementedError
 
     @property
     def mode_of_inheritance(self):
@@ -111,15 +113,7 @@ class ClinVarRecord:
     @cached_property
     def clinical_classifications(self):
         """List of clinical classifications (Germline, Somatic, or Oncogenecity)"""
-        clinical_classifications = []
-        if self.xsd_version < 2:
-            # V1 only ever has a single clinical classification / clinical significance
-            clinical_classifications.append(
-                ClinicalClassification(find_mandatory_unique_element(self.record_xml, './ClinicalSignificance'), self))
-        else:
-            for clin_class in find_elements(self.record_xml, './Classifications/*'):
-                clinical_classifications.append(ClinicalClassification(clin_class, self))
-        return clinical_classifications
+        raise NotImplementedError
 
     # The following properties are maintained for backwards compatibility, but are only present for a ClinVarRecord
     # if there is exactly one ClinicalClassification for the record.

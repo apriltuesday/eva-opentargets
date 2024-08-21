@@ -32,12 +32,10 @@ class ClinVarSubmittedRecord(ClinVarRecord):
 
     @property
     def last_updated_date(self):
-        """Overrides parent definition, in SCV this date is in the accession element"""
         return find_mandatory_unique_element(self.record_xml, './ClinVarAccession').attrib['DateUpdated']
 
     @property
     def created_date(self):
-        """Overrides parent definition, in SCV this date is in the accession element"""
         return find_mandatory_unique_element(self.record_xml, './ClinVarAccession').attrib['DateCreated']
 
     @property

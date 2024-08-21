@@ -3,7 +3,7 @@ import logging
 import re
 from datetime import date
 
-from cmat.clinvar_xml_io.clinvar_record import ClinVarRecord
+from cmat.clinvar_xml_io.clinvar_reference_record import ClinVarReferenceRecord
 from cmat.clinvar_xml_io.xml_parsing import iterate_rcv_from_xml, parse_header_attributes
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class ClinVarDataset:
 
     def __iter__(self):
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
-            yield ClinVarRecord(rcv, self.xsd_version)
+            yield ClinVarReferenceRecord(rcv, self.xsd_version)
 
     def get_xsd_version(self):
         # For format, see https://github.com/ncbi/clinvar/blob/master/FTPSiteXsdChanges.md

@@ -35,6 +35,8 @@ def test_multiple_clinical_classifications_record():
 
 
 class TestClinvarRecord:
+    """Tests base class as well as reference record"""
+
     @classmethod
     def setup_class(cls):
         input_file = os.path.join(resources_dir, 'clinvar_dataset_v2.xml.gz')
