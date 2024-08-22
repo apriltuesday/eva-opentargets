@@ -4,7 +4,7 @@ import logging
 import xml.etree.ElementTree as ElementTree
 
 from cmat.clinvar_xml_io import ClinVarRecord
-from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element
+from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element, iterate_cvs_from_xml
 from cmat.output_generation.clinvar_to_evidence_strings import get_consequence_types
 from cmat.output_generation.consequence_type import process_consequence_type_file
 
@@ -16,18 +16,6 @@ logger.setLevel(logging.INFO)
 # pretty print xml
 def pprint(x):
     print(ElementTree.tostring(x, encoding='unicode'))
-
-
-def iterate_cvs_from_xml(clinvar_xml):
-    """Similar to iterate_rcv_from_xml in clinvar_xml_utils, but keeps the entire ClinVarSet XML element.
-    This allows us to construct a valid ClinVar XML for easy future processing."""
-    with gzip.open(clinvar_xml, 'rt') as fh:
-        for event, elem in ElementTree.iterparse(fh):
-            # Wait until we have built a complete ClinVarSet element
-            if elem.tag != 'ClinVarSet':
-                continue
-            yield elem
-            elem.clear()
 
 
 def filter_xml(input_xml, output_xml, filter_fct, max_num=None):

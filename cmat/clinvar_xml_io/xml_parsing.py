@@ -30,18 +30,22 @@ def parse_header_attributes(clinvar_xml):
 
 def iterate_rcv_from_xml(clinvar_xml):
     """Iterates through the gzipped ClinVar XML and yields complete <ReferenceClinVarAssertion> records."""
+    for cvs in iterate_cvs_from_xml(clinvar_xml):
+        # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of
+        # ClinVar. There should only be one such record per ClinVarSet.
+        rcv = find_mandatory_unique_element(cvs, 'ReferenceClinVarAssertion')
+        yield rcv
+
+
+def iterate_cvs_from_xml(clinvar_xml):
+    """Iterates through the gzipped ClinVar XML and yields complete <ClinVarSet> elements."""
     with gzip.open(clinvar_xml, 'rt') as fh:
         for event, elem in ElementTree.iterparse(fh):
             # Wait until we have built a complete ClinVarSet element
             if elem.tag != 'ClinVarSet':
                 continue
-
-            # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of
-            # ClinVar. There should only be one such record per ClinVarSet.
-            rcv = find_mandatory_unique_element(elem, 'ReferenceClinVarAssertion')
-
             # Return the complete record and then remove the processed element from the tree to save memory
-            yield rcv
+            yield elem
             elem.clear()
 
 

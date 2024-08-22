@@ -1,9 +1,10 @@
 import logging
 import re
 import xml.etree.ElementTree as ElementTree
+from functools import cached_property
 from xml.dom import minidom
 
-from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification, MultipleClinicalClassificationsError
+from cmat.clinvar_xml_io.clinical_classification import MultipleClinicalClassificationsError
 from cmat.clinvar_xml_io.clinvar_measure import ClinVarRecordMeasure
 from cmat.clinvar_xml_io.clinvar_trait import ClinVarTrait
 from cmat.clinvar_xml_io.xml_parsing import find_elements, find_optional_unique_element, \
@@ -14,22 +15,22 @@ logger.setLevel(logging.INFO)
 
 
 class ClinVarRecord:
-    """Instances of this class hold data on individual ClinVar records. See also:
-    * /data-exploration/clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model;
-    * Issue https://github.com/EBIvariation/eva-opentargets/issues/127 for the most recent discussions on changing
-      support of different ClinVar record types."""
+    """
+    Base class for both reference and submitted records in ClinVar. See also:
+    /data-exploration/clinvar-variant-types/README.md for the in-depth explanation of ClinVar data model
+    """
 
     # Some allele origin terms in ClinVar are essentially conveying lack of information and are thus not useful.
     NONSPECIFIC_ALLELE_ORIGINS = {'unknown', 'not provided', 'not applicable', 'tested-inconclusive', 'not-reported'}
 
-    def __init__(self, rcv, xsd_version, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
+    def __init__(self, record_xml, xsd_version, trait_class=ClinVarTrait, measure_class=ClinVarRecordMeasure):
         """Initialise a ClinVar record object from an RCV XML record."""
-        self.rcv = rcv
+        self.record_xml = record_xml
         self.xsd_version = xsd_version
 
         # Add a list of traits
         self.trait_set = []
-        for trait in find_elements(self.rcv, './TraitSet/Trait'):
+        for trait in find_elements(self.record_xml, './TraitSet/Trait'):
             self.trait_set.append(trait_class(trait, self))
 
         # We are currently only processing MeasureSets of type Variant which are included directly in the RCV record.
@@ -37,27 +38,17 @@ class ClinVarRecord:
         # * MeasureSet of types "Haplotype", "Phase unknown", or "Distinct chromosomes"
         # * GenotypeSet, which contains an assertion about a group of variants from different chromosome copies, with
         #   the type of be either a "CompoundHeterozygote" or a "Diplotype"
-        variant_measure = find_optional_unique_element(self.rcv, './MeasureSet[@Type="Variant"]/Measure')
+        variant_measure = find_optional_unique_element(self.record_xml, './MeasureSet[@Type="Variant"]/Measure')
         if not variant_measure:
             self.measure = None
         else:
             self.measure = measure_class(variant_measure, self)
 
-        # List of clinical classifications (Germline, Somatic, or Oncogenecity
-        self.clinical_classifications = []
-        if self.xsd_version < 2:
-            # V1 only ever has a single clinical classification / clinical significance
-            self.clinical_classifications.append(
-                ClinicalClassification(find_mandatory_unique_element(self.rcv, './ClinicalSignificance'), self))
-        else:
-            for clin_class in find_elements(self.rcv, './Classifications/*'):
-                self.clinical_classifications.append(ClinicalClassification(clin_class, self))
-
     def __str__(self):
         return f'ClinVarRecord object with accession {self.accession}'
 
     def write(self, output):
-        xml_str = minidom.parseString(ElementTree.tostring(self.rcv)).toprettyxml(indent='  ', encoding='utf-8')
+        xml_str = minidom.parseString(ElementTree.tostring(self.record_xml)).toprettyxml(indent='  ', encoding='utf-8')
         # version 3.8 adds superfluous root
         if xml_str.startswith(b'<?xml'):
             xml_str = re.sub(b'<\?xml.*?>', b'', xml_str)
@@ -67,28 +58,30 @@ class ClinVarRecord:
 
     @property
     def accession(self):
-        return find_mandatory_unique_element(self.rcv, './ClinVarAccession').attrib['Acc']
+        return find_mandatory_unique_element(self.record_xml, './ClinVarAccession').attrib['Acc']
 
     @property
-    def date(self):
-        """This tracks the latest update date, counting even minor technical updates."""
-        return self.rcv.attrib['DateLastUpdated']
+    def last_updated_date(self):
+        """This tracks the latest update date, counting even minor technical updates.
+        Appears differently in reference and submitted records."""
+        raise NotImplementedError
 
     @property
     def created_date(self):
-        """This tracks the date the record was first made public on ClinVar."""
-        return self.rcv.attrib['DateCreated']
+        """This tracks the date the record was first made public on ClinVar.
+        Appears differently in reference and submitted records."""
+        raise NotImplementedError
 
     @property
     def mode_of_inheritance(self):
         """Return a (possibly empty) list of modes of inheritance for a given ClinVar record."""
         return sorted({
-            elem.text for elem in find_elements(self.rcv, './AttributeSet/Attribute[@Type="ModeOfInheritance"]')
+            elem.text for elem in find_elements(self.record_xml, './AttributeSet/Attribute[@Type="ModeOfInheritance"]')
         })
 
     @property
     def trait_set_type(self):
-        return find_mandatory_unique_element(self.rcv, './TraitSet').attrib['Type']
+        return find_mandatory_unique_element(self.record_xml, './TraitSet').attrib['Type']
 
     @property
     def traits(self):
@@ -106,16 +99,21 @@ class ClinVarRecord:
         specific disease. These are the references displayed on the ClinVar website in the "Assertion and evidence
         details" section at the bottom of the page."""
         return [int(elem.text)
-                for elem in find_elements(self.rcv, './ObservedIn/ObservedData/Citation/ID[@Source="PubMed"]')]
+                for elem in find_elements(self.record_xml, './ObservedIn/ObservedData/Citation/ID[@Source="PubMed"]')]
 
     @property
     def allele_origins(self):
-        return {elem.text for elem in find_elements(self.rcv, './ObservedIn/Sample/Origin')}
+        return {elem.text for elem in find_elements(self.record_xml, './ObservedIn/Sample/Origin')}
 
     @property
     def valid_allele_origins(self):
         """Returns all valid allele origins, i.e. ones that are not in the list of nonspecific terms."""
         return {origin for origin in self.allele_origins if origin.lower() not in self.NONSPECIFIC_ALLELE_ORIGINS}
+
+    @cached_property
+    def clinical_classifications(self):
+        """List of clinical classifications (Germline, Somatic, or Oncogenecity)"""
+        raise NotImplementedError
 
     # The following properties are maintained for backwards compatibility, but are only present for a ClinVarRecord
     # if there is exactly one ClinicalClassification for the record.
