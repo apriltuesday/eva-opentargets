@@ -1,6 +1,8 @@
 from collections import Counter
+from typing import Iterable
 
-from cmat import clinvar_xml_io
+from cmat.clinvar_xml_io import ClinVarDataset
+from cmat.clinvar_xml_io.clinvar_set import ClinVarSet
 from cmat.trait_mapping.trait import Trait
 
 
@@ -27,7 +29,12 @@ def parse_trait_names(filepath: str) -> list:
     # Their curation is of highest importance regardless of how many records they are actually associated with.
     nt_expansion_traits = set()
 
-    for clinvar_record in clinvar_xml_io.ClinVarDataset(filepath):
+    dataset = ClinVarDataset(filepath)
+    for clinvar_set in dataset.iter_cvs():
+        # TODO where to put this logic (both the method & the exclusion list)?
+        if should_exclude_record(clinvar_set, ['SUB14299258']):
+            continue
+        clinvar_record = clinvar_set.rcv
         trait_names_and_ids = set((trait.preferred_or_other_valid_name.lower(), trait.identifier)
                                   for trait in clinvar_record.traits_with_valid_names)
         for trait_tuple in trait_names_and_ids:
@@ -46,3 +53,11 @@ def parse_trait_names(filepath: str) -> list:
                             associated_with_nt_expansion=associated_with_nt_expansion))
 
     return traits
+
+
+def should_exclude_record(clinvar_set: ClinVarSet, names_to_exclude: Iterable) -> bool:
+    """Return True if every submitted record in the set has submission_name in the exclusion list."""
+    for submitted_record in clinvar_set.scvs:
+        if submitted_record.submission_name not in names_to_exclude:
+            return False
+    return True

@@ -64,6 +64,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
     logger.info('Processing ClinVar records')
     i = -1
+    # TODO filter here
     for clinvar_record in ClinVarDataset(clinvar_xml):
         # If start & end provided, only process records in the range [start, end)
         i += 1
