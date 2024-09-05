@@ -1,7 +1,7 @@
 import logging
 from functools import cached_property
 
-from cmat.clinvar_xml_io import ClinVarRecord
+from cmat.clinvar_xml_io.clinvar_record import ClinVarRecord
 from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element
 
 logger = logging.getLogger(__name__)

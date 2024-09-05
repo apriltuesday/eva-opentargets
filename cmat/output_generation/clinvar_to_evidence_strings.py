@@ -184,7 +184,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             # We catch exceptions but record when one is thrown, so that the pipeline will crash after processing all
             # records and printing the report.
             logger.error(f'Problem generating evidence for {clinvar_set.rcv.accession}')
-            logger.error(f'Error: {e}')
+            logger.error(f'Error: {repr(e)}')
             exception_raised = True
             continue
 

@@ -2,7 +2,6 @@ import logging
 from functools import cached_property
 
 from cmat.clinvar_xml_io.clinical_classification import ClinicalClassification
-
 from cmat.clinvar_xml_io.clinvar_record import ClinVarRecord
 from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element, find_elements
 
