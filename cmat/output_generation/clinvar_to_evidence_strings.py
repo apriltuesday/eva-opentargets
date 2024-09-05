@@ -10,6 +10,7 @@ import jsonschema
 
 from cmat.clinvar_xml_io import ClinVarDataset
 from cmat.clinvar_xml_io.clinical_classification import MultipleClinicalClassificationsError
+from cmat.clinvar_xml_io.filtering import filter_by_submission_name
 from cmat.output_generation import consequence_type as CT
 from cmat.output_generation.report import Report
 
@@ -64,8 +65,8 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
     logger.info('Processing ClinVar records')
     i = -1
-    # TODO filter here
-    for clinvar_record in ClinVarDataset(clinvar_xml):
+    dataset = ClinVarDataset(clinvar_xml)
+    for clinvar_set in dataset.iter_cvs():
         # If start & end provided, only process records in the range [start, end)
         i += 1
         if start and i < start:
@@ -79,7 +80,13 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
         # Catch any exceptions for this record so we can continue processing.
         try:
-            # Failure mode 0 (skip). Contains multiple clinical classification annotations.
+            # Failure mode 1 (fatal). Record is only supported by submissions deemed to be unusable.
+            if not filter_by_submission_name(clinvar_set):
+                report.clinvar_fatal_excluded_submission += 1
+                continue
+            clinvar_record = clinvar_set.rcv
+
+            # Failure mode 2 (skip). Contains multiple clinical classification annotations.
             # This is new as of V2 of the ClinVar XSD and should definitely be supported at some point,
             # but as it can cause parsing complications we catch these cases first.
             # See GH issue for context: https://github.com/EBIvariation/CMAT/issues/396
@@ -88,18 +95,18 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
                 report.clinvar_skip_multiple_clinical_classifications += 1
                 continue
 
-            # Failure mode 1 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
+            # Failure mode 3 (fatal). A ClinVar record contains no valid traits (traits which have at least one valid,
             # potentially mappable name).
             if not clinvar_record.traits_with_valid_names:
                 report.clinvar_fatal_no_valid_traits += 1
                 continue
-            # Failure mode 2 (fatal). A ClinVar record contains no valid clinical significance terms, likely due to
+            # Failure mode 4 (fatal). A ClinVar record contains no valid clinical significance terms, likely due to
             # submissions being flagged.
             if not clinvar_record.valid_clinical_significances:
                 report.clinvar_fatal_no_clinical_significance += 1
                 continue
 
-            # Failure mode 3 (skip). A ClinVar record contains an unsupported variation type.
+            # Failure mode 5 (skip). A ClinVar record contains an unsupported variation type.
             if clinvar_record.measure is None:
                 report.clinvar_skip_unsupported_variation += 1
                 continue
@@ -111,7 +118,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             grouped_diseases = group_diseases_by_efo_mapping(clinvar_record.traits_with_valid_names,
                                                              string_to_efo_mappings)
 
-            # Failure mode 4 (skip). No functional consequences are available.
+            # Failure mode 6 (skip). No functional consequences are available.
             if not consequence_types:
                 report.clinvar_skip_no_functional_consequences += 1
                 continue
@@ -122,7 +129,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
             if is_structural_variant(clinvar_record.measure):
                 report.structural_variants += len(consequence_types)
 
-            # Failure mode 5 (skip). A ClinVar record has at least one trait with at least one valid name, but no
+            # Failure mode 7 (skip). A ClinVar record has at least one trait with at least one valid name, but no
             # suitable EFO mappings were found in the database. This will still generate an evidence string, but is
             # tracked as a failure so we can continue to measure mapping coverage.
             if not contains_mapping(grouped_diseases):
@@ -176,7 +183,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
         except Exception as e:
             # We catch exceptions but record when one is thrown, so that the pipeline will crash after processing all
             # records and printing the report.
-            logger.error(f'Problem generating evidence for {clinvar_record.accession}')
+            logger.error(f'Problem generating evidence for {clinvar_set.rcv.accession}')
             logger.error(f'Error: {e}')
             exception_raised = True
             continue
