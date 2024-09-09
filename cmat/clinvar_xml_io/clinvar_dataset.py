@@ -4,7 +4,8 @@ import re
 from datetime import date
 
 from cmat.clinvar_xml_io.clinvar_reference_record import ClinVarReferenceRecord
-from cmat.clinvar_xml_io.xml_parsing import iterate_rcv_from_xml, parse_header_attributes
+from cmat.clinvar_xml_io.clinvar_set import ClinVarSet
+from cmat.clinvar_xml_io.xml_parsing import iterate_rcv_from_xml, parse_header_attributes, iterate_cvs_from_xml
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -21,6 +22,10 @@ class ClinVarDataset:
     def __iter__(self):
         for rcv in iterate_rcv_from_xml(self.clinvar_xml):
             yield ClinVarReferenceRecord(rcv, self.xsd_version)
+
+    def iter_cvs(self):
+        for cvs in iterate_cvs_from_xml(self.clinvar_xml):
+            yield ClinVarSet(cvs, self.xsd_version)
 
     def get_xsd_version(self):
         # For format, see https://github.com/ncbi/clinvar/blob/master/FTPSiteXsdChanges.md

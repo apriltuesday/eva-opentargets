@@ -1,6 +1,7 @@
 from collections import Counter
 
-from cmat import clinvar_xml_io
+from cmat.clinvar_xml_io import ClinVarDataset
+from cmat.clinvar_xml_io.filtering import filter_by_submission_name
 from cmat.trait_mapping.trait import Trait
 
 
@@ -27,7 +28,11 @@ def parse_trait_names(filepath: str) -> list:
     # Their curation is of highest importance regardless of how many records they are actually associated with.
     nt_expansion_traits = set()
 
-    for clinvar_record in clinvar_xml_io.ClinVarDataset(filepath):
+    dataset = ClinVarDataset(filepath)
+    for clinvar_set in dataset.iter_cvs():
+        if not filter_by_submission_name(clinvar_set):
+            continue
+        clinvar_record = clinvar_set.rcv
         trait_names_and_ids = set((trait.preferred_or_other_valid_name.lower(), trait.identifier)
                                   for trait in clinvar_record.traits_with_valid_names)
         for trait_tuple in trait_names_and_ids:
