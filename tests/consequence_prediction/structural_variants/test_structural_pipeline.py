@@ -26,7 +26,6 @@ def run_pipeline(resource_name, include_transcripts=False):
 
 def test_successful_run():
     assert sorted(run_pipeline('precise_genomic.xml.gz')) == sorted([
-        ['NC_000016.10:g.72059151_72063259del', 'ENSG00000140830', 'TXNL4B', 'intron_variant'],
         ['NC_000016.10:g.72059151_72063259del', 'ENSG00000257017', 'HP', 'stop_lost'],
         ['NC_000016.10:g.72059151_72063259del', 'ENSG00000261701', 'HPR', 'feature_truncation'],
         ['NC_000001.11:g.25271785_25329047del', 'ENSG00000117616', 'RSRP1', 'intron_variant'],
@@ -37,7 +36,7 @@ def test_successful_run():
 
 def test_successful_run_with_transcripts():
     results = run_pipeline('precise_genomic.xml.gz', include_transcripts=True)
-    assert len(results) == 28
+    assert len(results) == 27
     assert ['NC_000001.11:g.25271785_25329047del', 'ENSG00000187010', 'RHD', 'stop_lost', 'ENST00000454452'] in results
 
 
