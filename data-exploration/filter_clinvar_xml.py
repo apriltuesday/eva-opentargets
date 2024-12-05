@@ -3,7 +3,7 @@ import gzip
 import logging
 import xml.etree.ElementTree as ElementTree
 
-from cmat.clinvar_xml_io import ClinVarRecord
+from cmat.clinvar_xml_io.clinvar_reference_record import ClinVarReferenceRecord
 from cmat.clinvar_xml_io.xml_parsing import find_mandatory_unique_element, iterate_cvs_from_xml
 from cmat.output_generation.clinvar_to_evidence_strings import get_consequence_types
 from cmat.output_generation.consequence_type import process_consequence_type_file
@@ -29,7 +29,7 @@ def filter_xml(input_xml, output_xml, filter_fct, max_num=None):
         output_file.write(header)
         for raw_cvs_xml in iterate_cvs_from_xml(input_xml):
             rcv = find_mandatory_unique_element(raw_cvs_xml, 'ReferenceClinVarAssertion')
-            record = ClinVarRecord(rcv, 2.0)
+            record = ClinVarReferenceRecord(rcv, 2.0)
             if filter_fct(record):
                 output_file.write(ElementTree.tostring(raw_cvs_xml))
                 count += 1
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     variant_to_gene_mappings = process_consequence_type_file(args.gene_mapping_file)
 
-    def no_consequences(x: ClinVarRecord):
+    def no_consequences(x: ClinVarReferenceRecord):
         return x.traits_with_valid_names and x.measure and not get_consequence_types(x.measure, variant_to_gene_mappings)
 
     filter_xml(
