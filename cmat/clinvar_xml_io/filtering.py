@@ -1,7 +1,7 @@
 # Filtering functions that can be used in multiple pipelines.
 
 # Identified as problematic submissions, e.g. too many unmappable trait names.
-submission_names_to_exclude = ['SUB14299258']
+submission_names_to_exclude = ['SUB14299258', 'SUB14767656']
 
 
 def filter_by_submission_name(clinvar_set):
