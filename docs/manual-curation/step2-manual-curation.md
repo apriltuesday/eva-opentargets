@@ -97,3 +97,11 @@ Terms for import do not require any additional manual intervention, but new term
 * **MedGen, OMIM** - Links to the specified resource, useful references if any of the above cannot be found. These are often present in the "Suggested exact mapping" column.
 
 Any additional comments can be left in the final column, they will be passed on to EFO.
+
+Note: It is common that new terms are required to be inserted between a general term and more specific ones. The idea being that the new term would group a subset of the specific terms but not all of them.
+To help with this a script was developed: given a parent CURIE it will search for all the children of that term that matches specific keyword in their label, description or synonyms. 
+This is useful for exampl when looking for all the terms that specifically labeled as "dominant" in a long list of children terms.
+
+```bash
+${PYTHON_BIN} ${CODE_ROOT}/bin/trait_mapping/get_children_with_keywords.py --ontology MONDO  --parent_curie MONDO:0100062 --keywords dominant
+```
