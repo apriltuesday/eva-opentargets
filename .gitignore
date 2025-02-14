@@ -6,6 +6,7 @@
 /dist
 /env
 /env_3.5
+/venv
 .cache
 .eggs
 *.coverage

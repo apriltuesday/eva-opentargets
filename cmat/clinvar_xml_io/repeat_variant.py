@@ -1,10 +1,8 @@
 import logging
 import re
 
-from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
-
 from cmat.clinvar_xml_io import ClinVarRecordMeasure
-from cmat.clinvar_xml_io.hgvs_variant import HgvsVariant, SequenceType
+from cmat.clinvar_xml_io.hgvs_variant import HgvsVariant, SequenceType, IUPAC_AMBIGUOUS_DNA
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -15,7 +13,7 @@ logger.setLevel(logging.INFO)
 # Examples: 'ATXN8, (CAG)n REPEAT EXPANSION' or 'TNRC6A, 5-BP INS, TTTCA(n) REPEAT EXPANSION'
 re_description = re.compile(
     r'\(?'
-    r'(?P<sequence>[{}]+)'.format(IUPACAmbiguousDNA.letters) +
+    r'(?P<sequence>[{}]+)'.format(IUPAC_AMBIGUOUS_DNA) +
     r'\)?\(?n\)?'
     r'(?: REPEAT)? EXPANSION'
 )

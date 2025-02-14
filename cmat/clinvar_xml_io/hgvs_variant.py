@@ -1,7 +1,7 @@
 import re
 from enum import Enum, auto
 
-from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
+IUPAC_AMBIGUOUS_DNA = 'GATCRYWSMKHBVDN'
 
 
 class SequenceType(Enum):
@@ -148,7 +148,7 @@ class HgvsVariant:
             r')?'                            # The entire end coordinate part is optional
 
             r'(?P<sequence>[{}]*)'.format(   # Repeat unit sequence, optional                       GGGGCC or
-                IUPACAmbiguousDNA.letters)   # IUPAC ambiguity codes are supported                  CGN
+                IUPAC_AMBIGUOUS_DNA)   # IUPAC ambiguity codes are supported                  CGN
         )
         m = re_hgvs_like_transcript_or_genomic.match(self.text)
         if m:
