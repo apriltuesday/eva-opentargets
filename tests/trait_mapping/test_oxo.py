@@ -87,11 +87,12 @@ class TestGetOxoResultsFromResponse:
             assert oxo.get_oxo_results_from_response(mapping_context, oxo_response, 1) == expected_oxo_results
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="OxO frequently down")
+    # @pytest.mark.skip(reason="OxO frequently down")
     def test_get_oxo_results(self):
+        mapping_context = MappingContext('trait', 'efo', ['mondo', 'hp'])
         id_list = ["OMIM:314580", "MeSH:D002277"]
         target_list = ["Orphanet", "efo", "hp"]
-        results = oxo.get_oxo_results(id_list, target_list, distance=1)
+        results = oxo.get_oxo_results(mapping_context, id_list, target_list, distance=1)
         assert len(results) == 2
         assert len(results[0].mapping_list) == 2
         assert len(results[1].mapping_list) == 2

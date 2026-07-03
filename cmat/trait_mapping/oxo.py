@@ -139,7 +139,8 @@ def get_oxo_results(mapping_context, id_list: list, target_list: list, distance:
     :param distance: Number of steps to take through xrefs to find mappings
     :return: List of OxOResults based upon results from request made to OxO
     """
-    url = "https://www.ebi.ac.uk/spot/oxo/api/search?size=5000"
+    url = "https://wwwdev.ebi.ac.uk/spot/oxo2/api/mappings/search?size=5000"
+    # url = "https://www.ebi.ac.uk/spot/oxo/api/search?size=5000"
     payload = build_oxo_payload(id_list, target_list, distance)
     try:
         oxo_response = json_request(url, payload, method=requests.post)
