@@ -120,3 +120,16 @@ def test_get_ols_search_results():
     assert top_ranked_result.label == 'hemophilia A'
     assert top_ranked_result.get_match_type() == MatchType.EXACT_MATCH_SYNONYM
     assert top_ranked_result.get_mapping_source() == MappingSource.TARGET_CURRENT
+
+
+@pytest.mark.integration
+def test_get_uri_from_exact_match():
+    ontology = 'efo'
+    query = 'hemophilia A'
+    uri = ols.get_uri_from_exact_match(query, ontology)
+    assert uri == 'http://purl.obolibrary.org/obo/MONDO_0010602'
+
+    # Test case insensitive
+    query = 'hemophilia a'
+    uri = ols.get_uri_from_exact_match(query, ontology)
+    assert uri == 'http://purl.obolibrary.org/obo/MONDO_0010602'
