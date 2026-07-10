@@ -28,7 +28,7 @@ def parse_trait_names(filepath: str) -> list:
     # Track cross-references associated with each trait name.
     # Do this separately from trait name/ID, just in case ClinVar has different sets of xrefs associated with the same
     # trait across different RCVs.
-    trait_xrefs = defaultdict(list)
+    trait_xrefs = defaultdict(set)
 
     # Tracks all traits which are at least once implicated in "NT expansion", or nucleotide repeat expansion, variants.
     # Their curation is of highest importance regardless of how many records they are actually associated with.
@@ -45,12 +45,12 @@ def parse_trait_names(filepath: str) -> list:
             trait_names_and_ids.add(trait_tuple)
 
             # Add xrefs from this trait
-            xrefs = []
+            xrefs = set()
             for (db, id_, status) in trait.xrefs:
                 if status.lower() == 'current' and db.lower() in OntologyUri.db_to_uri_conversion:
-                    xrefs.append(OntologyUri(id_, db).uri)
+                    xrefs.add(OntologyUri(id_, db).uri)
 
-            trait_xrefs[trait_tuple].extend(xrefs)
+            trait_xrefs[trait_tuple].update(xrefs)
             trait_name_counter[trait_tuple] += 1
         if clinvar_record.measure and clinvar_record.measure.is_repeat_expansion_variant:
             nt_expansion_traits |= trait_names_and_ids
@@ -63,7 +63,7 @@ def parse_trait_names(filepath: str) -> list:
             continue
         associated_with_nt_expansion = trait_tuple in nt_expansion_traits
         traits.append(Trait(name=trait_tuple[0], identifier=trait_tuple[1], frequency=trait_frequency,
-                            xrefs=trait_xrefs.get(trait_tuple, []),
+                            xrefs=trait_xrefs.get(trait_tuple, set()),
                             associated_with_nt_expansion=associated_with_nt_expansion))
 
     return traits
