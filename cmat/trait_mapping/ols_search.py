@@ -30,11 +30,14 @@ def get_ols_search_results(mapping_context, query_fields, field_list):
     query_fields_list = query_fields.split(',')
     # V2 of the OLS API does not support search currently, so for now use V1
     search_url = 'https://www.ebi.ac.uk/ols4/api/search'
+    ontology_param = mapping_context.target_ontology.lower()
+    if mapping_context.preferred_ontologies:
+        ontology_param += f',{",".join(o.lower() for o in mapping_context.preferred_ontologies)}'
     params = {
         'q': mapping_context.trait_name,
         'exact': 'false',
         'obsoletes': 'false',
-        'ontology': f'{mapping_context.target_ontology.lower()},{",".join(mapping_context.preferred_ontologies)}',
+        'ontology': ontology_param,
         'queryFields': query_fields,
         'fieldList': field_list,
         'rows': 1000
