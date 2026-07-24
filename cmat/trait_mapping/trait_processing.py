@@ -38,7 +38,7 @@ def get_uris_for_oxo(zooma_result_list: list[ZoomaMapping]) -> set:
 
 def process_trait(trait: Trait, previous_mappings: dict, filters: dict, oxo_target_list: list, oxo_distance: int,
                   ols_query_fields: str, ols_field_list: str,
-                  target_ontology: str, preferred_ontologies: list) -> Trait:
+                  target_ontology: str, preferred_ontologies: list, with_candidates: bool = True) -> Trait:
     """
     Process a single trait. First look for an exact string match in the target ontology and return immediately if found.
     Then check previous mappings; if mappings found here are still current EFO terms then return immediately.
@@ -56,6 +56,7 @@ def process_trait(trait: Trait, previous_mappings: dict, filters: dict, oxo_targ
     :param ols_field_list: A string listing fields to return from OLS query
     :param target_ontology: ID of target ontology
     :param preferred_ontologies: List of preferred non-target ontology IDs
+    :param with_candidates: Whether to run candidate-only searches or not (i.e. Zooma and OxO, default True)
     :return: The original trait with any results found.
     """
     logger.debug('Processing trait {}'.format(trait.name))
@@ -81,6 +82,10 @@ def process_trait(trait: Trait, previous_mappings: dict, filters: dict, oxo_targ
     trait.candidate_mappings.extend(PreviousMapping(mapping_context, uri, label) for uri, label in previous_mappings)
     trait.assess_if_finished()
     if trait.is_finished:
+        return trait
+
+    # Stop here if we're only looking for finished mappings, not curation candidates
+    if not with_candidates:
         return trait
 
     # Add ClinVar xrefs
