@@ -21,8 +21,6 @@ nextflow run ${CODE_ROOT}/pipelines/export_curation_spreadsheet.nf \
   -resume
 ```
 
-## Check and correct known problematic mappings
-There is a [spreadsheet](https://docs.google.com/spreadsheets/d/1m4ld3y3Pfust5JSOJOX9ZmImRCKRGi-fGYj_dExoGj8/edit) which was created to track trait-to-ontology mappings which were especially problematic in the past to users of Open Targets platform. Prior to running subsequent steps, make sure that all traits mentioned in that spreadsheet are mapped to the correct ontology terms in `${BATCH_ROOT_BASE}/manual_curation/latest_mappings.tsv`.
 
 ## Submit feedback to EFO
 Tables for IMPORT and NEW terms will be created by curators during [step 2](step2-manual-curation.md).
