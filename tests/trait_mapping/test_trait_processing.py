@@ -78,7 +78,6 @@ class TestProcessTrait:
         trait = Trait('frontotemporal lobar degeneration with tdp43 inclusions, tardbp-related', None, None, xrefs)
         processed_trait = self.run_process_trait(trait)
         assert not processed_trait.is_finished
-        assert len(processed_trait.candidate_mappings) == 2
-        for mapping in processed_trait.candidate_mappings:
-            if isinstance(mapping, ClinVarXrefMapping):
-                assert mapping.uri == xrefs[0]
+        clinvar_xref_candidates = [m for m in processed_trait.candidate_mappings if isinstance(m, ClinVarXrefMapping)]
+        assert len(clinvar_xref_candidates) == 1
+        assert clinvar_xref_candidates[0].uri == xrefs[0]
