@@ -78,7 +78,8 @@ the filtered selection.
         * 2.2.2 Determine if the mapping in "Replacement mapping" is suitable, if not find a new term to use as mapping
     * 2.3 **Exact synonym matches**
         * 2.3.1 Remove "Blank" from "Exact synonym matches" column
-        * 2.3.2 Determine if the mapping is suitable, if not find a new term to use as mapping
+        * 2.3.2 Determine if the mapping is suitable, if not find a new term to use as mapping.
+          See [below](#notes-on-exact-synonym-matches) for more details.
 3. **Low-confidence mappings or unmapped terms**
     * 3.1 Set the "Status" column to only include "Blank" entries
     * 3.2 Look for suitable mappings from the "All other mappings" columns, or perform your own searches
@@ -113,6 +114,20 @@ text with initials e.g. "BK - example comment". Comments should be ordered chron
 at the top. Any comments will become available in the "Notes" field within the next iteration.
 Comments from previous iterations that need to be kept for subsequent ones should be copy/pasted from the "Notes" to
 the "Comments" cell.
+
+### Notes on exact synonym matches
+
+Terms listed as exact synonyms are not always accurate so they need to be checked one by one.
+
+One case to look for is when the exact match can be imported (yellow cell in the "Exact match" column) but an exact
+synonym match exists and is in EFO already (green cell in the "Exact synonym match" column). Here it is likely that EFO
+has already made the decision to not import the new term. We should double-check that the synonym does mean the same
+thing as the label, and if it does use the existing EFO term with synonym match over the imported exact match.
+
+An example is "multiple myeloma", an exact match for http://purl.obolibrary.org/obo/HP_0006775 which would need
+to be imported. However it is marked as an exact synonym for "plasma cell myeloma" http://purl.obolibrary.org/obo/MONDO_0009693
+which is already in EFO. In this case the synonym is accurate and so should be used directly rather than importing a new
+term.
 
 ### Note on multiple mappings
 
