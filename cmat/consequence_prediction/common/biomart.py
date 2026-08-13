@@ -28,7 +28,8 @@ def build_biomart_request_template(key_column, query_columns):
 
     Note `identifier_list` is left to be filled in later, to ensure the identifiers can be chunked appropriately.
     """
-    biomart_request_template = f"""http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?>
+    # TODO BioMart not available on new Ensembl
+    biomart_request_template = f"""https://jun2026.archive.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE Query>
     <Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6">
         <Dataset name = "hsapiens_gene_ensembl" interface = "default" >
