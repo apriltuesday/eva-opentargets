@@ -91,11 +91,15 @@ class TestGetOxoResultsFromResponse:
     def test_get_oxo_results(self):
         mapping_context = MappingContext('trait', 'efo', ['mondo', 'hp'])
         id_list = ["OMIM:314580", "MeSH:D002277"]
-        target_list = ["Orphanet", "efo", "hp"]
-        results = oxo.get_oxo_results(mapping_context, id_list, target_list, distance=1)
-        assert len(results) == 2
-        assert len(results[0].mapping_list) == 2
-        assert len(results[1].mapping_list) == 2
+        target_list = ["ORPHANET", "EFO", "HP"]
+        results = oxo.get_oxo_results(mapping_context, id_list, target_list, distance=2)
+        assert len(results) == 6
+        results_per_id = {
+            curie: [mapping for mapping in results if mapping.query_id == curie]
+            for curie in id_list
+        }
+        assert len(results_per_id["OMIM:314580"]) == 1
+        assert len(results_per_id["MeSH:D002277"]) == 5
 
 
 class TestOxoMapping:

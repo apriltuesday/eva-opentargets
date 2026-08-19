@@ -36,7 +36,7 @@ class ArgParser:
                             help="data sources to use in query.")
         parser.add_argument("-p", dest="preferred", default="eva-clinvar,cttv,gwas,clinvar-xrefs",
                             help="preference for data sources, with preferred data source first.")
-        parser.add_argument("-t", dest="oxo_target_list", default="efo,hp,mondo,Orphanet",
+        parser.add_argument("-t", dest="oxo_target_list", default="EFO,HP,MONDO,ORPHANET",
                             help="target ontologies to use with OxO")
         parser.add_argument("-d", dest="oxo_distance", default=1,
                             help="distance to use to query OxO.")
